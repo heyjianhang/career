@@ -1,7 +1,6 @@
 {
   "name": "@heyjianhang/career",
   "version": "0.2.0",
-  "private": true,
   "description": "与 Agent 协作的个人求职工作台：整理经历、准备简历，逐步连接岗位分析与求职跟踪。",
   "repository": {
     "type": "git",
@@ -64,5 +63,9 @@
     "schemas/",
     "examples/presentation/package.json",
     "docs/installation.md"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
