@@ -9,7 +9,9 @@ import {fileURLToPath} from 'node:url';
 import {checkDocumentation} from '../scripts/check-docs.mjs';
 const exec=promisify(execFile),root=fileURLToPath(new URL('../',import.meta.url));
 const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-package-'));
-const env={...process.env,npm_config_offline:'true',GIT_TERMINAL_PROMPT:'0'};
+// A fresh npm ci cache may have tarballs without registry metadata.
+// Let npm resolve missing metadata as a first-time installation would.
+const env={...process.env,GIT_TERMINAL_PROMPT:'0'};
 const run=async(file,args,cwd=root)=>(await exec(file,args,{cwd,env,maxBuffer:8*1024*1024,timeout:300_000})).stdout;
 const npm=(args,cwd=root)=>run(process.execPath,[process.env.npm_execpath,...args],cwd);
 const jsonCommand=async(cli,cwd,args)=>{

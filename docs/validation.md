@@ -15,7 +15,7 @@
 | `npm run test:templates` | 各样式的有照片、无照片、长内容 PDF 及内容保留 |
 | `npm run test:links` | 14 款样式的 PDF 链接、通用资料复制和照片下载 |
 
-浏览器检查先运行 `npx playwright install chromium`，产物在忽略的 `.cache/` 内。`test:package` 从 npm 缓存离线安装，需先 npm ci；它不注册账号、不访问 GitHub、不发布 npm。
+浏览器检查先运行 `npx playwright install chromium`，产物在忽略的 `.cache/` 内。`test:package` 从真实 tgz 安装，缓存缺失时访问 npm registry 获取依赖与元数据；它不注册账号、不访问 GitHub、不发布 npm。
 
 [CI](../.github/workflows/check.yml) 在三种系统上运行构建／Node 测试、文档检查、合成资料检查和安装包检查。浏览器／PDF 与模型行为不在该基础矩阵内。
 

@@ -68,7 +68,7 @@ npm run test:package
 npm pack
 ```
 
-`test:package` 会从真实 tgz 离线安装到临时目录，再检查 setup／重试、五个 Skills、`.gitignore`、HTML 生成及本地 Git 保存。需要先 npm ci 让依赖进入缓存；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
+`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、五个 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
 包采用 files 白名单；运行所需的合成内容包保留，私人 workspace、构建产物、测试、研究截图和源码不进入 npm。发布前检查 npm pack 的文件清单，核对账号和版本，核对开发仓库地址，确认后移除 private 并以公开 scoped 包发布；凭据只通过 npm 官方认证流程处理。成功发布后还需从 registry 在新目录安装验证，最后核对 README／安装页中的版本和命令。公开说明采用正式使用文案；真实发布记录只根据成功回执更新。
 
