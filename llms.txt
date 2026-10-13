@@ -1,0 +1,17 @@
+# career
+
+> 与 Agent 协作的个人求职工作台。用户在自己的目录保存经历、简历和求职进度；npm CLI 提供工具，Skills 提供协作流程。
+
+## 开始使用
+
+- [安装与工作区交接](https://raw.githubusercontent.com/heyjianhang/career/main/install.md)：先确认保存位置，创建 career-workspace，安装后引导在该工作区的新对话继续。
+- [安装和换机说明](https://raw.githubusercontent.com/heyjianhang/career/main/docs/installation.md)：环境、指定版本安装、已有资料恢复。
+
+## 项目说明
+
+- [README](https://raw.githubusercontent.com/heyjianhang/career/main/README.md)：已实现能力与使用入口。
+- [路线图](https://raw.githubusercontent.com/heyjianhang/career/main/docs/roadmap.md)：岗位分析、求职跟踪与复盘的后续规划。
+
+## Optional
+
+- [贡献指南](https://raw.githubusercontent.com/heyjianhang/career/main/CONTRIBUTING.md)：工具源码开发与验证。
