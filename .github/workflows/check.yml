@@ -23,6 +23,8 @@ jobs:
         run: npm test
       - name: Check Skills and documentation
         run: npm run check:docs
+      - name: Build public portal from approved files
+        run: npm run build:site
       - name: Validate synthetic workspace
         run: npm run check:example
       - name: Install and exercise the packed CLI

@@ -41,3 +41,9 @@ CLI 不调用模型，不自动注册账号、创建 Agent 会话或合并分叉
 ## 接手入口
 
 先检查实际文件和未提交改动，再读[开发说明](development.md)与[架构](architecture.md)。执行接口看 CLI help；Skills 与数据规则按当前任务读取。后续方向读[路线图](roadmap.md)，来源读[参考](references.md)；规划不作为当前实现。
+
+## 门户部署准备（2026-10-13）
+
+静态门户位于 site/，使用 node scripts/build-site.mjs 构建，输出 build/site/ 的十个公开文件。短安装指令指向独立的 GitHub raw install.md，继续安装已发布的 0.2.0；页面版本从 package.json 生成。腾讯 EdgeOne 项目 career 已关联 main，首次部署 0a14646 因构建脚本未提交而失败，本次补齐门户源码、配置与 CI 构建检查。
+
+目标域名 career.heyjianhang.top，使用全球可用区（不含中国大陆）。部署成功、CNAME 与 HTTPS 状态仍需从控制台和公网验收；当前不是上线完成记录。本次不发布新的 npm 版本，CLI 的后续安装交接改造和维护者 Skill 分开提交。

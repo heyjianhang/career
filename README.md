@@ -45,17 +45,15 @@ CLI 负责确定性的工具操作，写作与判断由用户选择的 Agent 完
 
 ## 开始使用：把这段发给 Agent
 
-需要一个能读写本地文件、运行终端命令的 Agent。复制整个代码块发给它，由它完成安装与后续引导：
+把下面这一句发给你的 Agent：
 
 ```text
-请帮我安装 career，并初始化一个独立的个人求职工作区。
-先检查 Node.js 22+ 和 npm，缺少时从官方来源安装。和我确定资料目录后，用绝对路径执行：
-npx --yes --package @heyjianhang/career@0.2.0 career setup --workspace "<个人目录>" --json
-
-完成后进入这个目录，先读取 AGENTS.md，再按初始化结果的 next_reads 和 next_action 继续引导我。
+请读取 https://raw.githubusercontent.com/heyjianhang/career/main/install.md，按指引帮我安装并初始化 career。
 ```
 
-初始化会安装项目级 Skills、协作入口和固定版本的工具依赖。工作区的 `AGENTS.md` 负责后续路由：选择保存方式、需要时使用 Git Skill 准备私人同步，再进入经历与简历流程。之后 Agent 在个人目录内使用 `npm run career -- …`，不用每次重新安装。详细环境要求、恢复方法和本地包试用见[安装说明](docs/installation.md)；也可下载打开[指令复制页](docs/get-started.html)。
+Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 文件夹。初始化完成后，它会引导你在 Agent 软件中打开这个文件夹，并给出一句新对话的开始指令。安装时不用填写姓名或简历。
+
+新工作区的 `AGENTS.md` 接管后续流程：选择保存方式，再整理经历、维护母版和生成简历。详细引导集中在[安装指南](install.md)，[llms.txt](llms.txt)提供 Agent 文档导航；环境、换机和本地包试用见[安装说明](docs/installation.md)。
 
 ## Skills 与 CLI 怎么配合
 
@@ -82,9 +80,9 @@ Skills 随 npm 包安装到个人目录。支持项目级 Skills 的客户端可
 ## 资料在哪里
 
 ```text
-my-career/
+career-workspace/
 ├── AGENTS.md          # Agent 的协作入口
-├── .agents/skills/    # 五个 Skills 及其参考资料
+├── .agents/skills/    # 五个用户 Skills 及其参考资料
 ├── career.json        # 工作区配置、工具版本、同步选择
 ├── package.json       # 本目录使用的工具
 ├── package-lock.json  # 锁定依赖版本
@@ -109,7 +107,7 @@ npm run check:example
 npm run test:package
 ```
 
-CI 在 macOS、Windows、Linux / Node 22 上安装依赖、运行测试，并从实际安装包检查初始化和简历生成。[工作流](.github/workflows/check.yml)只做检查；npm 首次发布另行执行。具体检查与发布流程见[开发说明](docs/development.md)。
+CI 在 macOS、Windows、Linux / Node 22 上安装依赖、运行测试，并从实际安装包检查初始化和简历生成。[工作流](.github/workflows/check.yml)只做检查；npm 发布另行执行。具体检查与发布流程见[开发说明](docs/development.md)。
 
 ## 许可证与致谢
 

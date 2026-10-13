@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>career · 与 Agent 协作的个人求职工作台</title>
+  <meta name="description" content="把经历，写成下一步。与 Agent 一起整理经历、维护简历母版、选择排版并导出 PDF。复制一句指令，从自己的个人求职工作区开始。">
+  <meta name="theme-color" content="#f5f6f0">
+  <link rel="describedby" href="llms.txt">
+  <meta property="og:title" content="career · 把经历，写成下一步。">
+  <meta property="og:description" content="与 Agent 协作的个人求职工作台。从一段经历，到一份准备好的简历。">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#start">跳转到开始指令</a>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="wordmark" href="#" aria-label="career 首页">career<span>.</span></a>
+      <nav aria-label="主导航">
+        <a href="#look">看看效果</a>
+        <a href="https://github.com/heyjianhang/career" class="github-link">GitHub <span aria-hidden="true">↗</span></a>
+        <a href="#start" class="button button-small">开始使用 <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span> 与 Agent 协作的个人求职工作台</p>
+        <h1 id="hero-title">把经历，<br>写成<span class="next-step">下一步<span aria-hidden="true">。</span></span></h1>
+        <p class="intro">从旧简历、项目材料，或一段对话开始。<br class="desktop-break">和 Agent 一起理清经历，准备下一次机会。</p>
+        <div class="hero-links"><a href="#look">先看看生成的简历 <span aria-hidden="true">↓</span></a></div>
+      </div>
+      <div class="start-card" id="start">
+        <div class="start-heading"><span class="step-number">01 — 开始协作</span><span class="version">v{{VERSION}}</span></div>
+        <h2>复制，发给你的 Agent。</h2>
+        <pre id="prompt" class="prompt" tabindex="0" aria-label="发给 Agent 的开始指令">{{BOOTSTRAP_PROMPT}}</pre>
+        <button type="button" id="copy" class="button copy-button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+          <span>复制开始指令</span><span aria-hidden="true" class="copy-arrow">↗</span>
+        </button>
+        <p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
+        <noscript><p>选择上方全部文字，复制后发给 Agent 即可。</p></noscript>
+      </div>
+    </section>
+
+    <section class="journey container" aria-label="开始后会发生什么">
+      <div><span>01</span><h2>聊聊你的经历</h2><p>有旧材料就先读，没有就从一段经历开始。</p></div>
+      <div><span>02</span><h2>整理成简历母版</h2><p>保留事实和来源，为不同机会选择合适的表达。</p></div>
+      <div><span>03</span><h2>选个样式，准备出发</h2><p>预览、导出 PDF，再复制各平台需要的填写稿。</p></div>
+    </section>
+
+    <section class="showcase" id="look" aria-labelledby="look-title">
+      <div class="container showcase-grid">
+        <div class="showcase-copy">
+          <p class="eyebrow">你的经历，有自己的表达</p>
+          <h2 id="look-title">一份好好整理的资料，<br>不止用一次。</h2>
+          <p>从同一份母版准备不同版本。内容理清之后，排版和平台填写都更从容。</p>
+          <div class="feature-list">
+            <div><b>14 款排版，按你的喜好选择</b><p>分页预览，导出 HTML 或 PDF。</p></div>
+            <div><b>照片、个人网页、项目链接</b><p>有就展示，PDF 中的链接也可以点击。</p></div>
+            <div><b>平台填写稿，点击就能复制</b><p>覆盖四个平台的主要经历字段。</p></div>
+          </div>
+          <a class="text-link" href="https://github.com/heyjianhang/career#现在可以做什么">了解当前能力 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="product-preview">
+          <div class="preview-toolbar"><div class="preview-switch" role="group" aria-label="切换产品截图"><button type="button" data-preview="workspace" aria-pressed="true">简历工作台</button><button type="button" data-preview="styles" aria-pressed="false">排版样式</button></div><button class="icon-button" id="expand" type="button" aria-label="放大产品截图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg></button></div>
+          <button type="button" id="preview-image-button" class="preview-image-button" aria-label="放大简历工作台截图"><img id="preview-image" src="assets/workspace.jpg" alt="career 简历工作台，展示分页简历、照片、项目链接和导出按钮；内容为虚构示例" width="1440" height="1080" loading="lazy"></button>
+          <p class="image-caption">实际产品截图 · 使用虚构资料演示</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="future container" aria-labelledby="future-title">
+      <div><p class="eyebrow">从简历开始，贯穿一次求职</p><h2 id="future-title">下一步，继续和你一起。</h2></div>
+      <div class="future-copy"><p>career 正从经历整理与简历准备，逐步走向岗位分析、求职进展跟踪与复盘。</p><a class="text-link" href="https://github.com/heyjianhang/career/blob/main/docs/roadmap.md">看看后续规划 <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="faq container" aria-labelledby="faq-title">
+      <div><p class="eyebrow">开始之前</p><h2 id="faq-title">你可能还想知道</h2><p>剩下的，交给 Agent 一步步引导。</p></div>
+      <div class="faq-list">
+        <details><summary>我不会写代码，也能使用吗？<span aria-hidden="true">+</span></summary><p>可以。把上面的一句指令发给 Agent，它会先和你确定保存位置，再安装工具。完成后，在 Agent 软件中打开新建的 career-workspace 文件夹，新建对话并发送它给出的开始指令，就能开始整理经历。</p></details>
+        <details><summary>需要先准备完整的简历吗？<span aria-hidden="true">+</span></summary><p>不需要。有旧简历或项目材料就交给 Agent，没有也可以从一段工作、项目或学习经历开始。简历照片、个人网页和项目链接都可以之后再补充。</p></details>
+        <details><summary>我的资料会存在哪里？<span aria-hidden="true">+</span></summary><p>资料默认保存在你选定位置下的 career-workspace 文件夹中。可以只在本机保存，也可以让 Agent 引导连接自己的 GitHub 私人仓库，方便备份和换机继续。你使用的 Agent 如何处理对话与文件，由该客户端的设置和条款决定。</p></details>
+        <details><summary>现在可以直接投递和跟踪岗位吗？<span aria-hidden="true">+</span></summary><p>当前可以整理经历、维护简历母版、生成不同版本、选择排版、导出文件和准备平台填写稿。岗位分析与求职跟踪仍在规划中，目前不包含自动填表或自动投递。</p></details>
+      </div>
+    </section>
+    <div class="closing container"><span class="closing-dot" aria-hidden="true">✳</span><p>下一步，就从你的第一段经历开始。</p><a class="button" href="#start">开始使用 career <span aria-hidden="true">↗</span></a></div>
+  </main>
+  <footer class="container footer"><a class="wordmark" href="#">career<span>.</span></a><span>与 Agent 协作的个人求职工作台</span><div><a href="https://github.com/heyjianhang/career">GitHub ↗</a><a href="https://github.com/heyjianhang/career/blob/main/LICENSE">MIT 开源协议</a></div></footer>
+  <dialog id="image-dialog" aria-label="产品截图预览"><div class="dialog-bar"><span id="dialog-title">简历工作台</span><button class="icon-button" id="close-preview" type="button" aria-label="关闭截图预览">×</button></div><img id="dialog-image" src="assets/workspace.jpg" alt="简历工作台截图" width="1440" height="1080"></dialog>
+</body>
+</html>

@@ -31,3 +31,6 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# Hosting CLI local metadata / credentials
+.edgeone/

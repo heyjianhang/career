@@ -3,6 +3,7 @@ import {readFile,readdir,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parse} from 'yaml';
+import {readBootstrap} from './bootstrap.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const ignored=new Set(['node_modules','.git','.cache','.local','dist','resources','build','outputs','coverage']);
@@ -60,8 +61,7 @@ async function main(){
  assert.equal(installation.match(/```text\n([\s\S]*?)\n```/)[1],prompt,'Installation prompt differs from README');
  const htmlPrompt=page.match(/<textarea\b[^>]*>([\s\S]*?)<\/textarea>/)[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
  assert.equal(htmlPrompt,prompt,'Copy page prompt differs from README');
- const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
- assert.ok(prompt.includes(`--package ${pkg.name}@${pkg.version} career setup --workspace`),'Bootstrap package or version is stale');
+ assert.equal((await readBootstrap()).prompt,prompt);
  console.log(JSON.stringify({source,installed,bootstrap:'consistent'}));
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))await main();

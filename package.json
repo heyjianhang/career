@@ -31,7 +31,9 @@
     "prepack": "npm run build",
     "test:distribution": "npm run build && node --test tests/distribution.test.mjs",
     "test:package": "node tests/package-smoke.mjs",
-    "career": "node dist/cli.js"
+    "career": "node dist/cli.js",
+    "build:site": "node scripts/build-site.mjs",
+    "preview:site": "node scripts/preview-site.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-sc": "5.3.1",
