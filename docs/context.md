@@ -8,7 +8,7 @@ career 是与 Agent 协作的个人求职工作台，覆盖经历整理、简历
 
 开源交付物是 Agent Skills 与 `@heyjianhang/career` npm CLI。用户把开始指令发给 Agent，在独立目录整理资料、维护母版和生成简历；开发仓库只维护程序、方法和合成示例。
 
-`0.2.0` 处于发布准备阶段，package.json 保持 private，尚未发布到 npm。公开 README 与安装页使用正式使用说明，不展示发布准备提示；这不代表已完成 npm 发布。开发源码仓库已确定为 [heyjianhang/career](https://github.com/heyjianhang/career)，为公开仓库；本地 origin 连接该地址。首次推送、远程 CI 和 npm 发布后续处理。
+`0.2.0` 处于发布准备阶段，package.json 保持 private，尚未发布到 npm。公开 README 与安装页使用正式使用说明，不展示发布准备提示；这不代表已完成 npm 发布。开发源码仓库已确定为 [heyjianhang/career](https://github.com/heyjianhang/career)，为公开仓库；本地 origin 连接该地址。源码已首次提交并推送 main，三种系统的 Node 22 CI 已通过；npm 发布后续处理。
 
 ## 已实现
 
@@ -22,13 +22,15 @@ career 是与 Agent 协作的个人求职工作台，覆盖经历整理、简历
 
 ## 验证证据与限制
 
-本轮初始化与 Git Skill 调整在 macOS / Node 26 复核：60 项 Node 测试通过，合成 v2 样例 15 条记录、0 错误、2 个预期提示。真实 tgz 完成独立安装、重复初始化、HTML 生成与本地 Git 保存；五个 Skills 和 142 条安装资源引用通过检查，README／安装说明／指令复制页内容一致。此前还从安装包完成过 PDF 导出；本轮未修改排版，未重复浏览器或 PDF 矩阵。
+2026-10-13，[首次通过的 CI](https://github.com/heyjianhang/career/actions/runs/38360490634)在 macOS、Windows、Linux / Node 22 全部成功：每个平台均通过 60 项 Node 测试、文档检查、合成样例检查和真实安装包验证。合成 v2 样例 15 条记录、0 错误、2 个预期提示。真实 tgz 完成独立安装、重复初始化、HTML 生成与本地 Git 保存；五个 Skills 和 142 条安装资源引用通过检查，README／安装说明／指令复制页内容一致。此前还从安装包完成过 PDF 导出；本轮未修改排版，未重复浏览器或 PDF 矩阵。
 
 README 按完整求职方向、当前能力、开始指令和开发入口组织。早期重复提案与逐轮记录移出源码目录；仍有效的规划合并到路线图，来源保留在 references。CI 检查文档与安装资源引用，不自动发布。
 
 既有浏览器检查覆盖样式库、默认设置、版本切换、可选照片、可复制字段、离线页面和分页；模板矩阵覆盖有照片／无照片／长内容。验证方法见[验证说明](validation.md)。
 
-尚待验证：Node 22 与 Windows／Linux 的实际 CI 运行、真实 GitHub 私人仓库完整流程、不同 Agent 客户端的发现与独立访谈质量。Git 同步自动测试使用本地 bare 仓库，不能替代 GitHub 登录和建仓验收。
+首次 CI 暴露安装包测试强制离线导致全新缓存缺少 npm 元数据的问题，已修复并用本地空缓存和三平台 CI 验证。
+
+尚待验证：真实 GitHub 私人仓库完整流程、不同 Agent 客户端的发现与独立访谈质量。Git 同步自动测试使用本地 bare 仓库，不能替代 GitHub 登录和建仓验收。
 
 ## 当前边界
 
