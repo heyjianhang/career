@@ -57,9 +57,9 @@ npm run test:templates
 
 检查只读仓库代码，测试数据放在临时目录，不需要 npm 发布令牌或用户的 GitHub 登录。这里没有 PDF 浏览器矩阵或独立 Agent 行为评测；相关改动仍按上面的专项命令验证。
 
-2026-10-13 的[首次通过的 CI](https://github.com/heyjianhang/career/actions/runs/38360490634)已在三种系统上成功运行。后续推送仍应核对对应提交的实际结果。npm 首次发布是另一个步骤，当前没有自动发布工作流，也不会随 main 更新自动上传 npm。
+2026-10-13 的[首次通过的 CI](https://github.com/heyjianhang/career/actions/runs/38360490634)已在三种系统上成功运行。后续推送仍应核对对应提交的实际结果。npm 0.2.0 已单独发布并通过公开安装验证，见[发布记录](releases/0.2.0.md)。当前没有自动发布工作流，也不会随 main 更新自动上传 npm。
 
-## 打包与首次发布
+## 打包与发布
 
 ```sh
 npm test
@@ -70,7 +70,7 @@ npm pack
 
 `test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、五个 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；运行所需的合成内容包保留，私人 workspace、构建产物、测试、研究截图和源码不进入 npm。发布前检查 npm pack 的文件清单，核对账号和版本，核对开发仓库地址，确认后移除 private 并以公开 scoped 包发布；凭据只通过 npm 官方认证流程处理。成功发布后还需从 registry 在新目录安装验证，最后核对 README／安装页中的版本和命令。公开说明采用正式使用文案；真实发布记录只根据成功回执更新。
+包采用 files 白名单；运行所需的合成内容包保留，私人 workspace、构建产物、测试、研究截图和源码不进入 npm。发布前检查 npm pack 的文件清单，核对账号和版本，核对开发仓库地址，按用户授权以公开 scoped 包发布（publishConfig 固定官方 registry 与 public 访问）；凭据只通过 npm 官方认证流程处理。成功发布后还需从 registry 在新目录安装验证，最后核对 README／安装页中的版本和命令。公开说明采用正式使用文案；真实发布记录只根据成功回执更新。
 
 当前 macOS / Node 26 本地验证覆盖 60 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、未保存和分叉；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。macOS／Windows／Linux 的 Node 22 CI 已实际通过，包含每个平台 60 项测试与安装包验证；浏览器／PDF 不在这套 CI 矩阵内。
 

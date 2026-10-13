@@ -8,7 +8,7 @@ career 是与 Agent 协作的个人求职工作台，覆盖经历整理、简历
 
 开源交付物是 Agent Skills 与 `@heyjianhang/career` npm CLI。用户把开始指令发给 Agent，在独立目录整理资料、维护母版和生成简历；开发仓库只维护程序、方法和合成示例。
 
-`0.2.0` 处于发布准备阶段，package.json 保持 private，尚未发布到 npm。公开 README 与安装页使用正式使用说明，不展示发布准备提示；这不代表已完成 npm 发布。开发源码仓库已确定为 [heyjianhang/career](https://github.com/heyjianhang/career)，为公开仓库；本地 origin 连接该地址。源码已首次提交并推送 main，三种系统的 Node 22 CI 已通过；npm 发布后续处理。
+`@heyjianhang/career@0.2.0` 已于 2026-10-13 正式发布到 npm，公开访问，latest 指向 0.2.0。已从官方 registry 使用空缓存执行 README 的 npx 初始化指令，验证独立目录、五个 Skills、14 款样式、doctor、工作区校验与 HTML 生成。发布归档完整性与本地检查产物一致，见[发布记录](releases/0.2.0.md)。开发源码仓库为公开的 [heyjianhang/career](https://github.com/heyjianhang/career)，三种系统的 Node 22 CI 已通过。
 
 ## 已实现
 
