@@ -5,12 +5,10 @@
 ## 复制给 Agent
 
 ```text
-请帮我安装 career，并初始化一个独立的个人求职工作区。
-先检查 Node.js 22+ 和 npm，缺少时从官方来源安装。和我确定资料目录后，用绝对路径执行：
-npx --yes --package @heyjianhang/career@0.2.0 career setup --workspace "<个人目录>" --json
-
-完成后进入这个目录，先读取 AGENTS.md，再按初始化结果的 next_reads 和 next_action 继续引导我。
+请读取 https://raw.githubusercontent.com/heyjianhang/career/main/install.md，按指引帮我安装并初始化 career。
 ```
+
+详细安装流程由[公网安装指南](https://raw.githubusercontent.com/heyjianhang/career/main/install.md)维护，独立于门户。安装阶段只确认位置：默认在用户选定位置创建 `career-workspace`，不询问姓名。初始化后引导用户在 Agent 软件中打开该目录，并在新对话发送本地开始指令。
 
 ## 安装命令
 
@@ -20,11 +18,17 @@ Mac、Windows 使用同一 CLI；目录路径按系统调整。需要 Node.js 22
 npx --yes --package @heyjianhang/career@0.2.0 career setup --workspace "<个人目录的绝对路径>" --json
 ```
 
-进入个人目录后，用 `npm run career -- doctor --json` 继续。setup 安装固定版本，生成项目级 Skills 和资料骨架，输出 next_reads / next_action；不自动注册账号或创建客户端会话。
+进入个人目录后，用 `npm run career -- doctor --json` 和 `workspace status --json` 验证。setup 安装固定版本，生成项目级 Skills 和资料骨架，输出 next_reads / next_action；安装后的路径与新对话指令由 Agent 按公网指南提供。next_action 留给新工作区中的协作，不自动注册账号或创建客户端会话。
 
 ## 初始化之后
 
-在创建的个人目录读取 `AGENTS.md`。它会引导 Agent 检查现有状态、询问尚未选择的保存方式，再按任务读取 Skill：
+在 Agent 软件中打开创建的个人目录，新建对话并发送：
+
+```text
+请读取当前工作区的 AGENTS.md，按已有进度引导我开始使用 career。
+```
+
+安装对话展示真实路径与这句指令后完成交接。新对话读取 `AGENTS.md`，检查现有状态、询问尚未选择的保存方式，再按任务读取 Skill：
 
 - [career-setup](../.agents/skills/career-setup/SKILL.md)：环境与工作区准备，衔接首次使用或继续已有任务。
 - [career-git](../.agents/skills/career-git/SKILL.md)：本地版本、GitHub 私人仓库建仓引导、首次提交、后续同步和换机恢复。

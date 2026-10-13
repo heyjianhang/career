@@ -23,6 +23,10 @@ npm run test:templates
 
 测试使用临时工作区，覆盖初始化、数据引用和冻结等行为。`tests/agent-cli.test.mjs` 通过子进程调用真实 CLI，覆盖能力发现、只读状态、JSON 错误、文件摘要、保存冲突／历史副本和带照片的保存到本地服务流程；测试不会扫描私人工作区。工作区操作从当前目录向上查找 career.json，开发时必须显式传 `--workspace <合成目录>`；不能假定开发仓库内存在默认私人工作区。
 
+## 门户页面
+
+公开入口源码位于 `site/`。`npm run preview:site` 构建并启动本机预览，`npm run build:site` 只输出批准的静态文件到 `build/site/`，无须加载私人工作区。开始指令从 README 提取；详细命令由根目录 install.md 维护，llms.txt 导航。scripts/bootstrap.mjs 校验短入口和安装版本。腾讯配置、域名接入和验收记录见[门户与托管](portal.md)。
+
 ## 文件归属
 
 - 访谈、母版写作、JD 匹配与平台填写方法：修改对应 `.agents/skills/<skill>/`。
@@ -52,6 +56,7 @@ npm run test:templates
 | `npm ci --ignore-scripts` | 锁文件与依赖安装不一致 |
 | `npm test` | TypeScript 构建失败，或 CLI、数据保护、同步逻辑回归 |
 | `npm run check:docs` | Skills、文档或安装后的引用缺失，三处初始化指令不一致 |
+| `npm run build:site` | 门户缺少资源、指令版本不一致或包含非公开文件 |
 | `npm run check:example` | 当前规则无法处理仓库中的合成资料 |
 | `npm run test:package` | 打包漏资源，或实际安装后无法初始化、生成 HTML、保存版本 |
 

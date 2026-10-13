@@ -3,6 +3,8 @@
 ## 使用 career
 
 - [开始使用](../README.md#开始使用把这段发给-agent)：可直接发送给 Agent 的初始化指令。
+- [Agent 安装指南](../install.md)：安装、验证和工作区新对话交接。
+- [llms.txt](../llms.txt)：独立于门户的 Agent 文档导航。
 - [安装说明](installation.md)：环境、安装命令、同步和换机入口。
 - [指令复制页](get-started.html)：下载后用浏览器打开；GitHub 文件页显示源码。
 - [Skills](../README.md#skills-与-cli-怎么配合)：安装、Git 版本与同步、收集、母版、成品的分工。
@@ -17,6 +19,7 @@
 - [贡献指南](../CONTRIBUTING.md)：本地开发与提交前检查。
 - [架构](architecture.md)：Skills、CLI、用户目录和构建的实际关系。
 - [开发说明](development.md)：运行命令、CI 和打包维护。
+- [门户与托管](portal.md)：公开页面、构建配置和域名接入。
 - [项目状态](context.md)：当前实现与尚未验证的部分。
 - [验证范围](validation.md)、[Skill 行为场景](skill-evaluation-cases.md)。
 
