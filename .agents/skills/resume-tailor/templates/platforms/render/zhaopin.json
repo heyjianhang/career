@@ -1,0 +1,103 @@
+{
+  "name": "智联招聘",
+  "revision": 1,
+  "checked_at": "2026-10-12",
+  "coverage": "主要字段已观察，完整表单与提交校验尚未验证。",
+  "fields": {
+    "summary.text": {
+      "label": "个人优势",
+      "control": "text",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "employment.company": {
+      "label": "公司名称",
+      "control": "text",
+      "max": 100,
+      "evidence": "zhaopin.md"
+    },
+    "employment.title": {
+      "label": "职位名称",
+      "control": "select",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "employment.start": {
+      "label": "在职开始时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "employment.end": {
+      "label": "在职结束时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "employment.content": {
+      "label": "工作描述",
+      "control": "text",
+      "max": 3000,
+      "evidence": "zhaopin.md"
+    },
+    "project.name": {
+      "label": "项目名称",
+      "control": "text",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "project.start": {
+      "label": "项目开始时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "project.end": {
+      "label": "项目结束时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "project.description": {
+      "label": "项目描述",
+      "control": "text",
+      "max": 2000,
+      "evidence": "zhaopin.md"
+    },
+    "education.school": {
+      "label": "学校名称",
+      "control": "text",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "education.major": {
+      "label": "专业名称",
+      "control": "text",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "education.qualification": {
+      "label": "学历",
+      "control": "select",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "education.start": {
+      "label": "入学时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    },
+    "education.end": {
+      "label": "毕业时间",
+      "control": "date",
+      "max": null,
+      "evidence": "zhaopin.md"
+    }
+  },
+  "notes": [
+    "当前覆盖主要简历文字字段，未覆盖的基本信息、求职期望及选择器分支请按实际页面核对。",
+    "字数按 Unicode 码点作参考计数，平台对换行、表情等的实际计数尚未测试。",
+    "个人优势 500 字仅为页面推算预算，本规则未将其设为已核实上限。"
+  ]
+}

@@ -1,0 +1,713 @@
+{
+  "schema": "career-presentation/v1",
+  "id": "resume-demo-ai",
+  "title": "AI 应用开发 · 通用版",
+  "generated_at": "2026-10-12T18:00:00+08:00",
+  "synthetic": true,
+  "source": {
+    "resume_id": "resume-demo-ai",
+    "files": []
+  },
+  "resume": {
+    "name": "林序",
+    "headline": "AI 应用开发工程师",
+    "contacts": [
+      {
+        "label": "城市",
+        "value": "杭州"
+      },
+      {
+        "label": "邮箱",
+        "value": "linxu@example.com"
+      },
+      {
+        "label": "主页",
+        "value": "portfolio.example.com",
+        "url": "https://portfolio.example.com/"
+      }
+    ],
+    "summary": [
+      "具备企业应用开发与 AI 产品落地经验，围绕真实业务流程完成需求分析、系统设计和交付。擅长知识检索、Agent 工具集成与复杂业务系统协作，重视可验证的效果和清晰的产品体验。"
+    ],
+    "sections": [
+      {
+        "id": "experience",
+        "title": "工作经历",
+        "items": [
+          {
+            "id": "work-yuanshan",
+            "title": "远山科技（虚构）",
+            "subtitle": "AI 应用开发工程师",
+            "period": "2023.07 — 至今",
+            "paragraphs": [
+              "面向企业内部业务，参与知识助手与 Agent 应用的产品设计和研发。"
+            ],
+            "bullets": [
+              "参与需求分析、系统设计和核心功能开发，完成知识检索、来源引用与反馈流程。",
+              "与业务及运维团队协作，维护评测样例、部署文档和上线验收清单。"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "projects",
+        "title": "项目经历",
+        "items": [
+          {
+            "id": "project-knowledge",
+            "title": "企业知识助手",
+            "subtitle": "检索链路与应用开发",
+            "period": "2025.03 — 2025.12",
+            "paragraphs": [
+              "面向企业内部制度、产品手册和业务资料，建设带有来源引用的知识问答助手，支持资料检索、答案查看与问题反馈。"
+            ],
+            "bullets": [
+              "负责文档处理、检索链路和来源展示；建立评测样例，分析检索失败案例，与业务同事共同修正文档结构和检索策略。",
+              "交付可供业务试用的知识助手，形成文档更新与问题回流流程，沉淀评测样例及操作说明。"
+            ],
+            "links": [
+              {
+                "label": "项目演示",
+                "url": "https://example.com/projects/knowledge?from=resume&lang=zh"
+              },
+              {
+                "label": "源代码",
+                "url": "https://example.com/code/knowledge#readme"
+              }
+            ]
+          },
+          {
+            "id": "project-agent",
+            "title": "业务工单 Agent",
+            "subtitle": "工具集成与应用开发",
+            "period": "2026.01 — 2026.08",
+            "paragraphs": [
+              "为内部工单场景开发 Agent 工具调用模块，将查询、状态跟踪和人工确认步骤组织到统一操作流程。"
+            ],
+            "bullets": [
+              "负责工具接口定义、参数校验、异常处理和结果展示；与业务同事核对操作边界，完善失败提示及重试流程。",
+              "完成工单助手演示与试点验证，提供可复用的工具接口和集成说明。"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "education",
+        "title": "教育经历",
+        "items": [
+          {
+            "id": "education-main",
+            "title": "青川大学（虚构）",
+            "subtitle": "计算机科学与技术 · 本科",
+            "period": "2019.09 — 2023.06",
+            "paragraphs": [],
+            "bullets": []
+          }
+        ]
+      },
+      {
+        "id": "skills",
+        "title": "专业技能",
+        "items": [
+          {
+            "id": "skills-main",
+            "title": "应用开发与工程实践",
+            "paragraphs": [
+              "Python · TypeScript · RAG · Agent 工具调用 · SQL · Docker",
+              "需求分析、接口设计、评测样例维护、跨团队协作与交付文档。"
+            ],
+            "bullets": []
+          }
+        ]
+      }
+    ]
+  },
+  "reports": {
+    "boss": {
+      "sections": [
+        {
+          "id": "summary",
+          "kind": "summary",
+          "title": "个人概述",
+          "fields": [
+            {
+              "key": "text",
+              "value": "具备企业应用开发与 AI 产品落地经验，围绕真实业务流程完成需求分析、系统设计和交付。擅长知识检索、Agent 工具集成与复杂业务系统协作，重视可验证的效果和清晰的产品体验。"
+            }
+          ]
+        },
+        {
+          "id": "work-yuanshan",
+          "kind": "employment",
+          "title": "远山科技（虚构）",
+          "fields": [
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "title",
+              "value": "AI 应用开发工程师"
+            },
+            {
+              "key": "start",
+              "value": "2023-07"
+            },
+            {
+              "key": "end",
+              "value": "至今"
+            },
+            {
+              "key": "content",
+              "value": "负责企业内部知识服务与业务助手建设，参与需求访谈、技术方案设计、核心功能开发及上线后的效果复核。\n\n与产品、业务和运维同事协作，梳理知识更新流程与访问权限，维护检索评测样例和问题反馈闭环。"
+            },
+            {
+              "key": "achievements",
+              "value": "完成知识助手试点交付，将检索、引用展示与反馈记录整合到统一入口；形成可重复使用的部署文档和验收清单。"
+            }
+          ]
+        },
+        {
+          "id": "project-knowledge",
+          "kind": "project",
+          "title": "企业知识助手",
+          "fields": [
+            {
+              "key": "name",
+              "value": "企业知识助手"
+            },
+            {
+              "key": "start",
+              "value": "2025-03"
+            },
+            {
+              "key": "end",
+              "value": "2025-12"
+            },
+            {
+              "key": "role",
+              "value": "应用研发"
+            },
+            {
+              "key": "description",
+              "value": "面向企业内部制度、产品手册和业务资料，建设带有来源引用的知识问答助手，支持资料检索、答案查看与问题反馈。\n\n负责文档处理、检索链路和来源展示；建立评测样例，分析检索失败案例，与业务同事共同修正文档结构和检索策略。"
+            },
+            {
+              "key": "achievements",
+              "value": "交付可供业务试用的知识助手，形成文档更新与问题回流流程，沉淀评测样例及操作说明。"
+            }
+          ]
+        },
+        {
+          "id": "project-agent",
+          "kind": "project",
+          "title": "业务工单 Agent",
+          "fields": [
+            {
+              "key": "name",
+              "value": "业务工单 Agent"
+            },
+            {
+              "key": "start",
+              "value": "2026-01"
+            },
+            {
+              "key": "end",
+              "value": "2026-08"
+            },
+            {
+              "key": "role",
+              "value": "应用研发"
+            },
+            {
+              "key": "description",
+              "value": "为内部工单场景开发 Agent 工具调用模块，将查询、状态跟踪和人工确认步骤组织到统一操作流程。\n\n负责工具接口定义、参数校验、异常处理和结果展示；与业务同事核对操作边界，完善失败提示及重试流程。"
+            },
+            {
+              "key": "achievements",
+              "value": "完成工单助手演示与试点验证，提供可复用的工具接口和集成说明。"
+            }
+          ]
+        },
+        {
+          "id": "education-main",
+          "kind": "education",
+          "title": "青川大学（虚构）",
+          "fields": [
+            {
+              "key": "school",
+              "value": "青川大学（虚构）"
+            },
+            {
+              "key": "major",
+              "value": "计算机科学与技术"
+            },
+            {
+              "key": "qualification",
+              "value": "本科"
+            },
+            {
+              "key": "start",
+              "value": "2019-09"
+            },
+            {
+              "key": "end",
+              "value": "2023-06"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "这是一份用于体验的虚构简历，请勿投递。",
+        "本例未提供求职期望、手机号、证书及语言成绩；生成真实版本时按已确认资料补充。"
+      ]
+    },
+    "zhaopin": {
+      "sections": [
+        {
+          "id": "summary",
+          "kind": "summary",
+          "title": "个人概述",
+          "fields": [
+            {
+              "key": "text",
+              "value": "具备企业应用开发与 AI 产品落地经验，围绕真实业务流程完成需求分析、系统设计和交付。擅长知识检索、Agent 工具集成与复杂业务系统协作，重视可验证的效果和清晰的产品体验。"
+            }
+          ]
+        },
+        {
+          "id": "work-yuanshan",
+          "kind": "employment",
+          "title": "远山科技（虚构）",
+          "fields": [
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "title",
+              "value": "AI 应用开发工程师"
+            },
+            {
+              "key": "start",
+              "value": "2023-07"
+            },
+            {
+              "key": "end",
+              "value": "至今"
+            },
+            {
+              "key": "content",
+              "value": "负责企业内部知识服务与业务助手建设，参与需求访谈、技术方案设计、核心功能开发及上线后的效果复核。\n\n与产品、业务和运维同事协作，梳理知识更新流程与访问权限，维护检索评测样例和问题反馈闭环。\n\n完成知识助手试点交付，将检索、引用展示与反馈记录整合到统一入口；形成可重复使用的部署文档和验收清单。"
+            }
+          ]
+        },
+        {
+          "id": "project-knowledge",
+          "kind": "project",
+          "title": "企业知识助手",
+          "fields": [
+            {
+              "key": "name",
+              "value": "企业知识助手"
+            },
+            {
+              "key": "start",
+              "value": "2025-03"
+            },
+            {
+              "key": "end",
+              "value": "2025-12"
+            },
+            {
+              "key": "description",
+              "value": "面向企业内部制度、产品手册和业务资料，建设带有来源引用的知识问答助手，支持资料检索、答案查看与问题反馈。\n\n负责文档处理、检索链路和来源展示；建立评测样例，分析检索失败案例，与业务同事共同修正文档结构和检索策略。\n\n交付可供业务试用的知识助手，形成文档更新与问题回流流程，沉淀评测样例及操作说明。"
+            }
+          ]
+        },
+        {
+          "id": "project-agent",
+          "kind": "project",
+          "title": "业务工单 Agent",
+          "fields": [
+            {
+              "key": "name",
+              "value": "业务工单 Agent"
+            },
+            {
+              "key": "start",
+              "value": "2026-01"
+            },
+            {
+              "key": "end",
+              "value": "2026-08"
+            },
+            {
+              "key": "description",
+              "value": "为内部工单场景开发 Agent 工具调用模块，将查询、状态跟踪和人工确认步骤组织到统一操作流程。\n\n负责工具接口定义、参数校验、异常处理和结果展示；与业务同事核对操作边界，完善失败提示及重试流程。\n\n完成工单助手演示与试点验证，提供可复用的工具接口和集成说明。"
+            }
+          ]
+        },
+        {
+          "id": "education-main",
+          "kind": "education",
+          "title": "青川大学（虚构）",
+          "fields": [
+            {
+              "key": "school",
+              "value": "青川大学（虚构）"
+            },
+            {
+              "key": "major",
+              "value": "计算机科学与技术"
+            },
+            {
+              "key": "qualification",
+              "value": "本科"
+            },
+            {
+              "key": "start",
+              "value": "2019-09"
+            },
+            {
+              "key": "end",
+              "value": "2023-06"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "这是一份用于体验的虚构简历，请勿投递。",
+        "本例未提供求职期望、手机号、证书及语言成绩；生成真实版本时按已确认资料补充。"
+      ]
+    },
+    "liepin": {
+      "sections": [
+        {
+          "id": "summary",
+          "kind": "summary",
+          "title": "个人概述",
+          "fields": [
+            {
+              "key": "text",
+              "value": "具备企业应用开发与 AI 产品落地经验，围绕真实业务流程完成需求分析、系统设计和交付。擅长知识检索、Agent 工具集成与复杂业务系统协作，重视可验证的效果和清晰的产品体验。"
+            }
+          ]
+        },
+        {
+          "id": "work-yuanshan",
+          "kind": "employment",
+          "title": "远山科技（虚构）",
+          "fields": [
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "title",
+              "value": "AI 应用开发工程师"
+            },
+            {
+              "key": "start",
+              "value": "2023-07"
+            },
+            {
+              "key": "end",
+              "value": "至今"
+            },
+            {
+              "key": "content",
+              "value": "负责企业内部知识服务与业务助手建设，参与需求访谈、技术方案设计、核心功能开发及上线后的效果复核。\n\n与产品、业务和运维同事协作，梳理知识更新流程与访问权限，维护检索评测样例和问题反馈闭环。\n\n完成知识助手试点交付，将检索、引用展示与反馈记录整合到统一入口；形成可重复使用的部署文档和验收清单。"
+            }
+          ]
+        },
+        {
+          "id": "project-knowledge",
+          "kind": "project",
+          "title": "企业知识助手",
+          "fields": [
+            {
+              "key": "name",
+              "value": "企业知识助手"
+            },
+            {
+              "key": "start",
+              "value": "2025-03"
+            },
+            {
+              "key": "end",
+              "value": "2025-12"
+            },
+            {
+              "key": "role",
+              "value": "应用研发"
+            },
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "description",
+              "value": "面向企业内部制度、产品手册和业务资料，建设带有来源引用的知识问答助手，支持资料检索、答案查看与问题反馈。"
+            },
+            {
+              "key": "responsibilities",
+              "value": "负责文档处理、检索链路和来源展示；建立评测样例，分析检索失败案例，与业务同事共同修正文档结构和检索策略。"
+            },
+            {
+              "key": "achievements",
+              "value": "交付可供业务试用的知识助手，形成文档更新与问题回流流程，沉淀评测样例及操作说明。"
+            }
+          ]
+        },
+        {
+          "id": "project-agent",
+          "kind": "project",
+          "title": "业务工单 Agent",
+          "fields": [
+            {
+              "key": "name",
+              "value": "业务工单 Agent"
+            },
+            {
+              "key": "start",
+              "value": "2026-01"
+            },
+            {
+              "key": "end",
+              "value": "2026-08"
+            },
+            {
+              "key": "role",
+              "value": "应用研发"
+            },
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "description",
+              "value": "为内部工单场景开发 Agent 工具调用模块，将查询、状态跟踪和人工确认步骤组织到统一操作流程。"
+            },
+            {
+              "key": "responsibilities",
+              "value": "负责工具接口定义、参数校验、异常处理和结果展示；与业务同事核对操作边界，完善失败提示及重试流程。"
+            },
+            {
+              "key": "achievements",
+              "value": "完成工单助手演示与试点验证，提供可复用的工具接口和集成说明。"
+            }
+          ]
+        },
+        {
+          "id": "education-main",
+          "kind": "education",
+          "title": "青川大学（虚构）",
+          "fields": [
+            {
+              "key": "school",
+              "value": "青川大学（虚构）"
+            },
+            {
+              "key": "major",
+              "value": "计算机科学与技术"
+            },
+            {
+              "key": "qualification",
+              "value": "本科"
+            },
+            {
+              "key": "start",
+              "value": "2019-09"
+            },
+            {
+              "key": "end",
+              "value": "2023-06"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "这是一份用于体验的虚构简历，请勿投递。",
+        "本例未提供求职期望、手机号、证书及语言成绩；生成真实版本时按已确认资料补充。"
+      ]
+    },
+    "job51": {
+      "sections": [
+        {
+          "id": "summary",
+          "kind": "summary",
+          "title": "个人概述",
+          "fields": [
+            {
+              "key": "text",
+              "value": "具备企业应用开发与 AI 产品落地经验，围绕真实业务流程完成需求分析、系统设计和交付。擅长知识检索、Agent 工具集成与复杂业务系统协作，重视可验证的效果和清晰的产品体验。"
+            }
+          ]
+        },
+        {
+          "id": "work-yuanshan",
+          "kind": "employment",
+          "title": "远山科技（虚构）",
+          "fields": [
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "title",
+              "value": "AI 应用开发工程师"
+            },
+            {
+              "key": "start",
+              "value": "2023-07"
+            },
+            {
+              "key": "end",
+              "value": "至今"
+            },
+            {
+              "key": "content",
+              "value": "负责企业内部知识服务与业务助手建设，参与需求访谈、技术方案设计、核心功能开发及上线后的效果复核。\n\n与产品、业务和运维同事协作，梳理知识更新流程与访问权限，维护检索评测样例和问题反馈闭环。\n\n完成知识助手试点交付，将检索、引用展示与反馈记录整合到统一入口；形成可重复使用的部署文档和验收清单。"
+            }
+          ]
+        },
+        {
+          "id": "project-knowledge",
+          "kind": "project",
+          "title": "企业知识助手",
+          "fields": [
+            {
+              "key": "name",
+              "value": "企业知识助手"
+            },
+            {
+              "key": "start",
+              "value": "2025-03"
+            },
+            {
+              "key": "end",
+              "value": "2025-12"
+            },
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "description",
+              "value": "面向企业内部制度、产品手册和业务资料，建设带有来源引用的知识问答助手，支持资料检索、答案查看与问题反馈。\n\n负责文档处理、检索链路和来源展示；建立评测样例，分析检索失败案例，与业务同事共同修正文档结构和检索策略。\n\n交付可供业务试用的知识助手，形成文档更新与问题回流流程，沉淀评测样例及操作说明。"
+            }
+          ]
+        },
+        {
+          "id": "project-agent",
+          "kind": "project",
+          "title": "业务工单 Agent",
+          "fields": [
+            {
+              "key": "name",
+              "value": "业务工单 Agent"
+            },
+            {
+              "key": "start",
+              "value": "2026-01"
+            },
+            {
+              "key": "end",
+              "value": "2026-08"
+            },
+            {
+              "key": "company",
+              "value": "远山科技（虚构）"
+            },
+            {
+              "key": "description",
+              "value": "为内部工单场景开发 Agent 工具调用模块，将查询、状态跟踪和人工确认步骤组织到统一操作流程。\n\n负责工具接口定义、参数校验、异常处理和结果展示；与业务同事核对操作边界，完善失败提示及重试流程。\n\n完成工单助手演示与试点验证，提供可复用的工具接口和集成说明。"
+            }
+          ]
+        },
+        {
+          "id": "education-main",
+          "kind": "education",
+          "title": "青川大学（虚构）",
+          "fields": [
+            {
+              "key": "school",
+              "value": "青川大学（虚构）"
+            },
+            {
+              "key": "major",
+              "value": "计算机科学与技术"
+            },
+            {
+              "key": "qualification",
+              "value": "本科"
+            },
+            {
+              "key": "start",
+              "value": "2019-09"
+            },
+            {
+              "key": "end",
+              "value": "2023-06"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "这是一份用于体验的虚构简历，请勿投递。",
+        "本例未提供求职期望、手机号、证书及语言成绩；生成真实版本时按已确认资料补充。"
+      ]
+    }
+  },
+  "common": {
+    "sections": [
+      {
+        "id": "skills",
+        "title": "技能标签",
+        "fields": [
+          {
+            "label": "编程语言",
+            "value": "Python"
+          },
+          {
+            "label": "知识检索",
+            "value": "RAG"
+          },
+          {
+            "label": "智能体开发",
+            "value": "Agent 工具调用"
+          },
+          {
+            "label": "数据库",
+            "value": "SQL"
+          },
+          {
+            "label": "部署工具",
+            "value": "Docker"
+          }
+        ]
+      },
+      {
+        "id": "languages",
+        "title": "语言能力",
+        "fields": [
+          {
+            "label": "普通话",
+            "value": "普通话（日常工作沟通）"
+          }
+        ]
+      },
+      {
+        "id": "certificates",
+        "title": "资格证书",
+        "fields": [
+          {
+            "label": "示例证书（虚构）",
+            "value": "示例技术认证（虚构，2025 年）"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "name": "BOSS 直聘",
+  "revision": 1,
+  "checked_at": "2026-10-12",
+  "coverage": "主要字段已观察，完整表单与提交校验尚未验证。",
+  "fields": {
+    "summary.text": {
+      "label": "个人优势",
+      "control": "text",
+      "max": 1000,
+      "evidence": "boss.md"
+    },
+    "employment.company": {
+      "label": "公司名称",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "employment.title": {
+      "label": "职位名称",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "employment.start": {
+      "label": "在职开始时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "employment.end": {
+      "label": "在职结束时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "employment.content": {
+      "label": "工作内容",
+      "control": "text",
+      "max": 3000,
+      "evidence": "boss.md"
+    },
+    "employment.achievements": {
+      "label": "工作业绩",
+      "control": "text",
+      "max": 1000,
+      "evidence": "boss.md"
+    },
+    "project.name": {
+      "label": "项目名称",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "project.start": {
+      "label": "项目开始时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "project.end": {
+      "label": "项目结束时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "project.role": {
+      "label": "项目角色",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "project.description": {
+      "label": "项目描述",
+      "control": "text",
+      "max": 3000,
+      "evidence": "boss.md"
+    },
+    "project.achievements": {
+      "label": "项目业绩",
+      "control": "text",
+      "max": 1000,
+      "evidence": "boss.md"
+    },
+    "education.school": {
+      "label": "学校名称",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "education.major": {
+      "label": "专业",
+      "control": "text",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "education.qualification": {
+      "label": "学历",
+      "control": "select",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "education.start": {
+      "label": "入学时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "education.end": {
+      "label": "毕业时间",
+      "control": "date",
+      "max": null,
+      "evidence": "boss.md"
+    },
+    "education.description": {
+      "label": "在校经历",
+      "control": "text",
+      "max": 3000,
+      "evidence": "boss.md"
+    }
+  },
+  "notes": [
+    "当前覆盖主要简历文字字段，未覆盖的基本信息、求职期望及选择器分支请按实际页面核对。",
+    "字数按 Unicode 码点作参考计数，平台对换行、表情等的实际计数尚未测试。"
+  ]
+}

@@ -1,0 +1,31 @@
+.resume-paper[data-template="mono-line"] .design-header{padding-bottom:5mm;border-bottom:1px solid #aaa;position:relative}
+.resume-paper[data-template="mono-line"] .design-header:after{content:"";position:absolute;left:0;bottom:-1px;width:28mm;border-bottom:2px solid #333}
+.resume-paper[data-template="mono-line"] .design-item-heading{color:#333}
+.resume-paper[data-template="blue-tab"] .resume-photo{border:1mm solid #eee}
+.resume-paper[data-template="teal-dot"] .design-header{border-bottom:2px solid var(--design-accent);padding-bottom:5mm}
+.resume-paper[data-template="teal-dot"] .design-identity h1{color:var(--design-accent)}
+.resume-paper[data-template="teal-dot"] .resume-photo{width:32mm;height:32mm;border-radius:50%}
+.resume-paper[data-template="teal-dot"] .design-section+.design-section{border-top:1px solid #ddd;padding-top:5mm}
+.resume-paper[data-template="teal-dot"] .design-item-heading{color:#333}
+.resume-paper[data-template="navy-tag"] .design-identity h1{color:var(--design-accent)}
+.resume-paper[data-template="navy-tag"] .resume-photo{border:1mm solid #eee}
+.resume-paper[data-template="navy-tag"] .design-item-heading,.resume-paper[data-template="blue-rule"] .design-item-heading{color:#333}
+.resume-paper[data-template="slate-header"] .design-header{background:#f1f1f1;padding:6mm;margin-bottom:7mm}
+.resume-paper[data-template="slate-header"] .resume-photo{width:32mm;height:32mm;border-radius:50%}
+.resume-paper[data-template="slate-header"] .design-heading{border-color:var(--design-accent)}
+.resume-paper[data-template="taupe-band"] .resume-photo{border:1mm solid #eee}
+.resume-paper[data-template="skyline"] .resume-photo{border:1.4mm solid white;width:32mm;height:32mm;border-radius:50%;box-sizing:border-box}
+.resume-paper[data-template="skyline"] .design-header{gap:2mm;margin-bottom:2mm;background-size:100% 21mm}
+.resume-paper[data-template="skyline"] .design-section{margin-top:4mm}
+.resume-paper[data-template="skyline"] .design-header[data-photo="false"]{padding-top:32mm}
+.resume-paper[data-template="skyline"] .design-identity h1{font-size:23pt;margin:0 0 3mm}
+.resume-paper[data-template="skyline"] .design-item-heading{color:#444}
+.resume-paper[data-template="graphite-bar"] .design-masthead{margin-bottom:6mm}
+.resume-paper[data-template="graphite-bar"] .resume-photo{border:1px solid #ddd}
+.resume-paper[data-template="blue-ribbon"] .resume-photo{border:1mm solid #eee}
+.resume-paper[data-template="taupe-ring"] .design-header{align-items:center;padding-top:0}
+.resume-paper[data-template="taupe-ring"] .design-photo-frame{padding:0 4mm 4mm;background:var(--design-accent);border-radius:0 0 50% 50%;align-self:flex-start}
+.resume-paper[data-template="taupe-ring"] .resume-photo{width:31mm;height:31mm;border-radius:50%;border:1mm solid white}
+.resume-paper[data-template="taupe-ring"] .design-identity{padding-top:5mm}
+.resume-paper[data-template="navy-rule"] .design-identity h1{color:var(--design-accent);border-bottom:2px solid var(--design-accent);padding-bottom:1mm}
+.resume-paper[data-template="navy-rule"] .resume-photo{border:1px solid #eee}

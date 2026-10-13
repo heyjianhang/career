@@ -1,0 +1,6 @@
+{
+  "schema": "career-workspace/v1",
+  "resume_dir": "resume",
+  "locale": "zh-CN",
+  "timezone": "Asia/Shanghai"
+}

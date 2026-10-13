@@ -1,0 +1,11 @@
+node_modules/
+build/
+.local/
+.cache/
+.env
+.env.*
+.npmrc
+.DS_Store
+*.log
+*.tmp
+*.lock

@@ -1,0 +1,29 @@
+name: Package and workspace checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Node 22 / ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Build and test
+        run: npm test
+      - name: Check Skills and documentation
+        run: npm run check:docs
+      - name: Validate synthetic workspace
+        run: npm run check:example
+      - name: Install and exercise the packed CLI
+        run: npm run test:package
