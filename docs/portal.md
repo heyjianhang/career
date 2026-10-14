@@ -35,7 +35,7 @@ node scripts/build-site.mjs
 3. 将真实版本、标签与 URL 写入 downloads.json，运行 `node --test tests/portal.test.mjs`、`npm run build:site` 和 `npm run check:docs`。
 4. 在本机预览检查启用的下载链接、未发布架构、窄屏及备用复制入口；按授权提交／部署，再核对线上链接。
 
-`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前 GitHub 尚无公开桌面 Release，下载布局先在本地准备，不能报告已开放下载。
+`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前已公开 desktop-v0.3.0-alpha.1，四种架构的匿名完整下载和 SHA-256 均已验证；[发布记录](releases/desktop-0.3.0-alpha.1.md)包含安装包来源和验收边界。门户本次部署状态见下方生产记录。
 
 ## 腾讯 EdgeOne Pages / Makers
 

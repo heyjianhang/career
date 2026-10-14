@@ -1,6 +1,6 @@
 # career 桌面版
 
-桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。当前为 `0.3.0-alpha.1` 本地开发预览；公开 npm 仍为 0.2.0，桌面安装包未公开发布。
+桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。`0.3.0-alpha.1` 已作为未签名预览版公开，支持 macOS 与 Windows 的 ARM64／x64；下载、校验值与验收边界见[发布记录](releases/desktop-0.3.0-alpha.1.md)。公开 npm 仍为 0.2.0。
 
 ## 使用流程
 
@@ -87,11 +87,20 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 桌面测试用独立合成目录，覆盖 CLI 在缺少系统 Node/npm 的 PATH 下执行、目录绑定、两个工作区隔离、随包 Skills、页面沙箱、Agent 交接、原生和 CLI 的 PDF 导出。证据和截图在 `.cache/desktop-test-*/`。CI 的四个任务使用 macOS ARM64／Intel、Windows ARM64／x64 原生 runner，通过 --app 检查刚构建出的应用并保留合成报告；不以开发 Electron 代替产物。安装器交互与系统拦截提示仍需人工安装验收，不能把构建成功当成已完成安装测试。
 
-默认生成未签名预览包。对公众分发前需要配置签名并验证安装：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据，产物用于测试。
+默认生成未签名预览包。当前 alpha.1 经维护者确认以未签名预览版发布，下载说明明确标注；正式版发布前应完成签名、公证及安装验收：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据。未经验证与单独公开的 Actions 产物只用于测试；公开预览版以发布记录为准。
 
 桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。此版本没有自动更新服务或开机启动；开发源码已接入企查查，招聘平台 CLI 尚未内置。后续软件升级先采用下载安装包覆盖升级，资料继续保存在原文件夹。
 
-## 企查查连接（开发源码）
+## 转存已验证的安装包
+
+[Desktop release assets](../.github/workflows/desktop-release.yml) 是发布辅助任务，与打包任务分开。它接收成功的 Desktop installers run ID、准确源码 SHA、桌面预发布 tag 和模式。先确认四种架构的打包任务均成功，并创建指向同一 SHA 的 GitHub Release 草稿。
+
+- `stage-draft`：检查构建来源、四份原生运行报告及安装包校验值，直接把该次构建的四个安装包和 SHA256SUMS.txt 转存到草稿，再检查远端文件大小和 SHA-256。不会重新打包、发布 Release 或创建 tag。
+- `verify-public`：维护者按授权公开预发布后，匿名完整下载四个地址并核对 SHA-256；不把 GitHub token 传给下载请求。验证通过才更新门户的 downloads.json。
+
+两种模式都保留 verification.json 证据。只接受本仓库 main 的成功桌面构建，且 Release 的目标 SHA 必须与产物一致；校验失败立即停止，不能把旧包或上一轮报告混入发布。公网发布仍由维护者按本轮授权单独执行；这条流程不发布 npm。
+
+## 企查查连接
 
 工作区页面「设置 → 外部服务 → 企查查」支持填写 API Key、保存并测试、测试已存连接与移除。保存前调用官方 company 服务的 tools/list；失败保留原连接。企业查询可能消耗企查查积分，测试连接不调用业务工具。官方说明：<https://agent.qcc.com/guide>。
 

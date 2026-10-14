@@ -1,10 +1,10 @@
 {
-  "version": null,
-  "tag": null,
+  "version": "0.3.0-alpha.1",
+  "tag": "desktop-v0.3.0-alpha.1",
   "assets": {
-    "mac-arm64": null,
-    "mac-x64": null,
-    "win-x64": null,
-    "win-arm64": null
+    "mac-arm64": "https://github.com/heyjianhang/career/releases/download/desktop-v0.3.0-alpha.1/career-0.3.0-alpha.1-mac-arm64.dmg",
+    "mac-x64": "https://github.com/heyjianhang/career/releases/download/desktop-v0.3.0-alpha.1/career-0.3.0-alpha.1-mac-x64.dmg",
+    "win-x64": "https://github.com/heyjianhang/career/releases/download/desktop-v0.3.0-alpha.1/career-0.3.0-alpha.1-win-x64.exe",
+    "win-arm64": "https://github.com/heyjianhang/career/releases/download/desktop-v0.3.0-alpha.1/career-0.3.0-alpha.1-win-arm64.exe"
   }
 }

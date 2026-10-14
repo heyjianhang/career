@@ -98,11 +98,11 @@ career-workspace/
 
 GitHub 同步可跳过，之后仍可启用。启用后每次开始核对远端资料，重要节点询问上传；已有本轮或持续授权时直接同步。遇到未保存修改或历史分叉时保留内容并停止同步。工具版本由锁文件固定，不随资料拉取自动升级。
 
-## 桌面版（开发预览）
+## 桌面版（预览版）
 
 桌面版支持创建／打开独立工作区，内置 CLI、八个 Skills 和 PDF 运行环境。创建后可复制指令交给 Agent，日常直接打开软件查看看板、简历与资料。
 
-Windows x64／ARM64、macOS Intel／Apple Silicon 的构建入口和手动 CI 见[桌面版说明](docs/desktop.md)。目前是本地开发预览，尚未提供公开下载安装包；上面的 npm 安装方式继续可用。
+[下载 0.3.0-alpha.1](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.1)：Windows x64／ARM64、macOS Intel／Apple Silicon。新建工作区没有预置简历、岗位或示例资料。当前为未签名预览版，macOS 尚未公证，系统可能提示无法验证开发者；验收范围和 SHA-256 见[发布记录](docs/releases/desktop-0.3.0-alpha.1.md)。构建方法见[桌面版说明](docs/desktop.md)；上面的 npm 安装方式仍使用 0.2.0。
 
 ## 参与开发
 
