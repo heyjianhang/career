@@ -1,0 +1,1385 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "career-board/v1",
+  "$defs": {
+    "card": {
+      "type": "object",
+      "properties": {
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "salary": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stage": {
+          "enum": [
+            "inbox",
+            "preparing",
+            "applied",
+            "interviewing",
+            "offer",
+            "ended",
+            "contacting",
+            "archived"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "enum": [
+                  "boss",
+                  "liepin",
+                  "job51",
+                  "zhaopin",
+                  "website",
+                  "referral",
+                  "other"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "url": {
+                "type": "string",
+                "format": "http-url"
+              },
+              "native_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "captured_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "platform"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "next_action": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "owner": {
+                  "enum": [
+                    "user",
+                    "agent",
+                    "employer"
+                  ]
+                },
+                "due": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "title",
+                "owner"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "rating": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "maxItems": 500
+                },
+                "assessed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "rating",
+                "reason",
+                "evidence",
+                "assessed_at"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "archived_reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "schema": {
+          "const": "career-opportunity/v1"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^opp-[a-z0-9-]{1,80}$"
+        },
+        "user_rating": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "rejected",
+                "withdrawn",
+                "closed",
+                "hired"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resume": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "path"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]{0,79}$"
+                },
+                "path": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "submissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "resume_id",
+              "resume_title",
+              "resume_sha256",
+              "snapshot",
+              "sha256",
+              "submitted_at",
+              "channel",
+              "theme"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^submission-[a-z0-9-]+$"
+              },
+              "resume_id": {
+                "type": "string"
+              },
+              "resume_title": {
+                "type": "string"
+              },
+              "resume_sha256": {
+                "type": "string"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              },
+              "submitted_at": {
+                "type": "string"
+              },
+              "channel": {
+                "type": "string"
+              },
+              "theme": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "id",
+        "user_rating",
+        "created_at",
+        "updated_at",
+        "company",
+        "title",
+        "stage",
+        "sources",
+        "links",
+        "archived_reason"
+      ],
+      "additionalProperties": true
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^task-[a-z0-9-]{1,80}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "in_progress",
+            "waiting_user",
+            "waiting_external",
+            "done",
+            "cancelled"
+          ]
+        },
+        "owner": {
+          "enum": [
+            "user",
+            "agent"
+          ]
+        },
+        "assigned_to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "due": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^task-[a-z0-9-]{1,80}$"
+          },
+          "maxItems": 500
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 20000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "schema": {
+          "const": "career-task/v1"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schema",
+        "id",
+        "title",
+        "status",
+        "owner",
+        "depends_on",
+        "links",
+        "created_at",
+        "updated_at"
+      ],
+      "additionalProperties": true
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "evidence_type": {
+          "enum": [
+            "user_report",
+            "employer_message",
+            "agent_analysis",
+            "mock_interview",
+            "real_interview"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "schema": {
+          "const": "career-activity/v1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "kind": {
+          "enum": [
+            "record_change",
+            "note"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "before_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "after_sha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "schema",
+        "id",
+        "title",
+        "actor",
+        "kind",
+        "created_at"
+      ],
+      "additionalProperties": true
+    },
+    "create": {
+      "type": "object",
+      "properties": {
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "salary": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stage": {
+          "enum": [
+            "inbox",
+            "preparing",
+            "applied",
+            "interviewing",
+            "offer",
+            "ended"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "enum": [
+                  "boss",
+                  "liepin",
+                  "job51",
+                  "zhaopin",
+                  "website",
+                  "referral",
+                  "other"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "url": {
+                "type": "string",
+                "format": "http-url"
+              },
+              "native_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "captured_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "platform"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "next_action": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "owner": {
+                  "enum": [
+                    "user",
+                    "agent",
+                    "employer"
+                  ]
+                },
+                "due": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "title",
+                "owner"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "rating": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "maxItems": 500
+                },
+                "assessed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "rating",
+                "reason",
+                "evidence",
+                "assessed_at"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "archived_reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "rejected",
+                "withdrawn",
+                "closed",
+                "hired"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "company",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "update": {
+      "type": "object",
+      "properties": {
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "salary": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stage": {
+          "enum": [
+            "inbox",
+            "preparing",
+            "applied",
+            "interviewing",
+            "offer",
+            "ended"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "enum": [
+                  "boss",
+                  "liepin",
+                  "job51",
+                  "zhaopin",
+                  "website",
+                  "referral",
+                  "other"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "url": {
+                "type": "string",
+                "format": "http-url"
+              },
+              "native_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "captured_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "platform"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "next_action": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "owner": {
+                  "enum": [
+                    "user",
+                    "agent",
+                    "employer"
+                  ]
+                },
+                "due": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "title",
+                "owner"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "rating": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "maxItems": 500
+                },
+                "assessed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "rating",
+                "reason",
+                "evidence",
+                "assessed_at"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "archived_reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "rejected",
+                "withdrawn",
+                "closed",
+                "hired"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "task_input": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^task-[a-z0-9-]{1,80}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "in_progress",
+            "waiting_user",
+            "waiting_external",
+            "done",
+            "cancelled"
+          ]
+        },
+        "owner": {
+          "enum": [
+            "user",
+            "agent"
+          ]
+        },
+        "assigned_to": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "due": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^task-[a-z0-9-]{1,80}$"
+          },
+          "maxItems": 500
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 20000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        }
+      },
+      "required": [
+        "title",
+        "status",
+        "owner"
+      ],
+      "additionalProperties": false
+    },
+    "event_input": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "evidence_type": {
+          "enum": [
+            "user_report",
+            "employer_message",
+            "agent_analysis",
+            "mock_interview",
+            "real_interview"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "document",
+                  "resume",
+                  "opportunity"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 500
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        }
+      },
+      "required": [
+        "title",
+        "evidence_type",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "interview": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "scheduled_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "planned",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "schema": {
+          "const": "career-interview/v1"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^interview-[a-z0-9-]{1,80}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schema",
+        "id",
+        "title",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "additionalProperties": true
+    },
+    "interview_input": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "scheduled_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "planned",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^interview-[a-z0-9-]{1,80}$"
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

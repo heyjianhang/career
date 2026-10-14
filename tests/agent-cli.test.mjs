@@ -30,7 +30,7 @@ test('Agent can discover callable commands, exact schema and verified platform f
   const help=await execute('--help');assert.equal(help.schema_version,'career-cli/v1');assert.equal(help.data.content_author,'agent');
   for(const command of ['workspace status','workspace init','workspace check','workspace hash','resume save','resume schema','resume platforms','resume preview'])assert.ok(help.data.commands.some(c=>c.command==='career '+command));
   const scoped=await execute('resume','save','--help');assert.equal(scoped.data.commands.length,1);assert.ok(scoped.data.commands[0].options.includes('if-match'));
-  const schema=await execute('resume','schema');assert.deepEqual(schema.data.json_schema,JSON.parse(await readFile(new URL('../schemas/presentation.v1.schema.json',import.meta.url),'utf8')));assert.ok((await stat(schema.data.example_path)).isFile());
+  const schema=await execute('resume','schema');assert.deepEqual(schema.data.json_schema,JSON.parse(await readFile(new URL('../schemas/resume-package.v1.schema.json',import.meta.url),'utf8')));assert.equal(schema.data.legacy_schema.properties.schema.const,'career-presentation/v1');
   const platforms=await execute('resume','platforms');assert.deepEqual(platforms.data.platforms.map(p=>p.id).sort(),['boss','job51','liepin','zhaopin']);
   const one=await execute('resume','platforms','--platform','liepin');assert.equal(one.data.platforms.length,1);assert.deepEqual(one.data.platforms[0],platforms.data.platforms.find(p=>p.id==='liepin'));
   failure(await execute('resume','platforms','--platform','invented'),'resume.platforms','INVALID_ARGUMENT');

@@ -8,6 +8,9 @@
 
 | 意图 | 命令 |
 | --- | --- |
+| 新建／复制简历包 | `npm run career -- resume create --title "方向 · 通用版" [--from <ID>] --json` |
+| 读取待编辑包 | `npm run career -- resume read --id <ID> --json` |
+| 查看关联岗位与投递记录 | `npm run career -- resume relations --id <ID> --json` |
 | 看实际能力 | `npm run career -- --help --json`；`npm run career -- resume save --help --json` 看单条 |
 | 工作区盘点 | `npm run career -- workspace status --workspace "<工作区>" --json` |
 | 初始化或补缺 | `npm run career -- workspace init --workspace "<工作区>" --json` |
@@ -35,9 +38,9 @@
 
 - `workspace status` 不创建文件，initialized:false 时按范围运行 init；initialized:true 时继续看 validation.valid、next_reads、missing_files 与 presentations。状态查询成功不等于校验或语义完成。
 - `workspace check` 验证 v2 记录和引用，错误时 data 仍带 valid:false 与计数；不校验展示包，展示包用 resume validate。status/check 的 warnings 是旧校验器的文字，展示命令 warnings 是带 code/message/path 的对象；均需读取，不能默认同一类型。
-- `schema.data.json_schema` 是实际使用的 Schema，example_path 是虚构参考；`platforms.data.platforms` 是字段规则，coverage/evidence 只声明已观察范围，不代表全部平台功能。`data.input_contract` 说明如何写入包并提供可用 section 结构：规则地址 `project.name` 对应 section.kind 为 `project`、field.key 为 `name`；key 不带前缀，每组还需 id/title。不要直接把规则地址复制成字段 key。
+- `schema.data.json_schema` 是实际使用的 Schema，legacy_schema 用于旧展示包兼容，新建使用 career-resume-package/v1；`platforms.data.platforms` 是字段规则，coverage/evidence 只声明已观察范围，不代表全部平台功能。`data.input_contract` 仅说明旧展示包如何写入 reports，新包不写 reports；它并提供可用 section 结构：规则地址 `project.name` 对应 section.kind 为 `project`、field.key 为 `name`；key 不带前缀，每组还需 id/title。不要直接把规则地址复制成字段 key。
 - `hash.data.sha256` 基于文件字节；--path 相对工作区，其他文件／目录参数相对当前终端目录。目录、越界和符号链接不能作为来源文件。
-- `save.data` 返回 id、file、sha256、changed、backup；已有包内容不同需要 --if-match，备份保存在同级 .history。保存不会改事实、母版、摘要或已生成 HTML，完成后再构建。
+- `save.data` 返回 id、file、sha256、changed、backup；已有包内容不同需要 --if-match，备份保存在同级 .history。保存不会改事实、母版或旧构建。实时工作台读取新包并重新映射；离线交付需另建快照。
 
 - `list.data.entries` 是通过结构检查的内容清单，warnings 可能含无效包；新构建仍会核对来源是否变化。
 - `build.data.directory` 和 `build.data.html` 是实际新产物位置；构建不覆盖原目录。
@@ -56,7 +59,7 @@
 ## 启动服务必须完成的交付
 
 1. 校验当前包并检查列表；修正本轮错误，保留有依据的缺口说明。不能为消除来源变化错误只更新摘要。
-2. 在可保留的终端／执行会话中运行 preview，默认随机本机端口；记录返回 URL、构建目录与所属进程会话。新内容需要新构建，不能仅重新打开旧快照。
+2. 在可保留的终端／执行会话中运行 preview，默认随机本机端口；记录返回 URL、构建目录与所属进程会话。普通 preview 是实时工作台；preview --build 是明确查看历史快照，不能用它验证最新改动。
 3. 请求返回 URL，确认首页可访问；需要默认设置时还核对 `/api/resumes` 正常响应。能用浏览器检查时，再打开样式库确认默认按钮可用。没有浏览器工具时如实区分 HTTP 检查与交互检查。
 4. 用客户端打开页面工具展示这个 **http://127.0.0.1 地址**，并在回复给可点击链接。给用户选样式／保存默认时，不能只交付 file:// 副本。离线 HTML 可复制和打印，但不能写工作区默认配置。
 5. 记录工作区 context/state：本次内容包、来源版本、照片选择引用、实际构建目录、URL、如何重启和下一步。运行中的进程状态只记最近观察，不把上轮 URL 视为永远有效。当前会话无法常驻时，说明限制并提供带正确工作区的重启命令，不声称服务仍在线。
@@ -73,7 +76,7 @@ CLI export 不指定 theme 时沿用该构建的样式；导出刚刚在页面�
 | --- | --- |
 | 换排版、设默认 | 使用现有样式或 preferences，不重新收集经历 |
 | 换照片 | 按 intake 保存新素材与选择；更新引用它的内容包和摘要，再构建 |
-| 新项目、事实纠正 | 先 sources/facts → 相关 master → 受影响内容包及平台稿 → 新构建 |
+| 新项目、事实纠正 | 先 sources/facts → 相关 master → 受影响的统一内容包 → 核对生成稿 |
 | 只调整成品篇幅 | 更新当前内容包，记录取舍；用户明确要新版本时才新建 ID |
 | 要增加截图中的新样式 | 进入仓库模板开发流程，不往内容包塞 CSS／HTML |
 

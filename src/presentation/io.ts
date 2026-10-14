@@ -1,3 +1,4 @@
+import {projectPackage,type ResumePackage} from '../resumes/model.js';
 import {readFile, stat, mkdir, lstat, realpath, writeFile, rename, rm} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -26,12 +27,20 @@ export async function rules() {
   return result;
 }
 export async function check(file: string, workspace?: string, verifySources=true, savedRules?:Record<Platform,PlatformRules>): Promise<Checked> {
-  const input = await json<Presentation>(file);
+  const raw = await json<Presentation|ResumePackage>(file);
+  const registry = savedRules??await rules();
+  const bundle=raw.schema==='career-resume-package/v1'?raw:undefined;
+  if(bundle){
+    const valid=new Ajv({allErrors:true,strict:false}).compile(await json<object>(path.join(root,'schemas/resume-package.v1.schema.json')));
+    if(!valid(bundle))throw new Error('简历包格式错误：'+JSON.stringify(valid.errors));
+    if(!Number.isFinite(Date.parse(bundle.created_at))||!Number.isFinite(Date.parse(bundle.updated_at)))throw new Error('简历包时间无效');
+  }
+  const input = bundle?projectPackage(bundle,registry):raw as Presentation;
   const schema = await json<object>(path.join(root,'schemas/presentation.v1.schema.json'));
   const validate = new Ajv({allErrors:true,strict:false}).compile(schema);
-  if (!validate(input)) throw new Error('内容包格式错误：\n' + validate.errors?.map(e => `${e.instancePath || '/'} ${e.message}`).join('\n'));
+  if (!validate(input) && !bundle) throw new Error('内容包格式错误：\n' + validate.errors?.map(e => `${e.instancePath || '/'} ${e.message}`).join('\n'));
   if (!Number.isFinite(Date.parse(input.generated_at))) throw new Error('generated_at 必须是有效时间戳');
-  const warnings: Issue[] = [], registry = savedRules??await rules();
+  const warnings: Issue[] = [];
   const seen = new Set<string>();
   const unique = (id:string) => {if(seen.has(id)) throw new Error('重复 ID：'+id); seen.add(id);};
   for (const section of input.resume.sections) {unique(section.id); for(const item of section.items) unique(item.id);}
@@ -62,7 +71,7 @@ export async function check(file: string, workspace?: string, verifySources=true
     warnings.push({code:'PARTIAL_PLATFORM',path:'/reports/'+p,message:rule.coverage});
   }
   for (const p of platforms) if(!input.reports[p]) warnings.push({code:'MISSING_PLATFORM',path:'/reports/'+p,message:`尚未生成${registry[p].name}填写稿`});
-  if (!input.source.files.length && !input.synthetic) throw new Error('真实内容包必须声明至少一份来源文件及 SHA-256');
+  if (!input.source.files.length && !input.synthetic && !bundle) throw new Error('真实内容包必须声明至少一份来源文件及 SHA-256');
   if (verifySources && input.source.files.length && !workspace) throw new Error('核对来源文件需要 --workspace <目录>');
   for(const source of input.source.files) {
     if(path.isAbsolute(source.path) || source.path.split(/[\\/]/).some(x=>x==='..')) throw new Error('来源路径必须在工作区内');
@@ -70,7 +79,8 @@ export async function check(file: string, workspace?: string, verifySources=true
     const base = await realpath(workspace!); const target = path.resolve(base, source.path);
     if(!target.startsWith(base+path.sep)) throw new Error('来源路径越界');
     await noSymlinks(target);
-    if(hash(await readFile(target)) !== source.sha256) throw new Error(`来源已变化：${source.path}。请核对并重新生成内容包。`);
+    try {if(hash(await readFile(target)) !== source.sha256)throw new Error('摘要变化');}
+    catch(e){if(!bundle)throw new Error(`来源已变化或缺失：${source.path}。请核对并重新生成内容包。`);warnings.push({code:'SOURCE_CHANGED',path:source.path,message:'原始资料已变化或缺失；当前简历内容保留，更新前请核对。'});}
   }
   const assets:ResolvedAssets={};
   if(input.resume.photo) {
@@ -90,15 +100,25 @@ export async function check(file: string, workspace?: string, verifySources=true
       assets.photo={dataUrl:`data:image/${png?'png':'jpeg'};base64,${bytes.toString('base64')}`,alt:photo.alt,x:photo.position?.x??50,y:photo.position?.y??50};
     }
   }
-  return {input,rules:registry,warnings,assets};
+  return {input,bundle,rules:registry,warnings,assets};
 }
 export async function readDefaultTheme(workspace: string): Promise<Theme|null> {
   try {const value=await json<{presentation?:{default_theme?:Theme}}>(path.join(workspace,'career.json'));return themes.includes(value.presentation?.default_theme as Theme)?value.presentation!.default_theme!:null;}
   catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}
 }
-export async function readPreference(workspace: string): Promise<Theme> {return (await readDefaultTheme(workspace))??'classic';}
-export async function savePreference(workspace: string, theme: Theme|null) {
+export async function readPreference(workspace: string, resumeId?:string): Promise<Theme> {
+  if(resumeId){
+    try {
+      const config=await json<{presentation?:{resume_themes?:Record<string,Theme>}}>(path.join(workspace,'career.json'));
+      const saved=config.presentation?.resume_themes?.[resumeId];
+      if(saved&&themes.includes(saved))return saved;
+    }catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+  }
+  return (await readDefaultTheme(workspace))??'classic';
+}
+export async function savePreference(workspace: string, theme: Theme|null, resumeId?:string) {
   if(theme!==null&&!themes.includes(theme))throw new Error('未知样式');
+  if(resumeId!==undefined&&!/^[a-z][a-z0-9-]{0,79}$/.test(resumeId))throw new Error('无效简历 ID');
   await noSymlinks(workspace); await mkdir(workspace,{recursive:true});
   const file = path.join(workspace,'career.json'), lock = file+'.presentation-lock';
   await noSymlinks(file); await writeFile(lock,'presentation preference\n',{flag:'wx'});
@@ -108,7 +128,10 @@ export async function savePreference(workspace: string, theme: Theme|null) {
     const data=old===null ? {schema:'career-workspace/v1',resume_dir:'resume',locale:'zh-CN'} : JSON.parse(old);
     if(data.schema!=='career-workspace/v1') throw new Error('不支持的工作区配置版本');
     data.presentation={...data.presentation};
-    if(theme===null)delete data.presentation.default_theme;else data.presentation.default_theme=theme;
+    if(resumeId){
+      data.presentation.resume_themes={...data.presentation.resume_themes};
+      if(theme===null)delete data.presentation.resume_themes[resumeId];else data.presentation.resume_themes[resumeId]=theme;
+    }else if(theme===null)delete data.presentation.default_theme;else data.presentation.default_theme=theme;
     await writeFile(temp,JSON.stringify(data,null,2)+'\n',{flag:'wx'});
     let latest:string|null=null; try {latest=await readFile(file,'utf8');} catch(e) {if((e as NodeJS.ErrnoException).code!=='ENOENT') throw e;}
     if(latest!==old) throw new Error('配置已被其他进程修改，请重试');

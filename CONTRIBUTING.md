@@ -47,4 +47,4 @@ npm run demo
 
 Issue、PR、示例和截图使用虚构或已脱敏资料。不要提交用户简历、真实照片、登录凭据、工作区、生成文件或本机绝对路径。新增图片、字体和图标记录来源与许可。
 
-CI 执行基础检查，不自动发布。npm 发布由维护者另行完成。更细的操作和验证范围见[开发说明](docs/development.md)与[验证说明](docs/validation.md)。
+CI 执行基础检查，不自动发布。npm 发布由维护者按 [career-release](.agents/skills/career-release/SKILL.md) 完成；该 Skill 只用于开发仓库，不随 npm 安装。更细的操作和验证范围见[开发说明](docs/development.md)与[验证说明](docs/validation.md)。

@@ -5,7 +5,7 @@
 | 参考 | 借鉴与采用范围 |
 | --- | --- |
 | [Agent Skills 规范](https://agentskills.io/specification) | 主文件路由、按需读取参考资料、随包资源 |
-| [career-ops](https://github.com/career-ops-hq/career-ops/tree/f4840b7d4810b905ad2c61cd40a3f1f203bc2e42) | 材料优先、渐进访谈、缺失检测与增量补充；按 career 的 v2 契约重新编写中文指引，未复制其实现或整段模板 |
+| [career-ops](https://github.com/career-ops-hq/career-ops/tree/f4840b7d4810b905ad2c61cd40a3f1f203bc2e42) | 材料优先、渐进访谈、缺失检测与增量补充；参考持久待办、面试准备／练习／复盘的分层，独立实现岗位文件与乐观更新；按 career 的 v2 契约重新编写中文指引，未复制其实现或整段模板 |
 | [ResumeSkills](https://github.com/Paramchoudhary/ResumeSkills) | 写作、岗位选材和版本维护的分工；本项目允许有依据的定性结果，不要求虚构数字 |
 | [RenderCV Skill](https://github.com/rendercv/rendercv-skill) | 工具字段契约和可执行验证；未引入其渲染后端 |
 | [Reactive Resume](https://rxresu.me/) | 同一内容切换样式的预览方式；未复制网站代码、模板资产或示例资料 |

@@ -18,7 +18,7 @@ Mac、Windows 使用同一 CLI；目录路径按系统调整。需要 Node.js 22
 npx --yes --package @heyjianhang/career@0.2.0 career setup --workspace "<个人目录的绝对路径>" --json
 ```
 
-进入个人目录后，用 `npm run career -- doctor --json` 和 `workspace status --json` 验证。setup 安装固定版本，生成项目级 Skills 和资料骨架，输出 next_reads / next_action；安装后的路径与新对话指令由 Agent 按公网指南提供。next_action 留给新工作区中的协作，不自动注册账号或创建客户端会话。
+进入个人目录后，用 `npm run career -- doctor --json` 和 `workspace status --json` 验证。setup 安装固定版本，生成项目级 Skills 和资料骨架，输出 next_reads / next_action；当前开发版还返回 handoff（路径与新对话指令），0.2.0 则由 Agent 按公网指南完成相同交接。next_action 留给新工作区中的协作，不自动注册账号或创建客户端会话。
 
 ## 初始化之后
 

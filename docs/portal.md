@@ -40,7 +40,17 @@ node scripts/build-site.mjs
 
 绑定仓库后，生产分支更新可以触发重新构建。公开 npm 包的发布仍为独立步骤；发布前核对门户命令指定版本已在 registry 可安装。只部署静态产物即可展示 portal，不需要 npm token。
 
-截至本地首版验收，已完成静态构建与浏览器检查；远端托管项目和 DNS 接入须以实际部署回执更新，不能仅根据 edgeone.json 判断已上线。
+## 生产部署记录
+
+2026-10-13 门户已上线：[career.heyjianhang.top](https://career.heyjianhang.top/)。
+
+- 腾讯项目：career（makers-od1hhnbtxjpx）；生产部署 dp5vuzqo1c7p，状态成功。
+- 源码：[PR #1](https://github.com/heyjianhang/career/pull/1)，main 提交 517a18d；修复提交三平台 CI 通过。
+- DNSPod：主机记录 career，类型 CNAME，默认线路，记录值 career.heyjianhang.top.pages.dnsoe4.com，TTL 保持默认。
+- 腾讯域名管理显示“已生效”，HTTPS 显示“已部署”；实际 HTTPS 页面和开始指令复制已验收。
+- 首次部署 dpkptbf2lv3z 因远端提交缺少 scripts/build-site.mjs 失败，补齐门户源码后已恢复。本次从控制台新建 main 部署完成，尚未单独验证后续推送自动触发。
+
+部署成功不代表 npm 版本更新；本次仅发布门户，npm 仍为 0.2.0。
 
 ## 其他静态托管
 

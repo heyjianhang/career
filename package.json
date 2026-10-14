@@ -33,12 +33,16 @@
     "test:package": "node tests/package-smoke.mjs",
     "career": "node dist/cli.js",
     "build:site": "node scripts/build-site.mjs",
-    "preview:site": "node scripts/preview-site.mjs"
+    "preview:site": "node scripts/preview-site.mjs",
+    "test:board": "npm run build && node tests/board-browser.mjs",
+    "test:resumes": "npm run build && node tests/resume-library-browser.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-sc": "5.3.1",
     "ajv": "8.20.0",
+    "markdown-it": "15.0.2",
     "pagedjs": "0.4.3",
+    "pdfjs-dist": "6.4.299",
     "playwright": "1.64.0",
     "yaml": "2.9.1"
   },
@@ -46,7 +50,9 @@
     "career": "dist/cli.js"
   },
   "devDependencies": {
+    "@types/markdown-it": "14.2.0",
     "@types/node": "22.20.5",
+    "bootstrap-icons": "1.13.2",
     "pdf-lib": "1.17.1",
     "typescript": "7.0.2"
   },
@@ -60,7 +66,12 @@
     "scripts/validate.mjs",
     "scripts/hash.mjs",
     "scripts/freeze.mjs",
-    ".agents/skills/",
+    ".agents/skills/career-setup/",
+    ".agents/skills/career-git/",
+    ".agents/skills/career-intake/",
+    ".agents/skills/resume-master/",
+    ".agents/skills/resume-tailor/",
+    ".agents/skills/career-board/",
     "templates/context/",
     "schemas/",
     "examples/presentation/package.json",

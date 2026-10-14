@@ -1,3 +1,4 @@
+if(location.protocol==='file:')document.querySelectorAll<HTMLElement>('[data-local-nav]').forEach(e=>e.hidden=true);
 const sidebarButton=document.querySelector<HTMLButtonElement>('#toggle-sidebar')!;
 const narrow=window.matchMedia('(max-width: 900px)');
 let sidebarChoice:boolean|null=null;
@@ -16,8 +17,8 @@ sidebarButton.addEventListener('click',()=>{
 });
 document.querySelector('#sidebar-backdrop')!.addEventListener('click',collapseSidebar);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&narrow.matches&&!document.querySelector('dialog[open]'))collapseSidebar();});
-narrow.addEventListener('change',()=>setSidebar(narrow.matches||sidebarChoice===true));
-setSidebar(narrow.matches||sidebarChoice===true);
+narrow.addEventListener('change',()=>setSidebar(narrow.matches||(sidebarChoice??document.body.classList.contains('board-page'))));
+setSidebar(narrow.matches||(sidebarChoice??document.body.classList.contains('board-page')));
 document.querySelector('#copy-start')?.addEventListener('click',async()=>{
   const text=document.querySelector<HTMLElement>('#start-instruction')!;
   let message='已复制，发给 Agent 即可开始';

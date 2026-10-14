@@ -13,9 +13,15 @@
 
 当前阶段补充维护清单和可读母版预览；既有个人记录路径、稳定 ID、v2 元数据及冻结清单格式保持兼容。JSON v3 迁移尚未实现，不能据此覆盖已有文件。
 
+## 岗位工作区
+
+岗位记录位于个人目录 `opportunities/`，使用独立的 [岗位契约](opportunities.md)。每个稳定 ID 对应一个卡片目录，关联原有简历版本；不改变本文件的简历 v2 或冻结格式。workspace check 与本地 Git 保存同时校验岗位记录和关联。
+
 ## 展示内容包
 
-`career-presentation/v1` 是 Agent 从现有 v2 母版／岗位版本生成的派生内容，不替代这三层。包保存在 `resume/presentations/<id>/package.json`，输出在工作区 `build/`。约定见 [成果页契约](presentation.md)，机器结构见 [Schema](../schemas/presentation.v1.schema.json)。真实包引用实际来源路径和摘要；源内容变化后需重新核对并构建。CLI 不反向修改事实与母版，也不将源文件未变等同于内容准确。
+新成品使用 `career-resume-package/v1`，Agent 与网页修改同一个 content，平台稿由固定规则生成；见 [统一简历包](resume-packages.md)。事实库和母版继续独立维护，不从 HTML 反解析。
+
+旧 `career-presentation/v1` 是 Agent 从现有 v2 母版／岗位版本生成的派生内容，不替代这三层。包保存在 `resume/presentations/<id>/package.json`，输出在工作区 `build/`。约定见 [成果页契约](presentation.md)，机器结构见 [Schema](../schemas/presentation.v1.schema.json)。真实包引用实际来源路径和摘要；源内容变化后需重新核对并构建。CLI 不反向修改事实与母版，也不将源文件未变等同于内容准确。
 
 内容包、成果页构建和默认样式不参与原 v2 实体扫描／冻结；已冻结版本保持原样。`career.json` 可增加 `presentation.default_theme`（用 `resume themes --json` 查询注册表中的有效样式 ID），其他配置保留。
 
@@ -96,7 +102,7 @@ schema 为 career-resume/v2。
 | platforms/*.md | type: platform-output；resume_id、template_id、template_revision、generated_at、verification_status |
 | notes.md | 内部普通 Markdown，不参与实体扫描和对外输出 |
 
-平台填写稿统一保存为 `resume/versions/<版本 ID>/platforms/<平台 ID>.md`，一平台一文件。YAML 元数据和字段标题留在代码块外；一个输入框对应一个 `text` 围栏代码块，块内只含可粘贴的纯文本，不使用 Markdown 排版、字段标签、占位符或 Agent 说明。多段经历独立分组，缺失字段和映射损失记录在 notes.md，不生成空复制块。具体方法与示例见 [平台填写约定](../.agents/skills/resume-tailor/references/platform-templates.md)。此格式用于新建和明确更新的草稿，已有冻结版本保持原样。
+旧 v2 岗位版本的平台填写稿保存为 `resume/versions/<版本 ID>/platforms/<平台 ID>.md`，一平台一文件。YAML 元数据和字段标题留在代码块外；一个输入框对应一个 `text` 围栏代码块，块内只含可粘贴的纯文本，不使用 Markdown 排版、字段标签、占位符或 Agent 说明。多段经历独立分组，缺失字段和映射损失记录在 notes.md，不生成空复制块。具体方法与示例见 [平台填写约定](../.agents/skills/resume-tailor/references/platform-templates.md)。此格式用于新建和明确更新的草稿，已有冻结版本保持原样。
 
 以上有元数据的文件均为 career-resume/v2，并有稳定 ID 与 updated。generated_at、captured_at、created_at 等使用带时区的时间戳；生成的岗位版本必须记录 generated_at。target_id 必须指向本目录的 JD 记录；未来岗位系统引用使用 target_job_id，当前可以为 null。
 

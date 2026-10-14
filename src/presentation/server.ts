@@ -1,3 +1,5 @@
+import {resumeRoutes} from '../resumes/api.js';
+import {boardRequest} from '../board/api.js';
 import {createServer,type IncomingMessage} from 'node:http';
 import {randomBytes} from 'node:crypto';
 import {readFile,lstat} from 'node:fs/promises';
@@ -8,7 +10,7 @@ import {pdfBuffer} from './pdf.js';
 import {readPreference,readDefaultTheme,savePreference,hash,noSymlinks} from './io.js';
 import type {Theme} from './types.js';
 
-export async function startPreview(directory:string,workspace:string,port=0) {
+export async function startPreview(directory:string,workspace:string,port=0,live=false) {
   let isCollection=false;try{await lstat(path.join(directory,'collection.json'));isCollection=true;}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
   const collection=isCollection?await loadCollection(directory):undefined;
   const single=collection?undefined:await loadBuild(directory);
@@ -18,6 +20,7 @@ export async function startPreview(directory:string,workspace:string,port=0) {
   const allowedThemes=new Map<string,string[]>();
   for(const [id,dir] of directories){const {manifest}=await loadBuild(dir);allowedThemes.set(id,(manifest.templates??[{id:'classic'},{id:'compact'}]).map(t=>t.id));}
   const token=randomBytes(32).toString('hex');let origin='';let busy=false;
+  const handleResumes=resumeRoutes(workspace,token,isCollection,live);
   async function body(req:IncomingMessage,allowClear=false) {
     let text='';for await(const chunk of req){text+=String(chunk);if(text.length>2048)throw new Error('请求过大');}
     const data=JSON.parse(text) as {theme?:Theme|null;resumeId?:string};const id=data.resumeId??(collection?undefined:firstId);
@@ -30,6 +33,8 @@ export async function startPreview(directory:string,workspace:string,port=0) {
     if(req.headers.host!==new URL(origin).host) {send(403,{error:'仅接受本机预览地址'});return;}
     try {
       const url=new URL(req.url??'/',origin),pathname=url.pathname;
+      if(await boardRequest(req,res,url,workspace,origin,token))return;
+      if(await handleResumes(req,res,url,origin))return;
       if(req.method==='GET') {
         let file:string|undefined;
         if(pathname==='/'||pathname==='/index.html') {

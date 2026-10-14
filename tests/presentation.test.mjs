@@ -62,6 +62,25 @@ test('CLI preferences persist across invocations, preserve config and control fu
   const after=JSON.parse(await readFile(configPath,'utf8'));assert.deepEqual(after.extensions,{keep:true});assert.equal(after.presentation.custom,'keep');
   assert.equal((await execute('build','--input',file,'--workspace',dir)).data.manifest.theme,'classic');
 });
+test('each resume keeps its applied style independently from the default and frozen builds',async t=>{
+  const {file,dir}=await setup(t);
+  await savePreference(dir,'compact');
+  const snapshot=await build(file,dir);
+  await savePreference(dir,'blue-tab',fixture.id);
+  assert.equal(await readPreference(dir,fixture.id),'blue-tab');
+  assert.equal(await readPreference(dir,'resume-other'),'compact');
+  assert.equal(await readDefaultTheme(dir),'compact');
+  assert.equal((await build(file,dir)).manifest.theme,'blue-tab');
+  assert.equal((await build(file,dir,undefined,'classic')).manifest.theme,'classic');
+  assert.equal((await loadBuild(snapshot.directory)).manifest.theme,'compact');
+  await savePreference(dir,null);
+  assert.equal(await readPreference(dir,fixture.id),'blue-tab');
+  assert.equal(await readPreference(dir,'resume-other'),'classic');
+  const before=await readFile(path.join(dir,'career.json'),'utf8');
+  await assert.rejects(savePreference(dir,'invalid',fixture.id),/未知样式/);
+  await assert.rejects(savePreference(dir,'classic','../oops'),/无效简历/);
+  assert.equal(await readFile(path.join(dir,'career.json'),'utf8'),before);
+});
 test('local preview serves only public HTML and protects configuration writes',async t=>{
   const {file,dir}=await setup(t);const result=await build(file,dir);const preview=await startPreview(result.directory,dir);t.after(()=>preview.close());assert.equal((await fetch(preview.url)).status,200);
   assert.equal((await fetch(preview.url+'/.package.json')).status,404);

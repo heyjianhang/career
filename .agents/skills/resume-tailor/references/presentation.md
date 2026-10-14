@@ -1,48 +1,42 @@
-# 从已有简历生成可选样式的成果页
+# 统一简历包与成果页
 
-用户说“生成简历”“选个模板”“导出 PDF”“看看各平台填写稿”时，完成本流程。用户提供事实和反馈；Agent 写内容包并调用 CLI，页面用来选样式、看结果和复制。母版是可持续维护的表达基础，内容包是一份具体成品，视觉模板是可替换的排版；不要因为用户说“模板”就让他再填一份表。
+新成品使用 `career-resume-package/v1`。一个包就是一张简历卡片：包含资料、章节、可选照片和链接。Agent 和网页共同编辑 `content`，CLI 从这一份内容确定性生成附件、通用资料和四个平台填写稿。不要再为新包手写四份 `reports`，不要从 HTML 反推内容。
 
-已有有效内容包，且本轮只是查看、选样式或导出时，跳过内容准备，直接按 [CLI 操作](cli.md) 复用／恢复服务。仅在首次生成或内容需要更新时走下列写作步骤。
+## 最短操作
 
-## 内容准备与保存
+1. 读取工作区 AGENTS、state、母版索引及本轮需要的事实。缺什么补什么，不强制重做访谈。
+2. `resume list --json` 查现有包。新建用 `resume create --title "方向 · 通用版" --json`；岗位专用版用 `resume create --title "公司 · 岗位" --from <原包ID> --json`。
+3. `resume schema --json` 读取真实契约；`resume read --id <ID> --json` 获得完整 package、file、sha256。保留未知字段和已有手改，写候选文件。
+4. 修改 `content`，用 `resume save --input <候选.json> --if-match <读取时摘要> --json` 保存。冲突时重新读取并合并；不要拿新摘要重放旧包。
+5. `resume validate --input <返回file> --json`，核对警告与真实内容；`resume preview --json` 启动实时工作台并打开返回 URL。保持服务运行。
 
-1. 读取当前工作区进度、实际事实与母版。信息已有时不重问；关键缺口才回到对应经历补充。没有 JD 可以生成通用简历，以已确认方向选材，不虚构目标公司或岗位。
-2. 选择本次唯一内容依据：通用母版或已有 v2 版本。先核对真实字段和内容。工作日期、项目角色及个人贡献来自事实；视觉样式不改变经历。
-3. 按 [CLI 操作](cli.md) 准备环境，执行 `npm run career -- resume schema --json`，读取返回的真实 JSON Schema 与 example_path；契约源码在 [内容契约](../../../../schemas/presentation.v1.schema.json)，示例为 [虚构完整包](../../../../examples/presentation/package.json)。示例只用来理解结构，姓名、公司、技术和成果都换成本次真实有据内容。
-4. 先写候选 JSON，例如工作区 `resume/drafts/<内容包ID>.json`，不直接覆盖已保存包，不写入 Skill。真实包 `synthetic:false`；`source.resume_id` 对应当前母版索引或版本的真实 ID。`source.files` 列出实际用到的母版、事实、版本正文等相对工作区路径及 SHA-256，通过 `workspace hash --path "<相对路径>" --workspace "<工作区>" --json` 获取。若更新已有包，写候选前先读取原包并记录它的摘要，保留用户修改与稳定 ID。
-5. `resume` 写完整附件简历。段落与要点分开，所有值为纯文本；章节顺序、经历取舍和篇幅由 Agent 完成，不把访谈问题和编辑建议塞进正文。
-   用户选定照片时，读取 profile 的展示选择与素材引用，在 `resume.photo` 写 `{path, sha256, alt, position?}`。path 相对工作区，SHA-256 对应图片原始字节，alt 为简短说明；position 的 x/y 是 0–100 的裁切焦点。若旧资料从未记录照片选择，按 intake 的照片方法提醒一次；已选、暂缓或不展示时沿用记录。不选照片就省略整个 photo，不填空对象、不使用示例人像，不把本地绝对路径或外链写入包。生成前验证照片存在，当前支持不超过 5 MiB 的 PNG/JPEG。
-6. 用 `resume platforms --platform <平台ID> --json` 读取真实字段、控件和长度限制，同时读返回的 `input_contract`；再按需读 [核对记录与复制约定](platform-templates.md)。规则源码在 `templates/platforms/render/<平台ID>.json`。规则地址 `project.name` 在内容包中拆成 `kind:"project"`、`key:"name"`，不要把带点的地址直接写入 key。完整一组形如 `{id:"project-pilot",kind:"project",title:"项目名称",fields:[{key:"name",value:"实际项目名称"}]}`，一框一值。公司、日期、描述等拆开。未知/缺失省略并记录 notes，不能编造字段。
-7. BOSS 工作内容与业绩分开；猎聘工作职责业绩合并、项目描述/职责/业绩分开；智联与前程项目正文按各自规则组合。同一项目可以不同措辞，但职责、日期与成果必须与附件正文一致。选择器字段标出要选择的值，不冒充可直接粘贴的输入框。
+命令在个人工作区用 `npm run career --` 前缀，或显式 `--workspace`。完整运行与导出方法见 [CLI 操作](cli.md)。
 
-`reports` 内没有某平台时页面显示待生成。平台稿负责优势、工作、项目、教育等差异化字段；技能标签、证书、语言和其他通用信息统一写入可选 `common.sections`（每组 `{id,title,fields:[{label,value,url?}]}`），不复制到四个平台，也不因没有平台专用 key 就漏掉这些资料。用户在“通用资料”复制后自行匹配平台选项。联系方式、个人网页、项目链接与照片从 resume 复用，不在 common 再写一遍。求职期望属于求职目标模块，本轮不为此补齐平台表单。仍未能表达的必要内容才记 notes.md，不能塞进其他含义字段。`notes` 只用于用户需要看到的填写说明，内部来源路径留在 source 或工作区记录。
+## 写作字段
 
-按用户本轮输出范围生成：要求“各平台填写稿”时覆盖当前四个平台，明确列出未支持字段；仅要求附件／PDF 时不额外建立岗位版本或强求 JD。暂缺的平台必须作为未完成输出说明，不能用页面已有标签代替已经生成该稿。
+- `content.profile`：姓名、求职方向、contacts。联系方式 `{label,value,url?}` 支持可选个人网页，URL 为完整 HTTP(S)。
+- `content.summary`：个人简介的纯文本，可分段。
+- `content.sections`：有序章节。每项有稳定 id、kind、title、subtitle、start、end、current、company、qualification、description、responsibilities、achievements、links。
+- kind 为 employment／project／education／other。title 是公司／项目／学校／自定义标题；subtitle 是职位／项目角色／专业／补充说明。学历写 qualification。职责与成果每行一条，描述按段落写。未知日期为空，current 只在确认为至今时为 true。
+- `content.common.sections`：技能、语言、证书等通用字段，`{id,title,fields:[{label,value,url?}]}`；统一供用户复制，且自动加入附件。不要把同一组资料再复制到 other 章节。求职期望属于求职目标，不伪造平台字段。
+- 项目链接放条目 links。没有链接使用空数组，不放占位网址；CLI 验证格式，不代表联网验证过访问性。
+- `content.profile.photo` 为可选 `{path,sha256,alt,position?}`；path 相对工作区，照片为不超过 5 MiB 的 PNG/JPEG。提醒用户可提供一次，已有选择继续沿用，不用示例人像替代。
+- `source` 保存实际来源 ID、路径和摘要。新版包可从空白草稿开始；有来源时如实登记。来源变更返回 SOURCE_CHANGED，不自动覆盖已编辑内容，也不能只更新摘要消除提示。
 
-## 内容覆盖核对
+Agent 负责内容真实性、选材与表达；CLI 负责固定字段映射，不做语义推断。工作成果按平台规则拆分或合并；项目角色、公司等在无专用字段的平台并入正文；链接保留。超过长度保留全文并给 LENGTH_REVIEW，不自动截断。未覆盖字段在通用资料或附件保留，不宣称覆盖整个平台表单。
 
-生成前后按母版索引对照基本信息、简介、工作、项目、教育、技能、语言、证书与照片。只处理实际存在且属于本次范围的内容；附件章节可按统一 sections/items 表达，不能因为平台尚未支持技能或证书就丢掉附件中的这些章节。
+## 网页与 Agent 的更新关系
 
-在工作区记录候选的覆盖对照，包保存成功后放入返回目录旁的 notes.md，简记“来源条目 → 附件章节 → 平台字段／未覆盖原因”。区别主动取舍、资料缺失、平台未支持，说明重要省略；精简通常先缩短段落和要点，不能悄悄删除全部项目来演示版本切换。同一版本的日期、角色与业绩必须一致。这个对照是 Agent 的内容复核记录，不加入 JSON 的未定义字段，也不把内部说明展示成可复制正文。
+工作台首页是简历卡片列表，进入一张卡片后查看附件、通用资料和平台填写稿；“编辑内容”保存同一个 package.json。保存后所有生成视图更新。Agent 写回文件后，未编辑的页面自动刷新；有未保存修改时提示冲突并允许下载草稿，不覆盖编辑区。
 
-候选核对后运行 `resume save --input "<候选文件>" --workspace "<工作区>" --json`。命令先校验结构、来源与照片，再保存到 `workspace/<resume_dir>/presentations/<ID>/package.json`；后续使用返回的 data.file，不用候选路径替代最终文件。内容一样时 changed:false，不重复写入。
+网页中的事实修改不会自动回写履历事实库／母版。后续 Agent 接手先读最新包和来源；事实纠正按用户确认回到 facts/master，纯排版、篇幅调整留在当前包。不要用旧母版覆盖用户手改。
 
-更新已有包加 `--if-match <写候选前读取的原包摘要>`；成功时 data.backup 指向保存的旧副本。PACKAGE_EXISTS／PACKAGE_CONFLICT 表示需重新读取原文件、对照本轮改动并合并，不能直接取最新摘要强行重试。它只保护成品文件，不能替代事实／母版的核对。用户要求留存、旧版本冻结或希望对照时新建 ID。来源变更提示出现后重读并更新受影响的正文和报告，不能只重新计算摘要。
+不同内容方向另存为新包，换排版不复制包。一份简历可供多个岗位引用，编辑共享包会影响这些岗位后续使用；需要独立措辞时先另存。岗位关联见 [career-board](../../career-board/SKILL.md)。
 
-## 调用与交付
+## 旧包与历史
 
-按 [CLI 操作与交付](cli.md) 完成 save、validate、list、查询主题与偏好，然后在保留的会话里运行 preview。用户已要求整套生成时继续到实际页面可访问；无关内容包有问题可先 preview --input 当前有效包。校验只能证明结构与摘要，不代替上面的内容覆盖核对。
+`career-presentation/v1` 继续可读、校验和导出。`resume create --from <旧ID>` 新建可编辑副本，原包和原构建保持原样。转换以旧附件正文为准，只读取明确对应的结构化日期，不猜测职责／成果拆分；旧包完整保留在 `legacy.original`，不同平台的历史措辞需核对。
 
-交付本地服务返回的 URL。右上角按简历名称切换内容包，顶部“更换样式”选择、放大预览和应用；“设为默认”保存到当前工作区供后续生成沿用；平台字段可复制纯文本。需要 Agent 导出 PDF 时执行 CLI export 并查看实际分页／图片／正文后交付。离线 HTML 可以看结果和打印，无法保存工作区设置，不能代替用户要求的本地工作台。
+已有 v2 Markdown 岗位版本、platforms 文档和冻结清单保持不动；新包不要求先创建这些中间文档。用户明确需要原 v2 留存时仍用 resume freeze。`build` 与 CLI `export` 是不可变快照，`preview --build` 读取该快照；普通 preview 是实时工作台。离线 HTML 可查看／复制／打印，不能写工作区。
 
-同一内容换视觉样式不新建内容包；不同方向或不同取舍才按用户需要新建内容 ID。只有一份就展示一份，不为了填满切换器额外编造版本。用户继续补充项目或换照片时，更新对应事实／母版／内容包，再生成新集合；旧成果页保持原样。需要新增截图中的排版时回到 career 开发仓库进行模板开发，不把个人内容写进样式代码。
-
-完成后更新 maintenance 中本次涉及的状态和 context/state：实际内容包、构建与服务入口、照片选择引用、未覆盖的字段、启动／恢复方式及下一步。只交付真实已完成的环节；内容包不自动回写事实、更新母版或补写平台文案，也不替代 v2 留存工具。
-
-## 可点击网页与项目链接
-
-- 个人网页／作品集放 `resume.contacts`，例如 `{label:"个人主页",value:"portfolio.example.com",url:"https://portfolio.example.com/"}`。value 是显示文字，url 是真实跳转地址。
-- 项目演示、源码等放对应 `resume.sections[].items[].links`，例如 `[{label:"项目演示",url:"https://example.com/demo"}]`；不要把 Markdown 链接或 HTML 写进正文。
-- 链接只使用用户提供并选择展示的完整 HTTP(S) 地址。没有时省略 url／links 或使用空 links 数组，不创建“暂无链接”。既有没有 url 的联系方式保持纯文本。
-- common 为通用资料展示，不自动加入 PDF。附件需要的技能、证书和语言仍写入 resume.sections；两处内容从同一事实提取并核对一致，不能把 common 当作代替附件章节的快捷方式。
-- CLI 校验网址格式但不联网验证可访问性；未核验的链接不能声称已可公开访问。导出后核对 PDF 中个人主页与项目链接的实际跳转目标。
+实际投递记录保存当时选定内容、排版和生成 HTML；关联、复制、编辑和导出都不等于已投递。投递前已确认的旧文件与当前内容不同时，保留实际文件并说明，不冒充当前快照就是当时发送的内容。

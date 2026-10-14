@@ -17,13 +17,13 @@ description: 基于已有履历与母版生成通用或岗位简历、HTML 成�
 | 从已有资料首次生成，或调整成品表达 | 读相关母版与来源，按下述成果页流程写候选、保存、构建和交付 |
 | 新项目、事实纠正或换照片后更新成品 | 先按仓库 career-intake／resume-master 同步受影响的资料，再更新相关内容包；保持其他内容与已导出文件 |
 
-已有服务失效时，用记录中的正确工作区／构建恢复；用户要求反映最新内容时再构建。缺事实不等于需要安装新工具，缺运行时也不等于需要重新访谈。命令报错先按 CLI 指南恢复，不让用户从头填写。
+已有服务失效时，用正确工作区恢复实时 preview；只有明确查看历史产物时才传 --build。缺事实不等于需要安装新工具，缺运行时也不等于需要重新访谈。命令报错先按 CLI 指南恢复，不让用户从头填写。
 
 首次生成成果页或需要更新内容时，先按 [生成成果页](references/presentation.md) 查询实际 Schema／平台规则，写候选内容包，再用 `resume save` 校验保存并调用生成命令；仅选样式、查看已有平台稿或导出时复用已有内容包。更新已有包先读取、保留手改并记录原摘要，通过 `--if-match` 保存；冲突时重新合并。已有母版可生成通用简历，无需为了展示虚构 JD；页面不要求用户重新录入资料。用户已选定简历照片时一起引用，由 CLI 内嵌到成果页与 PDF；没有照片继续生成，不拿示例图代替。
 
 运行命令、设置默认、启动／恢复服务时读 [CLI 操作与交付](references/cli.md)。用户只想打开已有工作台时先核对内容包和现有服务，直接预览；不启动一轮新的岗位分析。整套生成请求继续做到页面可访问，不能把仅有 HTML 文件当作可保存设置的工作台。
 
-生成 v2 记录时按需读随包的 [版本正文](templates/versions/resume.md)、[目标 JD](templates/versions/target.md)、[内部说明](templates/versions/notes.md) 和 [平台输出记录](templates/versions/platform-output.md) 模板。生成平台稿时再读 [平台约定](references/platform-templates.md) 及对应模板：[通用](templates/platforms/generic.md)、[智联候选字段](templates/platforms/zhaopin.md)。方法、参考与模板随 Skill 分发，用户填写稿保存到工作区的版本目录。
+生成 v2 记录时按需读随包的 [版本正文](templates/versions/resume.md)、[目标 JD](templates/versions/target.md)、[内部说明](templates/versions/notes.md) 和 [平台输出记录](templates/versions/platform-output.md) 模板。维护旧 v2 平台文档时再读 [平台约定](references/platform-templates.md) 及对应模板：[通用](templates/platforms/generic.md)、[智联候选字段](templates/platforms/zhaopin.md)。方法、参考与模板随 Skill 分发，用户填写稿保存到工作区的版本目录。
 
 独立分享整个 Skill 目录时，仓库规则不存在则从提供的简历和 JD 工作，输出完整简历草稿、字段稿及单独说明到指定位置或回复。内部引用用材料名称定位，不虚构 career 校验、冻结或尚未实现的 CLI。
 
@@ -37,8 +37,8 @@ description: 基于已有履历与母版生成通用或岗位简历、HTML 成�
 2. 按 [要求与证据映射](references/matching.md) 区分必须、优先、职责及条件，为重要要求找到事实或母版来源。部分匹配、未体现、不满足分别记录。
 3. 如果最关键缺口可能来自未写出的经历，围绕它补问少量问题；已有证据不足就保留缺口，不能通过换词创造能力。
 4. 按相关性、证据明确程度和内容互补性选择要点。可按授权自行调整顺序和篇幅，在 notes 说明重要取舍；用户明确保留的内容继续保留。
-5. 生成岗位版本时用当前 v2 格式写独立 resume.md，包含完整客观字段和本次表述；关键未解决项进入 questions 与 notes，readiness 保持 incomplete。
-6. 按需生成平台字段稿，保存到 `resume/versions/<版本 ID>/platforms/<平台 ID>.md`。模板修订号、核对状态、时间和 resume_id 必须一致；按平台约定，一个输入框对应一个 `text` 代码块，字段标签在块外，块内只放可粘贴的纯文本，不含 Markdown 排版、字段标签或内部说明。缺字段、限制未知或映射损失放 notes。平台模板未核实不能自称正式适配。
+5. 用统一简历包保存本次表述；现有包先 resume read，再带原摘要保存。岗位专用版先 resume create --from 复制，保留原包和稳定引用。关键未解决项记录在 notes，不生成无依据内容。
+6. 新包的平台稿由固定规则生成，不逐平台维护副本。检查各平台字段与长度提示；真实字段规则用 resume platforms 查看。旧 v2 平台文档与冻结版继续保留。
 7. 用 [输出复核](references/output-review.md) 检查事实、岗位覆盖、阅读和字段一致性；运行校验。不要输出无依据的 ATS 分数或录用概率。
 8. 记录本轮实际产物、当前缺口与下一步；面试或投递反馈可回到 context/feedback，并只修改受影响的层。
 
@@ -46,6 +46,6 @@ description: 基于已有履历与母版生成通用或岗位简历、HTML 成�
 
 用户要求留存时，把需要的本地输出附件放入版本目录，执行 `npm run career -- resume freeze --version <ID>` 后校验。外链不被称为已冻结。已留存版本修订时使用新的版本、target、output ID 和 derived_from；不改旧文件，不复制旧清单作为新留存依据。
 
-现有 CLI 接收 career-presentation/v1 内容包并生成 HTML／PDF；这是 v2 母版或版本的展示产物，不是 JSON v3 迁移。内容由 Agent 写作，CLI 校验来源、渲染与导出，不自动提炼经历或写平台稿。只有实际导出文件存在并检查过，才能报告 PDF 已完成。
+新成品使用 career-resume-package/v1 统一内容包；旧 career-presentation/v1 仍可读取，另存后可编辑。内容由 Agent 写作，CLI 从统一语义字段自动映射平台稿、渲染与导出，不自动提炼经历。只有实际导出文件存在并检查过，才能报告 PDF 已完成。
 
 通用资料（技能、证书、语言等）按 [生成成果页](references/presentation.md) 只整理一份，用户自行匹配各平台选项；求职期望单独维护。个人网页与项目链接是可选展示项，按同一指引生成 HTML／PDF 可点击链接，不显示空占位。

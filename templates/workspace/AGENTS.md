@@ -1,6 +1,8 @@
 # 我的职业资料：Agent 协作入口
 
-默认中文，跟随用户语言。你负责引导用户整理真实经历、维护母版、生成简历并保存进度；用户无需学习文件格式或 Git。初始化完成后从这里继续，无需用户再次粘贴整套步骤。
+默认中文，跟随用户语言。你负责引导用户整理真实经历、维护母版、生成简历、跟进岗位并保存进度；用户无需学习文件格式或 Git。用户在 Agent 软件中打开本目录并新建对话后，从这里继续，无需粘贴整套安装步骤。
+
+如果当前任务只是从其他项目安装本工作区，先按 [career-setup](.agents/skills/career-setup/SKILL.md)完成目录与新对话交接，不在原项目收集资料。已经在本目录开始协作时直接执行下列步骤，不重复要求新建对话。
 
 ## 每次开始（包括新会话）
 
@@ -16,8 +18,12 @@
 - 首次形成或更新母版：[resume-master](.agents/skills/resume-master/SKILL.md)。事实与团队／个人贡献分清，不能编造收益。
 - 生成或打开简历、平台稿、HTML／PDF：[resume-tailor](.agents/skills/resume-tailor/SKILL.md)。用户要求整套交付时完成到可访问页面。
 
+- 收集岗位、查看求职进度、岗位分析、协作待办或接手某个机会：[career-board](.agents/skills/career-board/SKILL.md)。先 board overview，再 opportunity context，按需读取岗位文件。
+
 ## 保存与续接
 
 文件由 Agent 编辑，先读最新内容，再按[数据契约](docs/data-model.md)保存和校验。完成一段经历或其他工作单元时更新进度，按 career-git 保存本地版本；初版母版、成品简历或重要更新完成后，按用户已有授权处理远程同步。提交与同步规则统一在 Git Skill 维护。
 
 资料的稳定 ID、来源、冻结版本与已有手改保持可追溯。源事实变化后实质更新母版与内容包，不为消除校验提示只改摘要。结束时记录实际产物、未完成事项与下一步。
+
+简历卡片是可编辑的统一内容包。网页和 Agent 共用 package.json，修改前用 resume read 读取原包及摘要，保留用户手改；平台稿由工具生成，不重复维护四份。岗位关联用 opportunity resume，历史投递按用户确认后留存。详见 [统一简历包](docs/resume-packages.md)。

@@ -19,7 +19,11 @@ export async function inspectWorkspace(workspace:string) {
   const result=await validate(workspace) as {errors:string[];warnings:string[];records:{file:string;meta:{type:string;id:string}}[]};
   const counts:Record<string,number>={};
   for(const record of result.records)counts[record.meta.type]=(counts[record.meta.type]??0)+1;
-  return {workspace,valid:result.errors.length===0,record_count:result.records.length,counts,errors:result.errors,warnings:result.warnings};
+  const {overview}=await import('./opportunities/store.js');
+  let board:{total:number;issues:{path:string;message:string}[]};
+  try{board=await overview(workspace);}catch(error){board={total:0,issues:[{path:'opportunities',message:(error as Error).message}]};}
+  result.errors.push(...board.issues.map(issue=>issue.path+': '+issue.message));
+  return {workspace,valid:result.errors.length===0,record_count:result.records.length,counts,opportunities:board,errors:result.errors,warnings:result.warnings};
 }
 export async function workspaceStatus(workspace:string) {
   await noSymlinks(workspace);
@@ -31,7 +35,7 @@ export async function workspaceStatus(workspace:string) {
   for(const relative of reads){const file=path.join(workspace,relative);await noSymlinks(file);try{if((await stat(file)).isFile())next_reads.push(file);else missing_files.push(relative);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;missing_files.push(relative);}}
   const presentations=await listPresentations(workspace);
   return {workspace,initialized:true,validation,next_reads,missing_files,presentations,
-    completion:'not_assessed',guidance:'文件数量与结构有效不等于资料完整；读取维护清单和实际正文后判断进度。'};
+    board_command:'career board overview --json',completion:'not_assessed',guidance:'文件数量与结构有效不等于资料完整；读取维护清单和实际正文后判断进度。'};
 }
 export async function hashWorkspaceFile(workspace:string,relative:string) {
   if(path.isAbsolute(relative)||relative.includes('\\')||relative.split('/').includes('..')||/^[a-z]+:/i.test(relative))throw new CommandError('INVALID_PATH','--path 必须是工作区内的相对文件路径');
@@ -55,7 +59,7 @@ export async function savePresentation(inputFile:string,workspace:string,expecte
   if(listed.entries.some(entry=>entry.id===id&&entry.file!==file)||listed.warnings.some(w=>w.code==='DUPLICATE_PACKAGE'&&w.path===id))throw new CommandError('PACKAGE_CONFLICT','其他目录已使用这个内容包 ID，请先核对：'+id);
   await noSymlinks(file);
   const readExisting=async()=>{try{return await readFile(file,'utf8');}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}};
-  const content=JSON.stringify(checked.input,null,2)+'\n';
+  const content=JSON.stringify(checked.bundle??checked.input,null,2)+'\n';
   if(Buffer.byteLength(content)>16*1024*1024)throw new CommandError('PACKAGE_TOO_LARGE','内容包超过 16 MiB，无法纳入简历集合；请核对候选内容');
   const verify=(old:string|null)=>{
     if(expected!==undefined&&(!old||hash(old)!==expected))throw new CommandError('PACKAGE_CONFLICT','原内容包已改变或不存在；重新读取并合并后再保存');
