@@ -1,6 +1,6 @@
 # career Desktop 0.3.0-alpha.1
 
-发布日期：2026-10-15（北京时间）。[GitHub 预发布](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.1)已公开；[匿名完整下载验证](https://github.com/heyjianhang/career/actions/runs/38642706713)通过，四个文件均返回 HTTP 200 且 SHA-256、字节数与原产物一致。门户部署待完成。
+发布日期：2026-10-15（北京时间）。[GitHub 预发布](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.1)已公开；[匿名完整下载验证](https://github.com/heyjianhang/career/actions/runs/38642706713)通过，四个文件均返回 HTTP 200 且 SHA-256、字节数与原产物一致。[门户](https://career.heyjianhang.top/)已同步上线。生产部署 `dplukz44o1uq`，源码 `13a3c223965bea2217de4abc2613b9438b5ed6f6`；线上 HTML 与本地构建逐字节一致，四种下载 URL、架构菜单及 HTTPS 加载通过检查。
 
 career 首个桌面预览版。安装后创建自己的工作区，再把软件里的协作指令发给 Agent。
 

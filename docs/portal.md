@@ -59,6 +59,13 @@ node scripts/build-site.mjs
 
 ## 生产部署记录
 
+2026-10-15 桌面下载门户已上线：[career.heyjianhang.top](https://career.heyjianhang.top/)。
+
+- 生产部署 `dplukz44o1uq`，从 main 的 `13a3c223965bea2217de4abc2613b9438b5ed6f6` 手动发起，22 秒构建部署成功；仍使用全球可用区（不含中国大陆）。
+- macOS／Windows 两个下载入口下拉选择 ARM64／x64，展示 `0.3.0-alpha.1 · 预览版`。四个安装包匿名完整下载校验通过，见[发布记录](releases/desktop-0.3.0-alpha.1.md)。
+- 自定义域名 HTTPS 页面与本地构建 index.html 逐字节一致；四个下载 URL、架构菜单、窄屏布局与备用 Agent 安装入口已检查。安装包未签名，发布说明明确限制；npm 仍为 0.2.0。
+- 推送自动部署本次未触发，采用控制台「新建部署」选择最新 main。后续发版需核对实际线上版本，不能以 push 成功代替门户已更新。
+
 2026-10-13 门户已上线：[career.heyjianhang.top](https://career.heyjianhang.top/)。
 
 - 腾讯项目：career（makers-od1hhnbtxjpx）；生产部署 dp5vuzqo1c7p，状态成功。
