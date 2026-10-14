@@ -1,0 +1,52 @@
+name: Desktop release assets
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Stage validated assets into an existing draft, or verify anonymous public downloads
+        type: choice
+        options: [stage-draft, verify-public]
+        required: true
+      build_run:
+        description: Successful Desktop installers run ID
+        required: true
+      source_sha:
+        description: Exact source commit used by that build
+        required: true
+      tag:
+        description: Existing desktop draft/release tag
+        required: true
+permissions:
+  actions: read
+  contents: write
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_MODE: ${{ inputs.mode }}
+      BUILD_RUN: ${{ inputs.build_run }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate successful build and exact draft target
+        run: python3 scripts/desktop/release-assets.py validate
+      - name: Fetch the verified build artifacts
+        if: inputs.mode == 'stage-draft'
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run }}
+          pattern: career-*
+          path: release-input
+      - name: Stage draft assets or verify public downloads
+        run: python3 scripts/desktop/release-assets.py execute
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-release-evidence-${{ inputs.mode }}
+          path: release-output/*
+          if-no-files-found: error
+          retention-days: 30
