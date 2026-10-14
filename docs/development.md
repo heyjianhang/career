@@ -19,6 +19,8 @@ npm run test:layout
 npm run test:board
 # 修改简历库、编辑与岗位关联时：
 npm run test:resumes
+# 修改个人资料阅读器时：
+npm run test:profile
 # 修改网页／项目链接时：
 npm run test:links
 # 修改简历排版模板时：
@@ -103,3 +105,13 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 运行 npm run build，然后 node scripts/prepare-board-demo.mjs 创建源码仓库外的临时合成工作区，最后 node dist/cli.js board preview --workspace <脚本返回的目录> --open --json。也可向演示脚本传入仓库外尚不存在的绝对路径。
 
 页面用合成岗位、两页 PDF 和示例图片验收；只在资料 Tab 展示文件树。`npm run test:board` 用独立合成工作区验证两层面试导航、可选准备和多次模拟、轮次添加／编辑、复制协作指令、阶段与结果／归档分离、键盘操作、抽屉调宽与重载记忆、慢请求返回、PDF／图片和 390px 窄屏；截图在 `.cache/board-review/`。源码外人工演示使用相同入口。
+
+## 本机多工作区
+
+工作区管理在 src/workspace/local.ts 与 local-api.ts；共享侧栏和设置在 presentation 的 render／shell／styles。每个目录绑定独立 localhost 服务，startPreview 的 close 会关闭同组会话。测试必须传入独立 registryFile 或 CAREER_LOCAL_SETTINGS，不能改开发者主目录的最近列表。行为和运行时恢复见[工作区说明](workspaces.md)。
+
+修改共享侧栏时，验证看板、简历、个人资料在相同视口下的几何尺寸；导航样式只能在共享层维护，不要再增加页面专属间距。变更渲染代码后重启预览并刷新页面，避免旧 Node 模块与新读取的 CSS 混用。
+
+## 桌面端
+
+桌面壳在 desktop，构建脚本在 scripts/desktop；复用 src 文件层和 localhost 服务。`npm run desktop:dev` 启动，`npm run desktop:test` 用合成目录验证。构建矩阵、安装包输出、签名和版本规则见[桌面开发与构建](desktop.md)。新增桌面功能需要检查真正打包后的应用，不能仅验证开发 Electron；构建资源在 .cache 与 release 下，不提交这些产物。

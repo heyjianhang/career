@@ -6,7 +6,7 @@ import {parse} from 'yaml';
 import {readBootstrap} from './bootstrap.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const ignored=new Set(['node_modules','.git','.cache','.local','dist','resources','build','outputs','coverage']);
+const ignored=new Set(['node_modules','.git','.cache','.local','dist','resources','build','release','outputs','coverage']);
 async function markdownFiles(dir){
  // The user-entry template's links are checked in resources and the installed workspace.
  if(dir===path.join(root,'workspace')||dir===path.join(root,'templates/workspace'))return [];

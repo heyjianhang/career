@@ -1,6 +1,7 @@
 import {mkdir, copyFile, chmod, cp} from 'node:fs/promises';
 await mkdir('dist/presentation', {recursive: true});
 await copyFile('src/presentation/styles.css', 'dist/presentation/styles.css');
+await copyFile('src/presentation/SHELL-ICONS-LICENSE', 'dist/presentation/SHELL-ICONS-LICENSE');
 await chmod('dist/cli.js', 0o755);
 await cp('src/presentation/templates', 'dist/presentation/templates', {recursive:true, filter:source=>!source.endsWith('.ts')});
 
@@ -14,3 +15,6 @@ for(const name of ['cmaps','standard_fonts','wasm'])await cp('node_modules/pdfjs
 await copyFile('node_modules/pdfjs-dist/LICENSE','dist/board/pdf/LICENSE');
 await mkdir('dist/resumes',{recursive:true});
 await copyFile('src/resumes/styles.css','dist/resumes/styles.css');
+
+await mkdir('dist/profile',{recursive:true});
+await copyFile('src/profile/styles.css','dist/profile/styles.css');

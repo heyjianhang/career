@@ -1,0 +1,59 @@
+// Explicit synthetic smoke mode; no existing user workspaces are opened.
+const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+const {spawnSync}=require('node:child_process');
+const {pathToFileURL}=require('node:url');
+exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,state})=>{
+ const base=path.join(app.getPath('userData'),'synthetic');await fs.mkdir(base,{recursive:true});
+ const js=source=>win.webContents.executeJavaScript(source);
+ const waitFor=async source=>{const end=Date.now()+20000;while(Date.now()<end){if(await js(source))return;await new Promise(r=>setTimeout(r,50));}throw new Error('UI timeout: '+source);};
+ const capture=async name=>fs.writeFile(path.join(app.getPath('userData'),name+'.png'),(await win.webContents.capturePage()).toPNG());
+ await waitFor(`!document.querySelector('main').hasAttribute('aria-busy')`);
+ assert.equal(await js(`document.getElementById('create').hidden&&document.getElementById('ready').hidden&&document.getElementById('recent-section').hidden`),true);
+ assert.equal(tray.isDestroyed(),false);
+ if(process.platform==='win32'){assert.equal(require('electron').Menu.getApplicationMenu(),null);assert.equal(win.isMenuBarVisible(),false);}
+ for(const icon of ['icon.png','icon.ico','icon.icns','tray.ico','trayTemplate.png','trayTemplate@2x.png'])await fs.access(path.join(__dirname,'assets',icon));
+ await capture('welcome-empty');
+ await js(`document.getElementById('new').click();document.getElementById('name').value='面试准备 A';document.getElementById('parent').value=${JSON.stringify(base)};document.getElementById('parent').dispatchEvent(new Event('input'));`);
+ assert.equal(await js(`document.getElementById('start').hidden&&!document.getElementById('create').hidden`),true);
+ await capture('create');
+ await js(`document.getElementById('create-form').requestSubmit()`);
+ await waitFor(`!document.getElementById('ready').hidden&&!document.querySelector('main').hasAttribute('aria-busy')`);
+ assert.equal(await js(`document.querySelector('.prompt-details').open`),false);
+ await capture('handoff');
+ const first=await manager.entry(path.join(base,'面试准备 A')),second=await manager.create(base,'另一份 B');
+ const a=await openWorkspace(first.path),b=await openWorkspace(second.path);assert.notEqual(a.url,b.url);
+ for(const file of ['AGENTS.md','.agents/skills/career-setup/SKILL.md','.agents/skills/career-board/SKILL.md','.local/career','.local/career.cmd'])await fs.access(path.join(first.path,file));
+ for(const skill of ['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board'])await fs.access(path.join(first.path,'.agents/skills',skill,'SKILL.md'));
+ const cli=args=>{const result=spawnSync(process.execPath,[path.join(__dirname,'runner.cjs'),'--workspace',first.path,...args],{encoding:'utf8',env:{...process.env,ELECTRON_RUN_AS_NODE:'1',PATH:process.platform==='win32'?path.join(process.env.SystemRoot,'System32'):'/usr/bin:/bin'},cwd:second.path,timeout:60000});if(result.error)throw result.error;return result;};
+ const doctor=cli(['doctor','--json']);assert.equal(doctor.status,0,doctor.stderr);assert.equal(JSON.parse(doctor.stdout).data.workspace,first.path);
+ const wrong=cli(['resume','create','--title','不能写入 B','--workspace',second.path,'--json']);assert.notEqual(wrong.status,0);
+ const create=cli(['resume','create','--title','本机验证简历','--json']);assert.equal(create.status,0,create.stderr);
+ const resumes=await import(pathToFileURL(path.join(coreRoot,'dist/resumes/store.js')));
+ assert.equal((await resumes.library(second.path)).entries.length,0);
+ const response=await fetch(new URL('/api/library/list',a.url));assert.equal(response.status,200);assert.equal((await response.json()).entries.length,1);
+ // Inspect the real rendered entry and workbench; no network or system runtime is required.
+ await win.loadURL(a.url);await win.webContents.executeJavaScript('document.fonts.ready');
+ const stateInWindow=await win.webContents.executeJavaScript(`({node:typeof require,bridge:typeof window.careerDesktop?.handoff,title:document.querySelector('h1')?.textContent})`);
+ assert.equal(stateInWindow.node,'undefined');assert.equal(stateInWindow.bridge,'function');assert.equal(stateInWindow.title,'求职看板');
+ assert.equal(await win.webContents.executeJavaScript(`document.getElementById('toggle-sidebar').getAttribute('aria-expanded')`),'true');
+ await js(`document.getElementById('toggle-sidebar').click()`);await win.loadURL(win.webContents.getURL());
+ await waitFor(`document.getElementById('toggle-sidebar')?.getAttribute('aria-expanded')==='false'`);
+ await js(`document.getElementById('toggle-sidebar').click()`);
+ const h=await win.webContents.executeJavaScript('window.careerDesktop.handoff()');assert.equal(h.path,first.path);
+ await fs.writeFile(path.join(app.getPath('userData'),'workbench.png'),(await win.webContents.capturePage()).toPNG());
+ const pdf=await printHtml('<!doctype html><meta charset="utf-8"><style>@page{size:A4;margin:20mm}</style><h1>career 简历导出验证</h1><a href="https://example.com/project">项目链接</a>');
+ assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.ok(pdf.length>1000);await fs.writeFile(path.join(app.getPath('userData'),'print.pdf'),pdf);
+ // Export through the bundled CLI too, with no external Chromium installation.
+ const snapshot=await core.collection.buildCollection(first.path);const manifest=JSON.parse(await fs.readFile(path.join(snapshot.directory,'collection.json'),'utf8'));
+ const exported=cli(['resume','export','--build',path.join(snapshot.directory,'resumes',manifest.entries[0].id),'--format','pdf','--out',path.join(base,'cli.pdf'),'--json']);assert.equal(exported.status,0,exported.stderr);
+ assert.equal((await fs.readFile(path.join(base,'cli.pdf'))).subarray(0,5).toString(),'%PDF-');
+ await win.loadURL('career-app://desktop/index.html');await win.webContents.executeJavaScript('document.fonts.ready');
+ await waitFor(`!document.querySelector('main').hasAttribute('aria-busy')`);
+ assert.equal(await js(`document.querySelectorAll('.recent-item').length`),2);
+ assert.equal(await js(`document.getElementById('create').hidden`),true);
+ await fs.writeFile(path.join(app.getPath('userData'),'welcome.png'),(await win.webContents.capturePage()).toPNG());
+ assert.equal((await state()).recent.length,2);
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
+};

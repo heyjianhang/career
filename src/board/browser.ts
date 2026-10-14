@@ -32,7 +32,7 @@ function sourceMarkup(source:any,link=false){const name=session.platforms[source
  return link&&href?`<a class="source-tag" data-platform="${esc(source.platform)}" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(label)}${icon('box-arrow-up-right')}</a>`:`<span class="source-tag" data-platform="${esc(source.platform)}">${esc(label)}</span>`;
 }
 function renderBoard(){
- if(!board||draggedCard)return;const query=$<HTMLInputElement>('#board-search').value.trim().toLowerCase(),platform=$<HTMLSelectElement>('#source-filter').value,rating=Number($<HTMLSelectElement>('#rating-filter').value),archived=$<HTMLInputElement>('#archive-filter').checked;
+ if(!board||draggedCard)return;const query=$<HTMLInputElement>('#board-search').value.trim().toLowerCase(),platform=$<HTMLButtonElement>('#source-filter').value,rating=Number($<HTMLButtonElement>('#rating-filter').value),archived=$<HTMLInputElement>('#archive-filter').checked;
  const cards=board.cards.filter(c=>c.archived===archived&&(!query||`${c.title} ${c.company} ${c.location??''}`.toLowerCase().includes(query))&&(!platform||c.sources.some((s:any)=>s.platform===platform))&&(!rating||(c.user_rating??0)>=rating));
  $('#filter-count').textContent=[!!platform,!!rating,archived].filter(Boolean).length?String([!!platform,!!rating,archived].filter(Boolean).length):'';
  if(!board.total||!cards.length){kanban.innerHTML=`<div class="board-empty">${icon(!board.total?'kanban':'search')}<h2>${!board.total?'把下一次机会，放进看板':'没有符合条件的岗位'}</h2><p>${!board.total?'发给 Agent 一段招聘信息或职位链接，整理成第一张岗位卡片。相关分析、面试记录和附件都会保存在这个岗位里。':'换个关键词或清除筛选，再看看其他机会。'}</p><button class="button primary" id="empty-board-action">${!board.total?'添加第一个岗位':'清除筛选'}</button></div>`;$('#empty-board-action').onclick=()=>!board.total?$('#add-opportunity').click():clearFilters();return;}
@@ -129,10 +129,39 @@ kanban.addEventListener('drop',e=>{
 document.addEventListener('dragend',finishDrag);
 window.addEventListener('blur',()=>{if(draggedCard)finishDrag();});
 
-function clearFilters(){$<HTMLInputElement>('#board-search').value='';$<HTMLSelectElement>('#source-filter').value='';$<HTMLSelectElement>('#rating-filter').value='';$<HTMLInputElement>('#archive-filter').checked=false;renderBoard();}
+type FilterChoice={value:string;label:string};
+const filterMenus=new Map<string,{set:(value:string)=>void;close:()=>void}>();
+function closeFilterMenus(){filterMenus.forEach(control=>control.close());}
+function initFilter(id:string,choices:FilterChoice[]){
+ const trigger=$<HTMLButtonElement>('#'+id),menu=$('#'+id+'-menu'),field=trigger.closest<HTMLElement>('.filter-control')!;
+ menu.innerHTML=choices.map(c=>`<button type="button" role="option" aria-selected="${c.value===trigger.value}" tabindex="-1" data-value="${esc(c.value)}">${esc(c.label)}</button>`).join('');
+ const options=Array.from(menu.querySelectorAll<HTMLButtonElement>('[role=option]'));
+ const close=()=>{menu.hidden=true;trigger.setAttribute('aria-expanded','false');};
+ const set=(value:string)=>{trigger.value=value;$('#'+id+'-value').textContent=choices.find(c=>c.value===value)!.label;options.forEach(b=>b.setAttribute('aria-selected',String(b.dataset.value===value)));};
+ const focus=(button:HTMLButtonElement|undefined)=>{button?.focus({preventScroll:true});button?.scrollIntoView({block:'nearest'});};
+ const open=()=>{
+  closeFilterMenus();const bounds=trigger.getBoundingClientRect();
+  menu.style.maxHeight=Math.max(80,window.innerHeight-bounds.bottom-18)+'px';
+  menu.hidden=false;trigger.setAttribute('aria-expanded','true');focus(options.find(b=>b.dataset.value===trigger.value));
+ };
+ trigger.onclick=()=>menu.hidden?open():close();
+ trigger.onkeydown=e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();open();}};
+ menu.onclick=e=>{const option=(e.target as HTMLElement).closest<HTMLButtonElement>('[role=option]');if(!option)return;set(option.dataset.value!);close();trigger.focus({preventScroll:true});renderBoard();};
+ menu.onkeydown=e=>{
+  const index=options.indexOf(document.activeElement as HTMLButtonElement);
+  if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();focus(options[e.key==='Home'?0:e.key==='End'?options.length-1:(index+(e.key==='ArrowDown'?1:options.length-1))%options.length]);}
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();trigger.focus({preventScroll:true});}
+  if(e.key==='Tab'){close();trigger.focus({preventScroll:true});}
+ };
+ document.addEventListener('pointerdown',e=>{if(!field.contains(e.target as Node))close();});
+ document.addEventListener('focusin',e=>{if(!field.contains(e.target as Node))close();});
+ filterMenus.set(id,{set,close});
+}
+window.addEventListener('resize',closeFilterMenus);
+function clearFilters(){$<HTMLInputElement>('#board-search').value='';filterMenus.forEach(control=>control.set(''));closeFilterMenus();$<HTMLInputElement>('#archive-filter').checked=false;renderBoard();}
 $('#clear-filters').onclick=clearFilters;
-$('#filter-toggle').onclick=()=>{const hidden=!$('#board-filters').hidden;$('#board-filters').hidden=hidden;$('#filter-toggle').setAttribute('aria-expanded',String(!hidden));};
-for(const id of ['board-search','source-filter','rating-filter','archive-filter'])$('#'+id).addEventListener('input',renderBoard);
+$('#filter-toggle').onclick=()=>{closeFilterMenus();const hidden=!$('#board-filters').hidden;$('#board-filters').hidden=hidden;$('#filter-toggle').setAttribute('aria-expanded',String(!hidden));};
+for(const id of ['board-search','archive-filter'])$('#'+id).addEventListener('input',renderBoard);
 async function refresh(force=false){if(mutating||draggedCard||stageMove)return;if(refreshing){if(force)refreshAgain=true;return;}refreshing=true;const request=boardRefreshId;try{
  const previous=board,next=await api<Board>('overview');if(request!==boardRefreshId||draggedCard||stageMove||mutating)return;board=next;$('#board-error').hidden=true;
  if(force||JSON.stringify(previous?.cards)!==JSON.stringify(board.cards)||board.issues.length)renderBoard();
@@ -250,7 +279,8 @@ function emptyInterviewDocument(){const label=roundDoc==='record'?'这轮还没�
 async function interviewPrompt(kind:string,general=false){
  if(!detail)return;try{const context=await api('context?id='+detail.id);const base=general?'interviews/general':`interviews/${roundId}`;
  const scope=general?'岗位通用面试练习':`真实面试轮次 ${roundId}（${currentRound()?.meta.title}）`;
- const start=general?'先读取已有面试资料。':`先执行 npm run career -- interview context --opportunity ${detail.id} --round ${roundId} --json，结合之前轮次。`;
+ const command=(window as unknown as {careerDesktop?:{commandPrefix:string}}).careerDesktop?.commandPrefix??'npm run career --';
+ const start=general?'先读取已有面试资料。':`先执行 ${command} interview context --opportunity ${detail.id} --round ${roundId} --json，结合之前轮次。`;
  const job=kind==='preparation'?`按我的需要准备面试，保存自由 Markdown 到 ${base}/preparation.md；已有内容先读取并合并。不要求填完固定提纲。`:kind==='simulation'?`先和我确定练习重点，再一次问一个问题，结束后整理本次模拟反馈。每次记录使用 ${base}/simulations/ 下独立且不重名的 Markdown 文件；标明模拟，不改变真实面试或岗位阶段。`:`请听我讲实际面试经过，保留问题、回答和反馈，按需要一起复盘。用 interview save 更新本轮 record.md 的 body，保留其他元数据，提供最新 --if-match；记录与分析分清，结果未知就留待确认。`;
  await copy(context.prompt+`\n本次范围：${scope}。${start}\n${job}\n准备、模拟与真实记录互不作为前置条件，只做我本次选择的事情。`);
  }catch(e){toast((e as Error).message);}
@@ -272,7 +302,7 @@ function finishResize(){if(!resizeStart)return;resizeStart=null;drawer.classList
 resizeHandle.addEventListener('pointerup',finishResize);resizeHandle.addEventListener('pointercancel',finishResize);
 resizeHandle.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key)||window.innerWidth<=700)return;e.preventDefault();preferredWidth=Math.max(480,Math.min(1920,window.innerWidth-68,drawer.getBoundingClientRect().width+(e.key==='ArrowLeft'?24:-24)));applyWidth();clearTimeout(widthTimer);widthTimer=setTimeout(()=>void persistWidth(),250);});
 
-try{session=await api<Session>('session');$<HTMLSelectElement>('#source-filter').insertAdjacentHTML('beforeend',Object.entries(session.platforms).map(([id,label])=>`<option value="${id}">${esc(label)}</option>`).join(''));try{const prefs=await api('preferences');if(Number.isFinite(prefs.board?.drawer_width))preferredWidth=prefs.board.drawer_width;}catch(e){toast('读取界面设置失败：'+(e as Error).message);}applyWidth();await refresh(true);const requested=new URLSearchParams(location.search).get('opportunity');if(requested)await openJob(requested);}catch(e){notice(e);kanban.innerHTML='<p class="loading">看板暂时无法读取，请刷新重试。</p>';}
+try{session=await api<Session>('session');initFilter('source-filter',[{value:'',label:'全部来源'},...Object.entries(session.platforms).map(([value,label])=>({value,label}))]);initFilter('rating-filter',[['','全部星级'],['5','五星'],['4','四星及以上'],['3','三星及以上'],['2','二星及以上'],['1','已评分']].map(([value,label])=>({value:value!,label:label!})));try{const prefs=await api('preferences');if(Number.isFinite(prefs.board?.drawer_width))preferredWidth=prefs.board.drawer_width;}catch(e){toast('读取界面设置失败：'+(e as Error).message);}applyWidth();await refresh(true);const requested=new URLSearchParams(location.search).get('opportunity');if(requested)await openJob(requested);}catch(e){notice(e);kanban.innerHTML='<p class="loading">看板暂时无法读取，请刷新重试。</p>';}
 setInterval(()=>{if(!document.hidden&&!$<HTMLDialogElement>('#action-dialog').open&&!$<HTMLDialogElement>('#interview-dialog').open&&!$<HTMLDialogElement>('#resume-choice').open&&!$<HTMLDialogElement>('#submission-dialog').open)void refresh();},15000);
 window.addEventListener('focus',()=>{if(session&&!$<HTMLDialogElement>('#action-dialog').open&&!$<HTMLDialogElement>('#interview-dialog').open&&!$<HTMLDialogElement>('#resume-choice').open&&!$<HTMLDialogElement>('#submission-dialog').open)void refresh();});
 export {};

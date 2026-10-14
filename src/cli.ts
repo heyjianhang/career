@@ -199,7 +199,7 @@ try {
         const directory=options.build as string??(options.input?(await build(need('input'),workspace)).directory:(await buildCollection(workspace)).directory);
         const preview=await startPreview(directory,workspace,port,!options.build);const previewUrl=preview.url+(operation==='board.preview'?'/board':'');output({url:previewUrl,directory});
         if(options.open){const command=process.platform==='darwin'?'open':process.platform==='win32'?'explorer.exe':'xdg-open';const child=spawn(command,[previewUrl],{stdio:'ignore'});child.on('error',()=>console.error('请手动打开 '+previewUrl));child.unref();}
-        const stop=()=>{preview.server.close(()=>process.exit(0));setTimeout(()=>process.exit(0),1500).unref();};process.once('SIGINT',stop);process.once('SIGTERM',stop);break;
+        const stop=()=>{void preview.close().finally(()=>process.exit(0));setTimeout(()=>process.exit(0),1500).unref();};process.once('SIGINT',stop);process.once('SIGTERM',stop);break;
       }
     }
   }

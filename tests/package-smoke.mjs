@@ -11,7 +11,7 @@ const exec=promisify(execFile),root=fileURLToPath(new URL('../',import.meta.url)
 const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-package-'));
 // A fresh npm ci cache may have tarballs without registry metadata.
 // Let npm resolve missing metadata as a first-time installation would.
-const env={...process.env,GIT_TERMINAL_PROMPT:'0'};
+const env={...process.env,GIT_TERMINAL_PROMPT:'0',CAREER_LOCAL_SETTINGS:path.join(dir,'local-settings.json')};
 const run=async(file,args,cwd=root)=>(await exec(file,args,{cwd,env,maxBuffer:8*1024*1024,timeout:300_000})).stdout;
 const npm=(args,cwd=root)=>run(process.execPath,[process.env.npm_execpath,...args],cwd);
 const jsonCommand=async(cli,cwd,args)=>{
@@ -21,7 +21,7 @@ const jsonCommand=async(cli,cwd,args)=>{
 try{
  const [packed]=JSON.parse(await npm(['pack','--json','--pack-destination',dir]));
  const names=packed.files.map(f=>f.path);
- for(const file of ['dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
+ for(const file of ['dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
  const userSkills=['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
@@ -81,7 +81,15 @@ try{
   assert.match(await (await fetch(base)).text(),/岗位概况/);
   assert.equal((await (await fetch(new URL('/api/board/overview',base))).json()).total,1);
   assert.match(await(await fetch(new URL('/',base))).text(),/我的简历/);
+  const profilePage=await(await fetch(new URL('/profile',base))).text();assert.match(profilePage,/我的资料/);assert.match(profilePage,/materials-layout/);
+  const profileIndex=await(await fetch(new URL('/api/profile/index',base))).json();assert.ok(profileIndex.groups.some(g=>g.id==='goals'));assert.ok(profileIndex.files.some(f=>f.path==='resume/facts/profile.md'));
+  const profileDocument=await(await fetch(new URL('/api/profile/file?path=resume/facts/profile.md',base))).json();assert.ok(typeof profileDocument.source==='string');
   const detailPage=await(await fetch(new URL('/resumes/'+draft.id+'/index.html',base))).text();assert.match(detailPage,/来自真实安装包的编辑内容/);assert.match(detailPage,/编辑内容/);
+  const workspaceSession=await(await fetch(new URL('/api/workspaces/session',base))).json();
+  const createdResponse=await fetch(new URL('/api/workspaces/create',base),{method:'POST',headers:{Origin:base.origin,'Content-Type':'application/json','X-Career-Token':workspaceSession.token},body:JSON.stringify({parent:dir,name:'网页新建工作区'})});
+  assert.equal(createdResponse.status,200);const created=await createdResponse.json();
+  assert.equal((await(await fetch(new URL('/api/board/overview',created.url))).json()).total,0);
+  const runtimeDoctor=JSON.parse(await run(process.execPath,[path.join(created.path,'.career/run.mjs'),'doctor','--json'],dir));assert.equal(runtimeDoctor.data.initialized,true);
   const worker=await fetch(new URL('/board-assets/pdf/pdf.worker.mjs',base));assert.equal(worker.status,200);assert.ok((await worker.text()).length>1000);
  }finally{preview.kill();await new Promise(resolve=>{if(preview.exitCode!==null)resolve();else preview.once('exit',resolve);});}
  await command('sync','local');

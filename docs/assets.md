@@ -15,3 +15,11 @@
 参考站的截图与个人信息不作为发布素材打包。方法与版式参考见[来源说明](references.md)；新增样式需独立实现，并为新增素材注明来源与许可。示例头像不会默认写入用户简历，用户照片来自个人目录中的可选素材。
 
 添加或替换依赖、字体、图标与图片时，同步更新这里及素材目录的说明，检查发布包和导出 HTML 是否保留必要的许可。用户应确认自己提供的照片、作品和项目链接可用于简历。
+
+## 侧栏图标
+
+侧栏采用 [Lucide](https://github.com/lucide-icons/lucide) 的 panel-left-close、panel-left-open、columns-3、file-text、user-round 和 settings-2 SVG，2026-10-14 取得。统一为 20px、1.7 单位描边，内联于 shell-icons.ts。ISC／派生 MIT 声明位于 src/presentation/SHELL-ICONS-LICENSE，构建时原样进入 dist/presentation；无需运行时网络访问。看板正文仍沿用既有 Bootstrap Icons。
+
+## 桌面安装资源
+
+桌面使用 Electron（MIT）及其 Chromium／Node 运行环境，保留发行包自带的第三方许可和 notices；运行依赖随包保留各自 LICENSE。`desktop/assets/icon.*` 为本项目 career「c.」品牌字标的栅格图标，不包含字体文件；桌面代码遵循根目录 MIT。字标按实际字形边界整体居中，`scripts/desktop/icons.cjs` 同时生成 Mac ICNS、Windows 多尺寸 ICO、彩色托盘 ICO 与透明单色 trayTemplate（含 @2x）；Mac 菜单栏由系统着色。

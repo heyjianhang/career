@@ -18,6 +18,40 @@ try {
  const open=async()=>{await card().click();await page.locator('#job-title').filter({hasText:'AI 产品经理'}).waitFor();};
  const width=()=>drawer.evaluate(e=>Math.round(e.getBoundingClientRect().width));
  await page.goto(preview.url+'/board');await card().waitFor();await page.evaluate(()=>document.fonts.ready);
+ // Filters use in-page menus, preserve keyboard navigation and combine with search.
+ const toolRows=await page.locator('.board-tools > *').evaluateAll(items=>items.map(e=>Math.round(e.getBoundingClientRect().top)));assert.ok(Math.max(...toolRows)-Math.min(...toolRows)<5,'desktop toolbar stays on one row');
+ await page.locator('#filter-toggle').click();
+ assert.equal(await page.locator('#board-filters select').count(),0);
+ await page.locator('#board-search').focus();
+ assert.equal(await page.locator('#board-search').evaluate(e=>getComputedStyle(e).outlineStyle),'none');
+ assert.equal(await page.locator('.search-box').evaluate(e=>getComputedStyle(e).outlineStyle),'solid');
+ await page.locator('#source-filter').click();await page.getByRole('option',{name:'BOSS 直聘',exact:true}).click();
+ assert.equal(await page.locator('.job-card').count(),2);
+ await page.locator('#rating-filter').focus();await page.keyboard.press('ArrowDown');await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ assert.equal(await page.locator('#rating-filter-value').innerText(),'五星');
+ assert.equal(await page.locator('.job-card').count(),0);assert.equal(await page.locator('#filter-count').innerText(),'2');
+ await page.locator('#rating-filter').click();await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ assert.equal(await page.locator('.job-card').count(),2);
+ await page.locator('#board-search').fill('云启');assert.equal(await page.locator('.job-card').count(),1);
+ await page.locator('#clear-filters').click();assert.equal(await page.locator('.job-card').count(),9);
+ assert.equal(await page.locator('#source-filter-value').innerText(),'全部来源');assert.equal(await page.locator('#rating-filter-value').innerText(),'全部星级');
+ await page.locator('#rating-filter').click();await page.keyboard.press('End');await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#rating-filter').evaluate(e=>e===document.activeElement),true);assert.equal(await page.locator('#rating-filter-menu').isVisible(),false);
+ await page.locator('#source-filter').click();await page.locator('#rating-filter').click();assert.equal(await page.locator('#source-filter-menu').isVisible(),false);
+ await page.screenshot({path:path.join(out,'board-filters-desktop.png')});
+ await page.keyboard.press('Tab');assert.equal(await page.locator('#archive-filter').evaluate(e=>e===document.activeElement),true);
+ await page.locator('#rating-filter').click();await page.getByRole('heading',{name:'求职看板',exact:true}).click();assert.equal(await page.locator('#rating-filter-menu').isVisible(),false);
+ for(const viewportWidth of [320,390,600,768,1024,1440]){
+  await page.setViewportSize({width:viewportWidth,height:844});await page.locator('#source-filter').click();
+  const bounds=await page.locator('#source-filter-menu').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=viewportWidth+1&&bounds.y+bounds.height<=844,`menu fits ${viewportWidth}`);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`page fits ${viewportWidth}`);
+  assert.equal(await page.locator('.board-header').evaluate(e=>e.scrollWidth<=e.clientWidth+1),true,`header fits ${viewportWidth}`);
+  if(viewportWidth===390)await page.screenshot({path:path.join(out,'board-filters-mobile.png')});
+  await page.keyboard.press('Escape');
+ }
+ await page.locator('#source-filter').click();await page.locator('#filter-toggle').click();
+ assert.equal(await page.locator('#source-filter-menu').isVisible(),false);await page.locator('#filter-toggle').click();assert.equal(await page.locator('#source-filter-menu').isVisible(),false);await page.locator('#filter-toggle').click();
+ await page.setViewportSize({width:1440,height:1000});
  // Real pointer dragging changes the persisted stage, never the content or archive flag.
  const inStage=stage=>page.locator(`.column-cards[data-stage="${stage}"] [data-opportunity="${id}"]`);
  const target=stage=>page.locator(`.kanban-column[data-drop-stage="${stage}"] .column-heading`);
@@ -48,8 +82,9 @@ try {
  await inStage('ended').waitFor();record=await board.show(workspace,id);assert.equal(record.card.meta.outcome,'withdrawn');assert.equal(record.card.meta.archived,false);
  await card().dragTo(target('preparing'));await inStage('preparing').waitFor();assert.equal((await board.show(workspace,id)).card.meta.outcome,null);
  // A network rejection must leave the card in its saved column.
+ const failedTile=await card().elementHandle();
  await page.route('**/api/board/stage?**',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'测试保存失败'})}));
- await card().dragTo(target('applied'));await page.locator('#toast').filter({hasText:'测试保存失败'}).waitFor();await inStage('preparing').waitFor();assert.equal((await board.show(workspace,id)).card.meta.stage,'preparing');await page.unroute('**/api/board/stage?**');
+ await card().dragTo(target('applied'));await page.locator('#toast').filter({hasText:'测试保存失败'}).waitFor();await page.waitForFunction(el=>!el.isConnected,failedTile);await inStage('preparing').waitFor();assert.equal((await board.show(workspace,id)).card.meta.stage,'preparing');await page.unroute('**/api/board/stage?**');
  // Concurrent Agent changes win over the stale digest captured at drag start.
  await page.route('**/api/board/stage?**',async route=>{const latest=await board.show(workspace,id);await board.update(workspace,id,{body:latest.card.body+'\n\nAgent 刚补充的事实。'},latest.card.sha256);await route.continue();},{times:1});
  const conflict=page.waitForResponse(r=>r.url().includes('/api/board/stage?')&&r.status()===409);
@@ -102,8 +137,9 @@ try {
  await page.locator('[data-round-doc="simulation"]').click();await page.locator('#mock-picker').waitFor();assert.equal(await page.locator('#mock-picker option').count(),2);
  await page.locator('#mock-picker').selectOption({index:1});await page.locator('.markdown-body').filter({hasText:'模拟 2'}).waitFor();
  await page.locator('[data-round-doc="record"]').click();await page.locator('.markdown-body').filter({hasText:'这轮聊了什么'}).waitFor();await page.screenshot({path:path.join(out,'interview-detail.png')});
- await page.locator('[data-round-action="simulation"]').click();await page.waitForFunction(async()=> (await navigator.clipboard.readText()).includes('interview context'));
- const prompt=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(prompt.includes(id)&&prompt.includes('不改变真实面试')&&prompt.includes('simulations/'));
+ await page.locator('[data-round-action="simulation"]').click();
+ let prompt='';for(let attempt=0;attempt<100;attempt++){prompt=await page.evaluate(()=>navigator.clipboard.readText());if(prompt.includes(id)&&prompt.includes('不改变真实面试')&&prompt.includes('simulations/'))break;await page.waitForTimeout(100);}
+ assert.ok(prompt.includes(id)&&prompt.includes('不改变真实面试')&&prompt.includes('simulations/'));
  await page.keyboard.press('Escape');await page.locator('.interview-row').first().waitFor();assert.equal(await drawer.isVisible(),true);
  await page.getByRole('button',{name:/业务二面.*待进行/}).click();await page.getByRole('heading',{name:'这轮还没有面试记录'}).waitFor();
  await page.locator('#mode-source').click();await page.locator('.source-code').filter({hasText:'career-interview/v1'}).waitFor();await page.locator('#mode-preview').click();await page.getByRole('heading',{name:'这轮还没有面试记录'}).waitFor();
@@ -127,5 +163,5 @@ try {
  await page.getByRole('button',{name:/技术一面.*已完成/}).click();await page.locator('.markdown-body').filter({hasText:'这轮聊了什么'}).waitFor();assert.ok((await page.locator('.reader-scroll').boundingBox()).height>180);assert.equal(await page.locator('.document-toc').isVisible(),false);await page.locator('#toggle-outline').click();assert.equal(await page.locator('.document-toc').isVisible(),true);await page.locator('#toggle-outline').click();assert.equal(await drawer.evaluate(e=>e.scrollWidth<=e.clientWidth+1),true);await page.screenshot({path:path.join(out,'interview-mobile-detail.png')});
  await page.setViewportSize({width:1440,height:1000});assert.equal(await width(),after);
  assert.deepEqual(errors,[]);assert.equal((await board.overview(workspace)).issues.length,0);
- console.log(JSON.stringify({ok:true,screenshots:out,checks:['equal-height cards and drag-to-stage persistence','drag edge scrolling and cancellation','ended result selection','drag conflict and failed save preservation','shared document controls and source/preview/outline','two-level interviews','optional preparation and repeated mocks','new/edit round','Agent handoff','slow response navigation','stage/outcome/archive','keyboard menu','persistent resize','mobile','PDF/image preview','no browser errors']}));
+ console.log(JSON.stringify({ok:true,screenshots:out,checks:['custom filters, keyboard, search focus, combined filtering and responsive header','equal-height cards and drag-to-stage persistence','drag edge scrolling and cancellation','ended result selection','drag conflict and failed save preservation','shared document controls and source/preview/outline','two-level interviews','optional preparation and repeated mocks','new/edit round','Agent handoff','slow response navigation','stage/outcome/archive','keyboard menu','persistent resize','mobile','PDF/image preview','no browser errors']}));
 } finally {await browser.close();await preview.close();await rm(base,{recursive:true,force:true});}

@@ -13,7 +13,7 @@ export function localLink(current:string,href:string):string|null {
     return resolved;
   } catch{return null;}
 }
-export function renderMarkdown(source:string,id:string,current:string) {
+export function renderMarkdown(source:string,id:string,current:string,urlForFile=(file:string)=>fileUrl(id,file)) {
   const content=source.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/,'');
   const md=new MarkdownIt({html:false,linkify:true,breaks:false});
   const toc:{id:string;label:string;level:number}[]=[],slugs=new Map<string,number>();
@@ -26,13 +26,13 @@ export function renderMarkdown(source:string,id:string,current:string) {
     const token=tokens[index]!,href=String(token.attrGet('href')??'');
     if(isWebUrl(href)){token.attrSet('target','_blank');token.attrSet('rel','noopener noreferrer');}
     else if(/^#[^\s]*$/.test(href)){}
-    else {const file=localLink(current,href);token.attrSet('href',file?fileUrl(id,file):'#');if(file)token.attrSet('data-document',file);else token.attrSet('aria-disabled','true');}
+    else {const file=localLink(current,href);token.attrSet('href',file?urlForFile(file):'#');if(file)token.attrSet('data-document',file);else token.attrSet('aria-disabled','true');}
     return self.renderToken(tokens,index,options);
   };
   md.renderer.rules.image=(tokens,index)=>{
     const token=tokens[index]!,file=localLink(current,String(token.attrGet('src')??''));
     if(!file||!(/\.(png|jpe?g|gif|webp)$/i.test(file)))return `<span class="image-label">${escape(token.content||'图片')}</span>`;
-    return `<img src="${escape(fileUrl(id,file))}" alt="${escape(token.content)}" loading="lazy">`;
+    return `<img src="${escape(urlForFile(file))}" alt="${escape(token.content)}" loading="lazy">`;
   };
   return {content,html:md.render(content),toc};
 }

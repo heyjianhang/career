@@ -11,6 +11,8 @@ description: 安装、初始化或修复 career 个人工作区，完成客户�
 
 工作区内使用 `npm run career -- <命令> --json`，实际能力以 `--help --json` 为准。安装目录和开发源码仓库不保存个人资料。
 
+桌面创建的工作区已准备 CLI 和 Skills。若有 `.local/desktop-runtime.json`，按 AGENTS.md 使用绑定本目录的 `.local/career`（macOS）或 `.local/career.cmd`（Windows）代替上述 npm 前缀，先检查状态再继续，不重新安装 npm 包。入口失效时让用户在软件中重新打开这个工作区；Git/gh 仅在所选同步流程确实需要时准备。
+
 1. 读 `career.json`，运行 `doctor` 和 `workspace status`。依赖缺失或版本不匹配先按锁文件恢复；安装返回 `agent.conflicts` 时保留自定义文件并对照合并，不重复覆盖。
 2. `onboarding.sync` 缺失或为 undecided：仅询问尚未确定的选择——“资料先只保存在本机，还是同步到你自己的 GitHub 私人仓库？”已有回答直接沿用。
 3. 选择仅本机：执行 `sync local` 并继续；不要求注册 GitHub。需要本地版本保存时由 [career-git](../career-git/SKILL.md) 准备 Git。

@@ -62,3 +62,6 @@ try{const s=await api('session');token=s.token;document.querySelectorAll<HTMLAnc
 }catch(e){alert((e as Error).message);content.innerHTML='<p class="library-loading">暂时无法读取，请刷新重试。</p>';}
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});window.addEventListener('focus',()=>void poll());setInterval(()=>void poll(),5000);
 export {};
+
+// Keep the editing page alive until its draft has been saved; settings can still be read.
+document.addEventListener('career:before-workspace-switch',e=>{if(dirty||busy){e.preventDefault();(e as CustomEvent).detail.reason=busy?'简历正在保存，请稍候再切换。':'简历有未保存的修改，请先关闭设置并保存，再切换工作区。';}});

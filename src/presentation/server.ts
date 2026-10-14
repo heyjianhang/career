@@ -1,3 +1,8 @@
+import {WorkspaceManager} from '../workspace/local.js';
+import {workspaceRoutes} from '../workspace/local-api.js';
+import {realpath} from 'node:fs/promises';
+import {buildCollection} from './collection.js';
+import {profileRequest} from '../profile/api.js';
 import {resumeRoutes} from '../resumes/api.js';
 import {boardRequest} from '../board/api.js';
 import {createServer,type IncomingMessage} from 'node:http';
@@ -10,7 +15,10 @@ import {pdfBuffer} from './pdf.js';
 import {readPreference,readDefaultTheme,savePreference,hash,noSymlinks} from './io.js';
 import type {Theme} from './types.js';
 
-export async function startPreview(directory:string,workspace:string,port=0,live=false) {
+export async function startPreview(directory:string,workspace:string,port=0,live=false,options:{manager?:WorkspaceManager;registryFile?:string}={}) {
+  workspace=await realpath(workspace);
+  const manager=options.manager??new WorkspaceManager(options.registryFile);
+  await manager.prepare?.(workspace);
   let isCollection=false;try{await lstat(path.join(directory,'collection.json'));isCollection=true;}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
   const collection=isCollection?await loadCollection(directory):undefined;
   const single=collection?undefined:await loadBuild(directory);
@@ -21,6 +29,13 @@ export async function startPreview(directory:string,workspace:string,port=0,live
   for(const [id,dir] of directories){const {manifest}=await loadBuild(dir);allowedThemes.set(id,(manifest.templates??[{id:'classic'},{id:'compact'}]).map(t=>t.id));}
   const token=randomBytes(32).toString('hex');let origin='';let busy=false;
   const handleResumes=resumeRoutes(workspace,token,isCollection,live);
+  const handleWorkspaces=workspaceRoutes(workspace,manager,token,async target=>{
+    if(!manager.sessions.has(target)){
+      const pending=(async()=>{const collection=await buildCollection(target);return startPreview(collection.directory,target,0,true,{manager});})();
+      manager.sessions.set(target,pending);pending.catch(()=>manager.sessions.delete(target));
+    }
+    return (await manager.sessions.get(target)!).url+'/board';
+  });
   async function body(req:IncomingMessage,allowClear=false) {
     let text='';for await(const chunk of req){text+=String(chunk);if(text.length>2048)throw new Error('请求过大');}
     const data=JSON.parse(text) as {theme?:Theme|null;resumeId?:string};const id=data.resumeId??(collection?undefined:firstId);
@@ -33,6 +48,8 @@ export async function startPreview(directory:string,workspace:string,port=0,live
     if(req.headers.host!==new URL(origin).host) {send(403,{error:'仅接受本机预览地址'});return;}
     try {
       const url=new URL(req.url??'/',origin),pathname=url.pathname;
+      if(await handleWorkspaces(req,res,url,origin))return;
+      if(await profileRequest(req,res,url,workspace))return;
       if(await boardRequest(req,res,url,workspace,origin,token))return;
       if(await handleResumes(req,res,url,origin))return;
       if(req.method==='GET') {
@@ -65,5 +82,12 @@ export async function startPreview(directory:string,workspace:string,port=0,live
   await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>resolve());});
   const address=server.address();if(!address||typeof address==='string')throw new Error('启动失败');
   origin='http://127.0.0.1:'+address.port;
-  return {url:origin,server,close:()=>new Promise<void>((resolve,reject)=>server.close(e=>e?reject(e):resolve()))};
+  manager.origins.add(origin);
+  const stop=()=>new Promise<void>((resolve,reject)=>{
+    // Chromium may leave speculative/keep-alive connections open after its window closes.
+    const drain=setTimeout(()=>server.closeAllConnections(),3000);drain.unref();
+    server.close(e=>{clearTimeout(drain);e?reject(e):resolve();});
+  });
+  manager.sessions.set(workspace,Promise.resolve({url:origin,close:stop}));
+  return {url:origin,server,close:options.manager?stop:()=>manager.close()};
 }

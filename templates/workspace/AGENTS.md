@@ -6,6 +6,8 @@
 
 ## 每次开始（包括新会话）
 
+桌面版先检查 `.local/desktop-runtime.json`：存在时，macOS 使用 `./.local/career <命令>`，Windows PowerShell 使用 `& .\\.local\\career.cmd <命令>`。后文及 Skills 中的 `npm run career --` 均替换为此入口；无需安装 Node/npm。入口只处理本目录，不能随桌面当前选择切换。入口失效时，在 career 软件重新打开此目录以修复；没有此文件时沿用 npm 入口。
+
 1. 先读本目录 `career.json`，从本目录运行 `npm run career -- doctor --json` 和 `workspace status --json`。首次安装、依赖缺失、同步尚未选择或恢复后的环境准备，读 [career-setup](.agents/skills/career-setup/SKILL.md)，按实际状态继续，不重复初始化。
 2. 用户选择远程同步但尚未建仓或连接，即使本目录还没有 Git 跟踪，也读 [career-git](.agents/skills/career-git/SKILL.md)，由 Agent 引导并执行。onboarding.sync 为 connected 时，按该 Skill 先 `sync status --refresh`，必要时快进 pull 后再读正文；local 则尊重已选本机保存，不重复询问 GitHub。
 3. 读 `context/INDEX.md`、`context/state.md` 和 `resume/maintenance.md`，找到本轮对象；只打开／导出已有成果时直接进入 resume-tailor，不重走访谈。

@@ -7,6 +7,7 @@ import {CommandError} from '../agent-api.js';
 import {renderMarkdown} from './markdown.js';
 import {boardHtml} from './page.js';
 import {preferences,savePreferences} from './preferences.js';
+import {workspaceCommand} from '../workspace/command.js';
 
 export const primaryDocuments=[{id:'overview',label:'岗位概况',path:'card.md'},{id:'company',label:'公司分析',path:'analysis/company.md'},{id:'match',label:'岗位匹配',path:'analysis/match.md'}];
 const mime:Record<string,string>={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif'};
@@ -32,7 +33,7 @@ export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:UR
     if(req.method==='GET'&&route==='/api/board/detail'){send(200,await store.show(workspace,id));return true;}
     if(req.method==='GET'&&route==='/api/board/context'){
       const context=await store.context(workspace,id);
-      send(200,{...context,prompt:`请在工作区 ${JSON.stringify(workspace)} 继续跟进岗位 ${id}。进入该目录，先读取 AGENTS.md，再执行 npm run career -- opportunity context --id ${id} --json，按返回的资料与已有决定继续。更新相关 Markdown 和下一步，保留尚未核实的问题。`});return true;
+      send(200,{...context,prompt:`请在工作区 ${JSON.stringify(workspace)} 继续跟进岗位 ${id}。进入该目录，先读取 AGENTS.md，再执行 ${await workspaceCommand(workspace)} opportunity context --id ${id} --json，按返回的资料与已有决定继续。更新相关 Markdown 和下一步，保留尚未核实的问题。`});return true;
     }
     if(req.method==='GET'&&route==='/api/board/interview-context'){
       send(200,await store.interviewContext(workspace,id,url.searchParams.get('round')??''));return true;

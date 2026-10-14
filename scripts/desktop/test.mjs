@@ -1,0 +1,13 @@
+import {mkdir,readFile,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import {ensureElectron,prepare,root,stage,run} from './prepare.mjs';
+const require=createRequire(import.meta.url);await ensureElectron();
+const args=process.argv.slice(2),packaged=args[0]==='--app'?args[1]:null;
+if(!packaged)await prepare();
+const directory=path.join(root,'.cache/desktop-test-'+Date.now());await mkdir(directory,{recursive:true});
+const output=path.join(directory,'report.json');
+const env={...process.env,CAREER_DESKTOP_USER_DATA:directory};delete env.ELECTRON_RUN_AS_NODE;
+run(packaged??require('electron'),[...(packaged?[]:[stage]),'--career-smoke',output],{env,timeout:180000});
+const report=JSON.parse(await readFile(output,'utf8'));if(!report.ok)throw new Error(report.error);
+console.log(JSON.stringify({...report,evidence:directory},null,2));
