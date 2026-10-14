@@ -6,11 +6,14 @@ await cp('templates/workspace',out,{recursive:true});
 // npm excludes .gitignore even inside included directories. Restore its name at setup.
 await cp(out+'/.gitignore',out+'/gitignore.template');
 await rm(out+'/.gitignore');
-await cp('.agents/skills',out+'/.agents/skills',{recursive:true});
+// Maintainer Skills stay in the development repository. Match package.json files.
+for(const name of ['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board']){
+ await cp('.agents/skills/'+name,out+'/.agents/skills/'+name,{recursive:true});
+}
 await cp('schemas',out+'/schemas',{recursive:true});
 await mkdir(out+'/examples/presentation',{recursive:true});
 await cp('examples/presentation/package.json',out+'/examples/presentation/package.json');
-for(const file of ['data-model.md','context-protocol.md','installation.md']){
+for(const file of ['data-model.md','context-protocol.md','installation.md','opportunities.md','resume-packages.md']){
  let text=await readFile('docs/'+file,'utf8');
  if(file==='context-protocol.md')text=text.replace(/^.*\]\((?:context\.md|decisions\/)\).*\n/gm,'');
  await writeFile(out+'/docs/'+file,text);

@@ -20,4 +20,4 @@ export interface FieldRule {label: string; control: 'text'|'select'|'date'; max:
 export interface PlatformRules {name: string; revision: number; checked_at: string; coverage: string; fields: Record<string, FieldRule>; notes: string[]}
 export interface Issue {code: string; path: string; message: string}
 export interface ResolvedAssets {photo?: {dataUrl:string;alt:string;x:number;y:number}}
-export interface Checked {input: Presentation; rules: Record<Platform, PlatformRules>; warnings: Issue[]; assets:ResolvedAssets}
+export interface Checked {bundle?:import('../resumes/model.js').ResumePackage; input: Presentation; rules: Record<Platform, PlatformRules>; warnings: Issue[]; assets:ResolvedAssets}

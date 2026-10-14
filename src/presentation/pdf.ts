@@ -5,10 +5,15 @@ import {loadBuild} from './build.js';
 import {noSymlinks} from './io.js';
 import type {Theme} from './types.js';
 
+let desktopRenderer:((html:string)=>Promise<Buffer>)|undefined;
+/** Desktop supplies its bundled Chromium; npm CLI retains the Playwright runtime. */
+export function setPdfRenderer(renderer:(html:string)=>Promise<Buffer>){desktopRenderer=renderer;}
+
 export async function pdfBuffer(directory:string,theme:Theme):Promise<Buffer> {
   const {manifest}=await loadBuild(directory);
   if(!(manifest.templates??[{id:'classic'},{id:'compact'}]).some(t=>t.id===theme))throw new Error('此构建没有该样式的快照');
   const content=await readFile(path.join(directory,`.print-${theme}.html`),'utf8');
+  if(desktopRenderer){const bytes=await desktopRenderer(content);if(bytes.length<1000||bytes.subarray(0,5).toString()!=='%PDF-')throw new Error('PDF 文件生成失败');return bytes;}
   let browser;
   try {browser=await chromium.launch({headless:true});}
   catch {throw new Error('缺少 PDF 浏览器运行时。请运行 career runtime install --component pdf，再重试。');}

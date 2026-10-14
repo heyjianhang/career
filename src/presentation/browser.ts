@@ -1,5 +1,7 @@
-type LocalSession = {token:string; defaultTheme:string; savedDefaultTheme:string|null};
+type LocalSession = {token:string; defaultTheme:string; savedDefaultTheme:string|null; canSaveResumeTheme?:boolean};
 let session: LocalSession|null = null;
+let sessionReady:Promise<void>=Promise.resolve();
+let applyingTheme=false;
 let selectedTheme=document.body.dataset.theme || 'classic';
 let galleryTheme=selectedTheme;
 let preferenceBusy=false;
@@ -92,7 +94,21 @@ $('#close-preview').addEventListener('click',returnToCatalog);
 $('#close-gallery').addEventListener('click',dismissGallery);
 dialog.addEventListener('cancel',e=>{if(!$('#gallery-detail').hidden){e.preventDefault();returnToCatalog();}});
 $('#cancel-gallery').addEventListener('click',()=>dialog.close());
-function applyGalleryTheme(){selectTheme(galleryTheme);dialog.close();}
+async function applyGalleryTheme(){
+  if(applyingTheme)return;
+  const chosen=galleryTheme;
+  const buttons=[$<HTMLButtonElement>('#apply-template'),$<HTMLButtonElement>('#apply-preview')];
+  applyingTheme=true;buttons.forEach(b=>b.disabled=true);
+  try{
+    await sessionReady;
+    if(location.protocol==='http:'&&['localhost','127.0.0.1'].includes(location.hostname)&&!session)throw new Error('未连接本地服务，请刷新后重试');
+    if(session?.canSaveResumeTheme)await post('/api/library/theme',{resumeId,theme:chosen});
+    selectTheme(chosen);
+    const state=new URLSearchParams(location.hash.slice(1));state.set('theme',chosen);
+    history.replaceState(null,'','#'+state.toString());
+    dialog.close();toast(session?.canSaveResumeTheme?'已保存这份简历的样式':'已应用样式');
+  }catch(e){toast((e as Error).message);}finally{applyingTheme=false;buttons.forEach(b=>b.disabled=false);}
+}
 $('#apply-template').addEventListener('click',applyGalleryTheme);
 $('#apply-preview').addEventListener('click',applyGalleryTheme);
 const library=$<HTMLDialogElement>('#resume-library');
@@ -114,7 +130,7 @@ function switchView(id:string) {
   else if(id!=='resume'&&preview.dataset.pagination==='loading')releasePreview(preview);$('#export-pdf').hidden=id!=='resume';$('#open-gallery').hidden=id!=='resume';
 }
 document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view!)));
-document.querySelectorAll('.brand,.app-nav-item').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();switchView('resume');}));
+document.querySelectorAll('.brand[href="#resume"],.app-nav-item[href="#resume"]').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();switchView('resume');}));
 document.querySelectorAll<HTMLButtonElement>('.copy-field').forEach(button=>button.addEventListener('click',async()=>{
   const value=button.querySelector<HTMLElement>('.field-value')!;
   const selection=window.getSelection();
@@ -132,7 +148,7 @@ function download(blob:Blob,name:string) {const url=URL.createObjectURL(blob);co
 $('#export-pdf').addEventListener('click',async()=>{
   if(!session) {const host=$('#resume-preview');const frame=frames.get(host)?.frame;if(host.dataset.pagination!=='ready'||!frame){toast('请等简历排版完成后再导出');return;}toast('在打印窗口选择“另存为 PDF”');frame.contentWindow!.print();return;}
   const button=$<HTMLButtonElement>('#export-pdf');button.disabled=true;button.querySelector('span')!.textContent='正在生成…';
-  try {const result=await post('/api/pdf',{theme:selectedTheme,resumeId});download(await result.blob(),document.title.replace(' · career','')+'-'+selectedTheme+'.pdf');toast('PDF 已生成');}
+  try {const result=await post('/api/pdf',{theme:selectedTheme,resumeId,...(document.body.dataset.packageSha?{sha256:document.body.dataset.packageSha}:{})});download(await result.blob(),document.title.replace(' · career','')+'-'+selectedTheme+'.pdf');toast('PDF 已生成');}
   catch(e) {toast((e as Error).message);}finally {button.disabled=false;button.querySelector('span')!.textContent='导出 PDF';}
 });
 function updateDefaultButton(){
@@ -150,6 +166,8 @@ $('#gallery-default').addEventListener('click',async()=>{
 });
 $('#save-html').addEventListener('click',()=>{
   const clone=document.documentElement.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll('.live-resume-actions,.resume-back').forEach(e=>e.remove());
+  clone.querySelectorAll<HTMLAnchorElement>('.sidebar a[href="/"]').forEach(a=>a.href='#resume');
   clone.querySelectorAll<HTMLElement>('.view').forEach(v=>v.hidden=v.id!=='view-resume');
   clone.querySelectorAll<HTMLElement>('[data-view]').forEach(v=>{const active=v.dataset.view==='resume';v.classList.toggle('active',active);if(active)v.setAttribute('aria-current','page');else v.removeAttribute('aria-current');});
   clone.querySelector<HTMLElement>('#export-pdf')!.hidden=false;clone.querySelector<HTMLElement>('#open-gallery')!.hidden=false;
@@ -167,7 +185,7 @@ $('#save-html').addEventListener('click',()=>{
 updateDefaultButton();
 $('#export-pdf').querySelector('span')!.textContent='打印 / 存为 PDF';
 if(location.protocol==='http:' && ['localhost','127.0.0.1'].includes(location.hostname)) {
-  fetch('/api/session?resume='+encodeURIComponent(resumeId)).then(r=>{if(!r.ok)throw new Error();return r.json();}).then((value:LocalSession)=>{
+  sessionReady=fetch('/api/session?resume='+encodeURIComponent(resumeId)).then(r=>{if(!r.ok)throw new Error();return r.json();}).then((value:LocalSession)=>{
     if(!/^[a-f0-9]{64}$/.test(value.token)||typeof value.defaultTheme!=='string')throw new Error();
     session={...value,savedDefaultTheme:typeof value.savedDefaultTheme==='string'?value.savedDefaultTheme:null};updateDefaultButton();$('#export-pdf').querySelector('span')!.textContent='导出 PDF';
   }).catch(()=>{});

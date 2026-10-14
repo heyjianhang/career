@@ -1,0 +1,41 @@
+name: Desktop installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: ${{ matrix.platform }} / ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: macos-latest, platform: mac, arch: arm64}
+          - {os: macos-latest, platform: mac, arch: x64}
+          - {os: windows-latest, platform: win, arch: x64}
+          - {os: windows-latest, platform: win, arch: arm64}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run check:docs
+      - name: Build installer (no publishing)
+        run: npm run desktop:build -- --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+      - name: Test desktop on runner's native architecture
+        run: npm run desktop:test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: career-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            release/desktop/*.dmg
+            release/desktop/*.zip
+            release/desktop/*.exe
+            release/desktop/SHA256SUMS-*.txt
+          if-no-files-found: error
+          retention-days: 14

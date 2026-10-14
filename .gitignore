@@ -9,6 +9,7 @@
 node_modules/
 /dist/
 /resources/
+/release/
 /coverage/
 /playwright-report/
 /test-results/

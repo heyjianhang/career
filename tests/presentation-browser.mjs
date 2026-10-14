@@ -26,6 +26,9 @@ try {
   const choose=async id=>{await page.locator('#open-gallery').click();await page.locator(`[data-gallery-choice="${id}"]`).click();await page.locator('#apply-template').click();await ready();};
   await page.goto(preview.url);await page.getByRole('button',{name:'导出 PDF',exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);
   const initialText=await resumeText();
+  await page.getByRole('link',{name:'求职看板',exact:true}).click();await page.waitForURL(preview.url+'/board');
+  await page.getByRole('heading',{name:'求职看板',exact:true}).waitFor();
+  await page.getByRole('link',{name:'简历',exact:true}).click();await page.waitForURL(preview.url+'/');await ready();
   await page.screenshot({path:path.join(out,'preview.png')});
   await choose('compact');
   assert.equal(await page.locator('body').getAttribute('data-theme'),'compact');assert.equal(await resumeText(),initialText);

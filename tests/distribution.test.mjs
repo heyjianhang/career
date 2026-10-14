@@ -14,14 +14,15 @@ async function fixture(t){const dir=await mkdtemp(path.join(await realpath(os.tm
 async function init(w){await initHistory(w,'Career Test','career-test@example.invalid');await saveHistory(w,'初始资料');}
 async function execute(cwd,...args){try{const result=await exec(process.execPath,[cli,...args,'--json'],{cwd});return {exit:0,...JSON.parse(result.stdout)};}catch(e){return {exit:e.code,...JSON.parse(e.stderr)};}}
 const fails=(code)=>e=>e.code===code;
+const currentPackage=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 
 test('setup gives complete next reads, local dependency pin and non-destructive retry',async t=>{
  const {workspace}=await fixture(t);const config=JSON.parse(await readFile(path.join(workspace,'career.json')));assert.equal(config.onboarding.sync,'undecided');assert.equal(config.tool.name,'@heyjianhang/career');
- const packageData=JSON.parse(await readFile(path.join(workspace,'package.json')));assert.equal(packageData.private,true);assert.equal(packageData.dependencies['@heyjianhang/career'],'0.2.0');
+ const packageData=JSON.parse(await readFile(path.join(workspace,'package.json')));assert.equal(packageData.private,true);assert.equal(packageData.dependencies[currentPackage.name],currentPackage.version);
  const readme=await readFile(path.join(workspace,'AGENTS.md'),'utf8');assert.match(readme,/大节点|重要更新/);assert.match(readme,/sync status --refresh/);
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);
  await writeFile(path.join(workspace,'context/state.md'),'# 我的进度\n不丢失');await localOnly(workspace);
- const retry=await setup(workspace,false);assert.equal(retry.next_action,'read_context');assert.deepEqual(retry.questions,[]);assert.equal(retry.agent.conflicts.length,0);assert.equal(JSON.parse(await readFile(path.join(workspace,'career.json'))).onboarding.sync,'local');assert.match(await readFile(path.join(workspace,'context/state.md'),'utf8'),/不丢失/);
+ const retry=await setup(workspace,false);assert.equal(retry.next_action,'read_context');assert.equal(retry.handoff,null);assert.deepEqual(retry.questions,[]);assert.equal(retry.agent.conflicts.length,0);assert.equal(JSON.parse(await readFile(path.join(workspace,'career.json'))).onboarding.sync,'local');assert.match(await readFile(path.join(workspace,'context/state.md'),'utf8'),/不丢失/);
  for(const file of retry.next_reads)assert.ok((await stat(file)).isFile());
  for(const file of ['SKILL.md','references/first-sync.md','references/daily-sync.md','references/restore.md'])assert.ok((await stat(path.join(workspace,'.agents/skills/career-git',file))).isFile());
  const status=await execute(workspace,'workspace','status');assert.equal(status.exit,0);assert.equal(status.data.initialized,true);
@@ -33,7 +34,7 @@ test('repeated setup routes connected workspaces to sync checks without asking a
  const retry=await setup(workspace,false);assert.equal(retry.next_action,'check_sync');assert.deepEqual(retry.questions,[]);
  const diagnosis=await execute(workspace,'doctor');assert.equal(diagnosis.data.next_action,'check_sync');
  await writeFile(path.join(workspace,'AGENTS.md'),'# 用户自定义入口');
- const conflict=await setup(workspace,false);assert.equal(conflict.next_action,'resolve_agent_files');assert.deepEqual(conflict.questions,[]);assert.ok(conflict.agent.conflicts.includes('AGENTS.md'));
+ const conflict=await setup(workspace,false);assert.equal(conflict.next_action,'resolve_agent_files');assert.equal(conflict.handoff,null);assert.deepEqual(conflict.questions,[]);assert.ok(conflict.agent.conflicts.includes('AGENTS.md'));
  const retained=JSON.parse(await readFile(file));assert.equal(retained.onboarding.sync,'connected');assert.equal(retained.sync.repository,'fixture/private');
 });
 
@@ -46,7 +47,7 @@ test('setup rejects unrelated nonempty directories and preserves edited Agent in
 test('CLI never falls back to program cache for unlocated data and setup alias works',async t=>{
  const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-cwd-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const absent=await execute(dir,'workspace','status');assert.equal(absent.errors[0].code,'WORKSPACE_REQUIRED');
- const initialized=await execute(dir,'setup','--workspace',path.join(dir,'data'),'--no-install');assert.equal(initialized.exit,0);assert.equal(initialized.data.next_action,'choose_sync');
+ const initialized=await execute(dir,'setup','--workspace',path.join(dir,'data'),'--no-install');assert.equal(initialized.exit,0);assert.equal(initialized.data.next_action,'choose_sync');assert.equal(initialized.data.handoff,null);
  const help=await execute(dir,'--help');assert.ok(help.data.commands.some(c=>c.command==='career sync push'));
 });
 

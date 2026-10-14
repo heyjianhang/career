@@ -1,0 +1,4 @@
+interface:
+  display_name: "career 版本发布"
+  short_description: "检查版本与门户、验证安装包，按 Git 与 npm 流程完成发布"
+  default_prompt: "使用 $career-release 检查这次发版的改动、版本同步和验证情况，准备发布。"

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import * as resumes from './resumes/store.js';
+import * as opportunities from './opportunities/store.js';
 import {spawn} from 'node:child_process';
 import {templateMetadata} from './presentation/templates/registry.js';
 import {check,root,themes,readDefaultTheme,readPreference,savePreference,json,rules,platforms} from './presentation/io.js';
@@ -14,7 +16,32 @@ import {SetupError,installPdf} from './workspace/process.js';
 import type {Theme,Platform} from './presentation/types.js';
 
 const commands = {
-  'workspace.setup':{args:'--workspace <dir> [--no-install] [--package-source <tgz>]',description:'准备独立个人工作区、锁定工具和 Agent 指引；别名 setup',options:['workspace','no-install','package-source']},
+"resume.create":{"args": "--title <name> [--from <resume-id>]", "description": "创建空白简历包或复制为可编辑简历；旧原件保留", "options": ["workspace", "title", "from"]},
+"resume.read":{"args": "--id <resume-id>", "description": "读取完整简历包及 SHA-256，网页与 Agent 共用", "options": ["workspace", "id"]},
+"resume.relations":{"args": "--id <resume-id>", "description": "查看引用这份简历的岗位和投递历史", "options": ["workspace", "id"]},
+"opportunity.resume":{"args": "--id <opp-id> --resume <resume-id|none> --if-match <sha256>", "description": "关联当前简历；一份简历可关联多个岗位，不代表投递", "options": ["workspace", "id", "resume", "if-match", "actor"]},
+"opportunity.submit":{"args": "--id <opp-id> --input <submission.json> --if-match <sha256>", "description": "根据用户确认的实际投递留存不可覆盖快照；不自动投递", "options": ["workspace", "id", "input", "if-match", "actor"]},
+  "board.preview":{"args":"[--workspace <dir>] [--port <port>] [--open]","description":"启动本机求职看板与岗位资料预览；进程持续运行","options":["workspace","port","open"]},
+  "board.overview":{"args": "[--workspace <dir>]", "description": "全局岗位、待办、关注项及资料关联，返回跨会话接手入口", "options": ["workspace"]},
+  "board.check":{"args": "[--workspace <dir>]", "description": "校验岗位、任务依赖与关联资料", "options": ["workspace"]},
+  "board.recover":{"args": "[--workspace <dir>]", "description": "校验摘要后续完中断写入；有外部修改时停止", "options": ["workspace"]},
+  "opportunity.schema":{"args": "", "description": "岗位、面试轮次、任务、活动输入契约与示例", "options": []},
+  "opportunity.add":{"args": "--input <json> [--workspace <dir>]", "description": "创建稳定 ID 的岗位文件夹", "options": ["workspace", "input", "actor"]},
+  "opportunity.list":{"args": "[--stage <id>] [--source <id>] [--min-rating <1-5>] [--query <text>] [--archived <true|false|all>]", "description": "筛选岗位；未评分不算零星", "options": ["workspace", "stage", "source", "min-rating", "query", "archived"]},
+  "opportunity.show":{"args": "--id <opp-id>", "description": "读取卡片、面试轮次、任务、资料目录、关联与近期动态", "options": ["workspace", "id"]},
+  "opportunity.context":{"args": "--id <opp-id>", "description": "给新 Agent 的有界接手包与后续文件入口", "options": ["workspace", "id"]},
+  "opportunity.read":{"args": "--id <opp-id> --path <relative.md>", "description": "读取岗位内 Markdown 全文及更新摘要", "options": ["workspace", "id", "path"]},
+  "opportunity.update":{"args": "--id <opp-id> --input <patch.json> --if-match <sha256>", "description": "更新卡片与阶段，保留未提供字段及我的评分", "options": ["workspace", "id", "input", "if-match", "actor"]},
+  "opportunity.rate":{"args": "--id <opp-id> --stars <1-5|none> --if-match <sha256>", "description": "根据用户决定设置或清除我的评分", "options": ["workspace", "id", "stars", "if-match"]},
+  "opportunity.write":{"args": "--id <opp-id> --path <relative.md> --input <file.md> [--if-match <sha256>]", "description": "保存 JD、用户笔记、分析或面试文档", "options": ["workspace", "id", "path", "input", "if-match", "actor"]},
+  "opportunity.attach":{"args": "--id <opp-id> --input <local-file> [--name <filename>]", "description": "复制本地附件，禁止覆盖原件", "options": ["workspace", "id", "input", "name", "actor"]},
+  "opportunity.log":{"args": "--id <opp-id> --input <event.json>", "description": "追加带证据类别的动态，区分模拟与真实面试", "options": ["workspace", "id", "input", "actor"]},
+  "interview.list":{"args":"--opportunity <opp-id>","description":"列出真实面试轮次、记录和可选准备／模拟资料","options":["workspace","opportunity"]},
+  "interview.save":{"args":"--opportunity <opp-id> --input <round.json> [--if-match <sha256>]","description":"创建或更新面试轮次及自由 Markdown 正文，不自动改变岗位阶段","options":["workspace","opportunity","input","if-match","actor"]},
+  "interview.context":{"args":"--opportunity <opp-id> --round <interview-id>","description":"读取本轮、历史轮次及岗位接手上下文","options":["workspace","opportunity","round"]},
+  "task.save":{"args": "--opportunity <opp-id> --input <task.json> [--if-match <sha256>]", "description": "创建或更新协作待办，检查依赖和交接结果", "options": ["workspace", "opportunity", "input", "if-match", "actor"]},
+
+  'workspace.setup':{args:'--workspace <dir> [--no-install] [--package-source <tgz>]',description:'准备独立个人工作区、锁定工具与 Agent 指引，返回新对话交接信息；别名 setup',options:['workspace','no-install','package-source']},
   'workspace.doctor':{args:'[--workspace <dir>]',description:'检查环境和首次引导状态；别名 doctor',options:['workspace']},
   'workspace.restore':{args:'--workspace <new-dir> --repository <owner/repo>',description:'从 GitHub 私人仓库恢复到新目录',options:['workspace','repository']},
   'agent.install':{args:'[--workspace <dir>]',description:'安装或更新项目 Skills；保留用户修改',options:['workspace']},
@@ -76,12 +103,36 @@ try {
     const need=(key:string)=>{if(typeof options[key]!=='string')throw new CommandError('INVALID_ARGUMENT','请提供 --'+key);return options[key] as string;};
     const required:Record<string,string[]>={'workspace.setup':['workspace'],'workspace.restore':['workspace','repository'],'workspace.hash':['path'],'resume.save':['input'],'resume.validate':['input'],'resume.freeze':['version'],'resume.export':['build','format','out'],'runtime.install':['component'],'history.save':['message'],'sync.connect':['repository']};
     for(const key of required[operation]??[])need(key);
-    const workspaceFree=['workspace.doctor','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
+    const workspaceFree=['workspace.doctor','opportunity.schema','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
     if(['workspace.setup','workspace.restore'].includes(operation))need('workspace');
     const workspace=workspaceFree?(options.workspace?path.resolve(String(options.workspace)):process.cwd()):await discoverWorkspace(options.workspace as string|undefined);
     const theme=options.theme as Theme|undefined;
     if(theme&&operation!=='resume.export'&&!themes.includes(theme))throw new CommandError('INVALID_ARGUMENT','未知样式：'+theme);
     switch(operation) {
+      case 'resume.create':output(await resumes.createResume(workspace,need('title'),options.from as string|undefined));break;
+      case 'resume.read':output(await resumes.readResume(workspace,need('id')));break;
+      case 'resume.relations':output(await resumes.resumeRelations(workspace,need('id')));break;
+      case 'opportunity.resume':output(await resumes.selectResume(workspace,need('id'),need('resume')==='none'?null:need('resume'),need('if-match'),options.actor as string|undefined));break;
+      case 'opportunity.submit':output(await resumes.submitResume(workspace,need('id'),await opportunities.candidate(need('input')) as any,need('if-match'),options.actor as string|undefined));break;
+      case 'board.overview':{const r=await opportunities.overview(workspace);output(r,r.issues);break;}
+      case 'board.check':{const r=await opportunities.overview(workspace);output({valid:r.issues.length===0,total:r.total},[],r.issues);break;}
+      case 'board.recover':output(await opportunities.recover(workspace));break;
+      case 'opportunity.schema':output({json_schema:await opportunities.contract(),stages:opportunities.stages,outcomes:opportunities.outcomes,interviewStatuses:opportunities.interviewStatuses,platforms:opportunities.platforms,examples:{interview:{title:'技术一面',status:'planned',scheduled_at:null},create:{company:'远山科技（虚构）',title:'产品经理',sources:[{platform:'boss'}],body:'## 当前结论\n等待核对岗位职责。'},task:{title:'核对岗位职责',status:'pending',owner:'agent',body:'阅读 job.md，列出信息缺口。'}}});break;
+      case 'opportunity.add':output(await opportunities.add(workspace,await opportunities.candidate(need('input')),options.actor as string|undefined));break;
+      case 'opportunity.list':{const r=await opportunities.list(workspace,{stage:options.stage as string|undefined,source:options.source as string|undefined,minRating:options['min-rating'] as string|undefined,query:options.query as string|undefined,archived:options.archived as string|undefined});output(r,r.issues);break;}
+      case 'opportunity.show':{const r=await opportunities.show(workspace,need('id'));output(r,r.issues);break;}
+      case 'opportunity.context':{const r=await opportunities.context(workspace,need('id'));output(r,r.issues);break;}
+      case 'opportunity.read':output(await opportunities.readDocument(workspace,need('id'),need('path')));break;
+      case 'opportunity.update':output(await opportunities.update(workspace,need('id'),await opportunities.candidate(need('input')),need('if-match'),options.actor as string|undefined));break;
+      case 'opportunity.rate':output(await opportunities.rate(workspace,need('id'),need('stars'),need('if-match')));break;
+      case 'opportunity.write':output(await opportunities.writeDocument(workspace,need('id'),need('path'),need('input'),options['if-match'] as string|undefined,options.actor as string|undefined));break;
+      case 'opportunity.attach':output(await opportunities.attach(workspace,need('id'),need('input'),options.name as string|undefined,options.actor as string|undefined));break;
+      case 'opportunity.log':output(await opportunities.log(workspace,need('id'),await opportunities.candidate(need('input')),options.actor as string|undefined));break;
+      case 'interview.list':{const r=await opportunities.show(workspace,need('opportunity'));output({interviews:r.interviews},r.issues);break;}
+      case 'interview.save':output(await opportunities.saveInterview(workspace,need('opportunity'),await opportunities.candidate(need('input')),options['if-match'] as string|undefined,options.actor as string|undefined));break;
+      case 'interview.context':{const r=await opportunities.interviewContext(workspace,need('opportunity'),need('round'));output(r,r.issues);break;}
+      case 'task.save':output(await opportunities.saveTask(workspace,need('opportunity'),await opportunities.candidate(need('input')),options['if-match'] as string|undefined,options.actor as string|undefined));break;
+
       case 'workspace.setup':output(await setup(workspace,!options['no-install'],options['package-source'] as string|undefined));break;
       case 'workspace.doctor':output(await doctor(workspace));break;
       case 'workspace.restore':output(await restore(workspace,need('repository')));break;
@@ -106,7 +157,7 @@ try {
       }
       case 'workspace.hash':output(await hashWorkspaceFile(workspace,need('path')));break;
       case 'resume.freeze':{const {freeze}=await import(new URL('../scripts/freeze.mjs',import.meta.url).href);output(await freeze(workspace,need('version')));break;}
-      case 'resume.schema':output({json_schema:await json(path.join(root,'schemas/presentation.v1.schema.json')),example_path:path.join(root,'examples/presentation/package.json')});break;
+      case 'resume.schema':output({json_schema:await json(path.join(root,'schemas/resume-package.v1.schema.json')),legacy_schema:await json(path.join(root,'schemas/presentation.v1.schema.json')),guidance:'新建使用 career-resume-package/v1；content 为唯一正文，平台稿自动映射。旧包请 resume create --from 另存后核对。'});break;
       case 'resume.platforms':{
         const id=options.platform as Platform|undefined;
         if(id&&!platforms.includes(id))throw new CommandError('INVALID_ARGUMENT','未知平台：'+id);
@@ -119,7 +170,7 @@ try {
           platforms:(id?[id]:platforms).map(key=>({id:key,...registry[key]})),
         });break;
       }
-      case 'resume.save':{const {warnings,...result}=await savePresentation(need('input'),workspace,options['if-match'] as string|undefined);output(result,warnings);break;}
+      case 'resume.save':{const candidate=await json<any>(need('input'));const {warnings,...result}=candidate.schema==='career-resume-package/v1'?await resumes.savePackage(workspace,candidate,options['if-match'] as string|undefined):await savePresentation(need('input'),workspace,options['if-match'] as string|undefined);output(result,warnings);break;}
       case 'resume.themes':output(templateMetadata);break;
       case 'resume.preferences':{
         if(options.clear&&theme)throw new CommandError('INVALID_ARGUMENT','--theme 与 --clear 不能同时指定');
@@ -139,15 +190,17 @@ try {
         const dir=need('build'),out=need('out'),selected=theme??(await loadBuild(dir)).manifest.theme;
         output(await exportPdf(dir,selected,out));break;
       }
+      case 'board.preview':
       case 'resume.preview':{
+        if(operation==='board.preview')await opportunities.overview(workspace);
         if(options.input&&options.build)throw new CommandError('INVALID_ARGUMENT','--input 与 --build 不能同时指定');
         const port=options.port===undefined?0:Number(options.port);
         if(!Number.isInteger(port)||port<0||port>65535)throw new CommandError('INVALID_ARGUMENT','无效端口');
         const directory=options.build as string??(options.input?(await build(need('input'),workspace)).directory:(await buildCollection(workspace)).directory);
-        const preview=await startPreview(directory,workspace,port);output({url:preview.url,directory});
-        if(options.open){const command=process.platform==='darwin'?'open':process.platform==='win32'?'explorer.exe':'xdg-open';const child=spawn(command,[preview.url],{stdio:'ignore'});child.on('error',()=>console.error('请手动打开 '+preview.url));child.unref();}
-        const stop=()=>{preview.server.close(()=>process.exit(0));setTimeout(()=>process.exit(0),1500).unref();};process.once('SIGINT',stop);process.once('SIGTERM',stop);break;
+        const preview=await startPreview(directory,workspace,port,!options.build);const previewUrl=preview.url+(operation==='board.preview'?'/board':'');output({url:previewUrl,directory});
+        if(options.open){const command=process.platform==='darwin'?'open':process.platform==='win32'?'explorer.exe':'xdg-open';const child=spawn(command,[previewUrl],{stdio:'ignore'});child.on('error',()=>console.error('请手动打开 '+previewUrl));child.unref();}
+        const stop=()=>{void preview.close().finally(()=>process.exit(0));setTimeout(()=>process.exit(0),1500).unref();};process.once('SIGINT',stop);process.once('SIGTERM',stop);break;
       }
     }
   }
-}catch(error){const e=error as Error;output(null,[],[{code:error instanceof CommandError||error instanceof SetupError?error.code:operation.startsWith('workspace.')?'WORKSPACE_ERROR':'PRESENTATION_ERROR',message:e.message,...((error instanceof CommandError||error instanceof SetupError)&&error.details?{details:error.details}:{})}]);}
+}catch(error){const e=error as Error;output(null,[],[{code:error instanceof CommandError||error instanceof SetupError?error.code:operation.startsWith('workspace.')?'WORKSPACE_ERROR':/^(board|opportunity|interview|task)\./.test(operation)?'OPPORTUNITY_ERROR':'PRESENTATION_ERROR',message:e.message,...((error instanceof CommandError||error instanceof SetupError)&&error.details?{details:error.details}:{})}]);}

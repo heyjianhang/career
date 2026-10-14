@@ -1,3 +1,4 @@
+import {shellIcon} from './shell-icons.js';
 import {readFile} from 'node:fs/promises';
 import type {Checked, Theme, Presentation, Platform, PlatformRules, ResumeLink, Contact} from './types.js';
 import {platforms} from './io.js';
@@ -9,7 +10,7 @@ import {paginationResources, paginationDocument} from './pagination.js';
 export {escape} from './escape.js';
 
 const icon = (name:string) => {
-  const paths:Record<string,string>={chevron:'<path d="m6 9 6 6 6-6"/>',sidebar:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m6-10-2 2 2 2"/>',expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h4M10 12h5M10 16h5"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'};
+  const paths:Record<string,string>={chevron:'<path d="m6 9 6 6 6-6"/>',expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h4M10 12h5M10 16h5"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'};
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]??paths.doc}</svg>`;
 };
 function reportMarkup(p:Platform,input:Presentation,rule:PlatformRules) {
@@ -52,8 +53,10 @@ export async function html(checked:Checked,theme:Theme='classic',printOnly=false
 ${templates.map(t=>`<template id="template-${t.id}" data-name="${escape(t.name)}">${render(t.id)}</template>`).join('')}<div id="toast" role="status" aria-live="polite"></div><script id="pagination-resources" type="application/json">${JSON.stringify(resources).replace(/</g,'\\u003c')}</script><script type="module">${shell.replace(/<\/script/gi,'<\\/script')}</script><script type="module">${paginationDocument.toString().replace(/<\/script/gi,'<\\/script')}\n${browser.replace(/<\/script/gi,'<\\/script')}</script></body></html>`;
 }
 
-function sidebar() {
-  return `<aside id="app-sidebar" class="sidebar"><a class="brand" href="#resume" aria-label="career 首页"><span class="brand-full">career<span>.</span></span><span class="brand-compact" aria-hidden="true">c<span>.</span></span></a><nav class="app-nav" aria-label="主导航"><a class="app-nav-item active" href="#resume" aria-current="page" title="简历">${icon('doc')}<span>简历</span></a></nav><button id="toggle-sidebar" class="sidebar-toggle" type="button" aria-controls="app-sidebar" aria-expanded="true" aria-label="收起侧边栏" title="收起侧边栏">${icon('sidebar')}<span>收起侧边栏</span></button></aside><button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="收起侧边栏" hidden></button>`;
+export function sidebar(active='resume') {
+  const tooltip=(label:string)=>`<span class="shell-tooltip" aria-hidden="true">${label}</span>`;
+  const item=(id:string,label:string,href:string,local=true)=>`<a class="app-nav-item ${active===id?'active':''}" href="${href}" ${local?'data-local-nav':''} data-sidebar-tooltip aria-label="${label}" ${active===id?'aria-current="page"':''}>${shellIcon(id)}<span class="nav-label" aria-hidden="true">${label}</span>${tooltip(label)}</a>`;
+  return `<aside id="app-sidebar" class="sidebar"><div class="sidebar-heading"><span class="brand"><span class="brand-full">career<span>.</span></span></span><button id="toggle-sidebar" class="sidebar-toggle" type="button" aria-controls="app-sidebar" aria-expanded="true" aria-label="收起侧边栏" data-sidebar-tooltip><span class="brand-compact" aria-hidden="true">c<span>.</span></span><span class="collapse-icon">${shellIcon('collapse')}</span><span class="expand-icon">${shellIcon('expand')}</span>${tooltip('展开侧边栏')}</button></div><nav class="app-nav" aria-label="主导航">${item('board','求职看板','/board')}${item('resume','简历',active!=='resume'?'/':'#resume',false)}${item('profile','我的资料','/profile')}</nav><button id="open-settings" class="sidebar-settings" type="button" data-local-nav data-sidebar-tooltip aria-label="设置" aria-haspopup="dialog">${shellIcon('settings')}<span class="nav-label" aria-hidden="true">设置</span>${tooltip('设置')}</button></aside><button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="收起侧边栏" hidden></button>`;
 }
 
 export async function emptyHtml() {

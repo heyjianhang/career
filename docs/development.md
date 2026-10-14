@@ -15,6 +15,12 @@ npm run check:example
 npx playwright install chromium
 npm run test:browser
 npm run test:layout
+# 修改看板与岗位抽屉时：
+npm run test:board
+# 修改简历库、编辑与岗位关联时：
+npm run test:resumes
+# 修改个人资料阅读器时：
+npm run test:profile
 # 修改网页／项目链接时：
 npm run test:links
 # 修改简历排版模板时：
@@ -34,7 +40,7 @@ npm run test:templates
 - 跨模块 ID、字段和更新关系：修改 `docs/data-model.md`，同步相关模板、脚本与合成示例。
 - 成果页、主题、CLI 与本地预览：修改 `src/`；公共机器契约在 `schemas/`，实际平台字段规则仍在 resume-tailor Skill。详见 [成果页实现](presentation.md)。
 - 初始化、v2 校验、摘要和冻结：底层工具在 `scripts/`；统一 Agent 命令与成品保存入口在 `src/agent-api.ts` / `src/cli.ts`。CLI 复用底层工具，避免维护两种工作区格式。单一 Skill 专用的新辅助脚本放该 Skill 内。
-- 初始化引导由 career-setup 维护；个人 Git 建仓、提交与同步方法统一在 career-git，工作区 AGENTS 负责路由。
+- 安装前引导由根目录 install.md 维护，安装后 career-setup 区分目录交接与工作区续接；个人 Git 建仓、提交与同步方法统一在 career-git，工作区 AGENTS 负责路由。
 - npm 初始化、受管指引和 Git 同步：`src/workspace/`。用户入口在 `templates/workspace/`，构建脚本 `scripts/package-resources.mjs` 组装可安装资源；根 AGENTS 只服务项目开发。
 - 项目当前状态与下一步：更新 `docs/context.md`；架构决定写入 `docs/decisions/`。
 - 私人上下文机制：协议在 `docs/context-protocol.md`，起步模板在 `templates/context/`，实例在 workspace/context/。
@@ -66,6 +72,8 @@ npm run test:templates
 
 ## 打包与发布
 
+维护者先读 [career-release](../.agents/skills/career-release/SKILL.md)，按其中的版本清单和发布顺序操作。发布分支验证后先发布并验证 npm，再合并 main 更新公网安装入口；门户徽标从 package.json 自动生成。主分支保护的查询与推荐配置也在该 Skill 中。
+
 ```sh
 npm test
 npm run check:example
@@ -73,9 +81,9 @@ npm run test:package
 npm pack
 ```
 
-`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、五个 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
+`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、六个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；运行所需的合成内容包保留，私人 workspace、构建产物、测试、研究截图和源码不进入 npm。发布前检查 npm pack 的文件清单，核对账号和版本，核对开发仓库地址，按用户授权以公开 scoped 包发布（publishConfig 固定官方 registry 与 public 访问）；凭据只通过 npm 官方认证流程处理。成功发布后还需从 registry 在新目录安装验证，最后核对 README／安装页中的版本和命令。公开说明采用正式使用文案；真实发布记录只根据成功回执更新。
+包采用 files 白名单；package.json 与资源构建脚本都只包含六个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。运行所需的合成内容包保留，`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
 
 当前 macOS / Node 26 本地验证覆盖 60 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、未保存和分叉；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。macOS／Windows／Linux 的 Node 22 CI 已实际通过，包含每个平台 60 项测试与安装包验证；浏览器／PDF 不在这套 CI 矩阵内。
 
@@ -89,3 +97,21 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 ```
 
 该脚本创建独立的合成演示：通用版带虚构插画头像、精简版不带头像。不会把示例头像写入用户内容包，也不会覆盖已有演示目录。样式列表由 `resume themes --json` 返回，Agent 仍按统一内容契约写作。新增样式的验收用例在 `tests/templates.test.mjs` 与 `tests/templates-browser.mjs`，验证边界见[验证说明](validation.md)。
+
+## 岗位模块（开发源码）
+
+`src/opportunities/store.ts` 提供文件业务层，`src/cli.ts` 暴露统一命令；契约与交接规则见[岗位工作区](opportunities.md)。修改时运行 `tests/opportunities.test.mjs`，覆盖多 Agent 续接、冲突、依赖、坏记录、附件与恢复；完整测试与真实安装包仍按上面执行。src/board 提供本地看板和文件阅读器，复用简历服务及侧栏；tests/board-ui.test.mjs 覆盖读取、写回冲突和文件边界。PDF.js 资源由构建脚本复制到 dist/board/pdf，发布前验证安装包具备资源。
+
+运行 npm run build，然后 node scripts/prepare-board-demo.mjs 创建源码仓库外的临时合成工作区，最后 node dist/cli.js board preview --workspace <脚本返回的目录> --open --json。也可向演示脚本传入仓库外尚不存在的绝对路径。
+
+页面用合成岗位、两页 PDF 和示例图片验收；只在资料 Tab 展示文件树。`npm run test:board` 用独立合成工作区验证两层面试导航、可选准备和多次模拟、轮次添加／编辑、复制协作指令、阶段与结果／归档分离、键盘操作、抽屉调宽与重载记忆、慢请求返回、PDF／图片和 390px 窄屏；截图在 `.cache/board-review/`。源码外人工演示使用相同入口。
+
+## 本机多工作区
+
+工作区管理在 src/workspace/local.ts 与 local-api.ts；共享侧栏和设置在 presentation 的 render／shell／styles。每个目录绑定独立 localhost 服务，startPreview 的 close 会关闭同组会话。测试必须传入独立 registryFile 或 CAREER_LOCAL_SETTINGS，不能改开发者主目录的最近列表。行为和运行时恢复见[工作区说明](workspaces.md)。
+
+修改共享侧栏时，验证看板、简历、个人资料在相同视口下的几何尺寸；导航样式只能在共享层维护，不要再增加页面专属间距。变更渲染代码后重启预览并刷新页面，避免旧 Node 模块与新读取的 CSS 混用。
+
+## 桌面端
+
+桌面壳在 desktop，构建脚本在 scripts/desktop；复用 src 文件层和 localhost 服务。`npm run desktop:dev` 启动，`npm run desktop:test` 用合成目录验证。构建矩阵、安装包输出、签名和版本规则见[桌面开发与构建](desktop.md)。新增桌面功能需要检查真正打包后的应用，不能仅验证开发 Electron；构建资源在 .cache 与 release 下，不提交这些产物。

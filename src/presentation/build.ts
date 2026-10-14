@@ -9,7 +9,7 @@ import type {Checked,Theme,Platform,PlatformRules,ResumeLink} from './types.js';
 export interface BuildManifest {schema:'career-build/v1';id:string;theme:Theme;created_at:string;files:Record<string,string>;templates?:{id:string;version:number}[]}
 export async function build(input:string,workspace:string,out?:string,theme?:Theme,navigation?:ResumeLink[]) {
   const checked=await check(input,workspace);
-  const selected=theme??await readPreference(workspace);
+  const selected=theme??await readPreference(workspace,checked.input.id);
   if(!themes.includes(selected)) throw new Error('未知样式：'+selected);
   const page=await html(checked,selected,false,navigation);
   const id=checked.input.id+'-'+randomUUID().slice(0,8);
@@ -19,7 +19,7 @@ export async function build(input:string,workspace:string,out?:string,theme?:The
   await mkdir(directory);
   const files:Record<string,string>={
     'index.html':page,
-    '.package.json':JSON.stringify(checked.input,null,2)+'\n',
+    '.package.json':JSON.stringify(checked.bundle??checked.input,null,2)+'\n',
     '.rules.json':JSON.stringify(checked.rules,null,2)+'\n'
   };
   for(const t of themes) files[`.print-${t}.html`]=await html(checked,t,true);

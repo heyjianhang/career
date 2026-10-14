@@ -14,11 +14,11 @@
 | --- | --- | --- |
 | 整理经历 | 从旧材料与对话提取事实，保留来源与待补问题 | 已实现 |
 | 准备简历 | 维护母版、选择内容与排版，生成简历和平台填写稿 | 已实现 |
-| 分析机会 | 收集岗位，结合目标与经历比较要求、证据和缺口 | 规划中 |
-| 跟踪求职 | 关联岗位、所用简历、申请阶段、沟通记录与下一步 | 规划中 |
+| 分析机会 | 收集岗位，结合目标与经历比较要求、证据和缺口 | CLI 开发版 |
+| 跟踪求职 | 关联岗位、所用简历、申请阶段、沟通记录与下一步 | CLI 与看板开发版 |
 | 回顾调整 | 根据真实记录观察进展，复盘筛选和表达 | 规划中 |
 
-后续的岗位、申请和分析会沿用同一套个人资料。具体边界与交付顺序见[产品路线图](docs/roadmap.md)。
+开发源码已提供[岗位工作区、协作 CLI 与看板](docs/opportunities.md)，以及[简历卡片库、统一内容包与网页编辑](docs/resume-packages.md)，尚未随 npm 0.2.0 发布。岗位、申请和分析沿用同一套个人资料。具体边界与交付顺序见[产品路线图](docs/roadmap.md)。
 
 ## 现在可以做什么
 
@@ -41,7 +41,7 @@
 
 </details>
 
-CLI 负责确定性的工具操作，写作与判断由用户选择的 Agent 完成。目前不包含招聘平台自动填表、自动投递、求职看板或 Word 导出。
+CLI 负责确定性的工具操作，写作与判断由用户选择的 Agent 完成。目前不包含招聘平台自动填表、自动投递或 Word 导出；求职看板仅在开发源码中提供。
 
 ## 开始使用：把这段发给 Agent
 
@@ -63,6 +63,7 @@ Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 
 | [career-git](.agents/skills/career-git/SKILL.md) | 引导账号与私人仓库准备、首次提交、日常保存、同步和换机恢复 |
 | [career-intake](.agents/skills/career-intake/SKILL.md) | 从材料和对话提取事实，逐步收集工作、项目、教育与能力 |
 | [resume-master](.agents/skills/resume-master/SKILL.md) | 把事实整理成可读母版，保留个人贡献、来源与待补项 |
+| [career-board](.agents/skills/career-board/SKILL.md) | 收集机会、查看全局、维护任务与资料，跨会话接手岗位（开发版） |
 | [resume-tailor](.agents/skills/resume-tailor/SKILL.md) | 按用途选材，生成内容包和平台稿，调用 CLI 交付页面与文件 |
 
 ```mermaid
@@ -82,7 +83,7 @@ Skills 随 npm 包安装到个人目录。支持项目级 Skills 的客户端可
 ```text
 career-workspace/
 ├── AGENTS.md          # Agent 的协作入口
-├── .agents/skills/    # 五个用户 Skills 及其参考资料
+├── .agents/skills/    # 用户 Skills 及其参考资料
 ├── career.json        # 工作区配置、工具版本、同步选择
 ├── package.json       # 本目录使用的工具
 ├── package-lock.json  # 锁定依赖版本
@@ -94,6 +95,12 @@ career-workspace/
 这个开源仓库存放工具源码与通用方法，个人目录保存用户资料。启用远程同步时，资料传到用户自己的私人仓库；生成文件、依赖和缓存默认不进入 Git。是否将材料发送给模型由所使用的 Agent 客户端及其设置决定。
 
 GitHub 同步可跳过，之后仍可启用。启用后每次开始核对远端资料，重要节点询问上传；已有本轮或持续授权时直接同步。遇到未保存修改或历史分叉时保留内容并停止同步。工具版本由锁文件固定，不随资料拉取自动升级。
+
+## 桌面版（开发预览）
+
+桌面版支持创建／打开独立工作区，内置 CLI、六个 Skills 和 PDF 运行环境。创建后可复制指令交给 Agent，日常直接打开软件查看看板、简历与资料。
+
+Windows x64／ARM64、macOS Intel／Apple Silicon 的构建入口和手动 CI 见[桌面版说明](docs/desktop.md)。目前是本地开发预览，尚未提供公开下载安装包；上面的 npm 安装方式继续可用。
 
 ## 参与开发
 
@@ -107,7 +114,7 @@ npm run check:example
 npm run test:package
 ```
 
-CI 在 macOS、Windows、Linux / Node 22 上安装依赖、运行测试，并从实际安装包检查初始化和简历生成。[工作流](.github/workflows/check.yml)只做检查；npm 发布另行执行。具体检查与发布流程见[开发说明](docs/development.md)。
+CI 在 macOS、Windows、Linux / Node 22 上安装依赖、运行测试，并从实际安装包检查初始化和简历生成。[工作流](.github/workflows/check.yml)只做检查；npm 发布按维护者 [career-release](.agents/skills/career-release/SKILL.md) 另行执行。具体检查与发布流程见[开发说明](docs/development.md)。
 
 ## 许可证与致谢
 

@@ -57,7 +57,12 @@ export async function setup(workspace:string,install=true,packageSource?:string)
   const agent=await installAgent(workspace);
   if(install){if(packageSource)await npm(['install','--ignore-scripts','--no-audit','--no-fund','--save-exact',path.resolve(packageSource)],workspace);else {let locked=false;try{await stat(path.join(workspace,'package-lock.json'));locked=true;}catch{}await npm([locked?'ci':'install','--ignore-scripts','--no-audit','--no-fund'],workspace);}}
   const state=await config(workspace),nextAction=agent.conflicts.length?'resolve_agent_files':onboardingAction(state);
-  return {workspace,initialized,agent,tool,dependencies:install?'installed':'skipped',next_reads:agent.next_reads,next_action:nextAction,questions:nextAction==='choose_sync'?['是否把资料同步到自己的 GitHub 私人仓库？也可以先仅保存在本机。']:[]};
+  // Installation clients hand off first; next_action remains the task for the workspace conversation.
+  const handoff=install&&!agent.conflicts.length?{workspace,entrypoint:path.join(workspace,'AGENTS.md'),
+    action:'open_workspace',prompt:'请读取当前工作区的 AGENTS.md，按已有进度引导我开始使用 career。',
+    steps:['在 Agent 软件中打开此目录或添加为现有项目。','在该工作区中新建对话，发送 prompt。'],
+    workspace_next_action:nextAction}:null;
+  return {workspace,initialized,agent,tool,dependencies:install?'installed':'skipped',next_reads:agent.next_reads,next_action:nextAction,questions:nextAction==='choose_sync'?['是否把资料同步到自己的 GitHub 私人仓库？也可以先仅保存在本机。']:[],handoff};
 }
 function onboardingAction(state:Record<string,any>){
   const mode=state.onboarding?.sync;
