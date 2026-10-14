@@ -22,9 +22,9 @@ const jsonCommand=async(cli,cwd,args)=>{
 try{
  const [packed]=JSON.parse(await npm(['pack','--json','--pack-destination',dir]));
  const names=packed.files.map(f=>f.path);
- for(const file of ['dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
+ for(const file of ['dist/workspace/sync.js','dist/workspace/sync-api.js','dist/workspace/sync-environment.js','dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
- const userSkills=['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board'];
+ const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
   const included=[...new Set(names.filter(name=>name.startsWith(prefix)).map(name=>name.slice(prefix.length).split('/')[0]))].sort();
   assert.deepEqual(included,[...userSkills].sort(),'Only user Skills belong in the npm package');
@@ -40,18 +40,32 @@ try{
  assert.equal(initial.handoff.workspace_next_action,initial.next_action);
  assert.ok((await readFile(path.join(workspace,'README.md'),'utf8')).includes(initial.handoff.prompt));
  const retry=await jsonCommand(bootstrapCli,dir,args);assert.equal(retry.agent.conflicts.length,0);assert.deepEqual(retry.handoff,initial.handoff);
- const documentation=await checkDocumentation(workspace);assert.equal(documentation.skills,6);
+ const documentation=await checkDocumentation(workspace);assert.equal(documentation.skills,8);
  assert.ok(!(await stat(path.join(workspace,'.agents/skills/career-release')).catch(()=>null)),'Maintainer release instructions must not be installed');
  for(const name of userSkills)assert.ok((await stat(path.join(workspace,'.agents/skills',name,'SKILL.md'))).isFile());
+ // Execute the method helper from the installed workspace, not from this checkout.
+ const scoreInput=path.join(dir,'assessment.json');
+ await writeFile(scoreInput,JSON.stringify({criteria:[
+  {id:'known',weight:40,score:4,evidence:['synthetic/source'],reason:'Confirmed synthetic evidence'},
+  {id:'unknown',weight:60,score:null,evidence:[],reason:'Not yet assessed'}
+ ]}));
+ const score=JSON.parse(await run(process.execPath,[path.join(workspace,'.agents/skills/career-board/scripts/score-opportunity.mjs'),scoreInput],workspace));
+ assert.equal(score.known_score,100);assert.equal(score.evidence_coverage,40);
+ assert.deepEqual(score.missing_extremes,{lower:40,upper:100});
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);
  assert.ok(!(await stat(path.join(workspace,'gitignore.template')).catch(()=>null)));
  const cli=path.join(workspace,'node_modules/@heyjianhang/career/dist/cli.js');
  const command=(...args)=>jsonCommand(cli,workspace,args);
+ const syncPrefs=await command('sync','preferences','--automatic','off','--interval','10');assert.equal(syncPrefs.automatic,false);assert.equal(syncPrefs.interval_minutes,10);assert.equal((await command('sync','overview')).repository,null);
  assert.equal((await command('doctor')).tool_matches,true);
  assert.equal((await command('company','status')).configured,false);
  assert.equal((await command('company','tools')).sections.registration.tool,'get_company_registration_info');
  assert.match(await readFile(path.join(workspace,'.agents/skills/career-board/references/company.md'),'utf8'),/company inspect/);
  assert.equal((await command('workspace','check')).valid,true);
+ const stageFile=path.join(workspace,'context/progress.md');
+ assert.match(await readFile(stageFile,'utf8'),/当前大阶段：待核对/);
+ assert.ok((await command('workspace','status')).next_reads.includes(stageFile));
+ assert.ok((await stat(path.join(workspace,'docs/career-assets.md'))).isFile());
  assert.equal((await command('resume','themes')).length,14);
  assert.equal((await command('board','overview')).total,0);
  const spec=await command('opportunity','schema');
@@ -87,6 +101,7 @@ try{
   assert.match(await(await fetch(new URL('/',base))).text(),/我的简历/);
   const profilePage=await(await fetch(new URL('/profile',base))).text();assert.match(profilePage,/我的资料/);assert.match(profilePage,/materials-layout/);
   const profileIndex=await(await fetch(new URL('/api/profile/index',base))).json();assert.ok(profileIndex.groups.some(g=>g.id==='goals'));assert.ok(profileIndex.files.some(f=>f.path==='resume/facts/profile.md'));
+  assert.ok(profileIndex.files.some(f=>f.path==='context/progress.md'&&f.title==='职业资料阶段进度'));
   const profileDocument=await(await fetch(new URL('/api/profile/file?path=resume/facts/profile.md',base))).json();assert.ok(typeof profileDocument.source==='string');
   const detailPage=await(await fetch(new URL('/resumes/'+draft.id+'/index.html',base))).text();assert.match(detailPage,/来自真实安装包的编辑内容/);assert.match(detailPage,/编辑内容/);
   const workspaceSession=await(await fetch(new URL('/api/workspaces/session',base))).json();

@@ -1,0 +1,428 @@
+{
+  "captured_at": "2026-10-14T17:32:44.668Z",
+  "case": "interview",
+  "label": "final",
+  "results": {
+    "workspace": {
+      "schema_version": "career-cli/v1",
+      "operation": "workspace.check",
+      "status": "success",
+      "data": {
+        "workspace": "/private/tmp/career-agent-sim-20261015-c/workspaces/interview",
+        "valid": true,
+        "record_count": 3,
+        "counts": {
+          "profile": 1,
+          "master-index": 1,
+          "questions": 1
+        },
+        "opportunities": {
+          "as_of": "2026-10-14T17:32:44.280Z",
+          "timezone": "Asia/Shanghai",
+          "today": "2026-10-15",
+          "total": 1,
+          "active": 1,
+          "archived": 0,
+          "upcoming_interviews": [],
+          "stages": [
+            {
+              "id": "inbox",
+              "label": "待评估",
+              "count": 1
+            },
+            {
+              "id": "preparing",
+              "label": "准备投递",
+              "count": 0
+            },
+            {
+              "id": "applied",
+              "label": "已投递",
+              "count": 0
+            },
+            {
+              "id": "interviewing",
+              "label": "面试中",
+              "count": 0
+            },
+            {
+              "id": "offer",
+              "label": "Offer",
+              "count": 0
+            },
+            {
+              "id": "ended",
+              "label": "已结束",
+              "count": 0
+            }
+          ],
+          "cards": [
+            {
+              "id": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "company": "远帆软件",
+              "title": "项目经理",
+              "stage": "inbox",
+              "resume": null,
+              "submissions": [],
+              "archived": false,
+              "outcome": null,
+              "interviews": [],
+              "user_rating": null,
+              "recommendation": null,
+              "location": "杭州",
+              "salary": null,
+              "sources": [],
+              "next_action": {
+                "title": "下次继续 R1：按四个路标用约60秒重答同一需求变更案例",
+                "owner": "user"
+              },
+              "updated_at": "2026-10-14T17:32:15.673Z",
+              "sha256": "990d6072a0bb96e74bbf22b65d7f4c90b2c934c8d3c5158cb9e15ed1153c87ac",
+              "pending_tasks": [],
+              "file_count": 19
+            }
+          ],
+          "pending_tasks": [],
+          "attention": {
+            "waiting_user": [],
+            "overdue": [],
+            "next_actions_due": [],
+            "duplicate_sources": []
+          },
+          "relations": [
+            {
+              "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/card.md",
+              "kind": "document",
+              "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+              "label": "需求变更模拟（已暂停，待重答）"
+            },
+            {
+              "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-48c2e08a-a4da-4a4e-ae9b-99bda2c9212f.md",
+              "kind": "document",
+              "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+              "label": "模拟部分记录与恢复入口"
+            },
+            {
+              "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-f21bb516-f1e5-46cc-90e7-0384490bc8a6.md",
+              "kind": "document",
+              "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+              "label": "本次模拟"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-00aa1483-0347-4360-b965-2a6dabbc3a4c.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-03ea424c-4386-4eba-9844-7d8349bdb162.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-054c1a0d-08ce-4b8a-915b-f6a1be380c73.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-0c0d6577-8dbe-4fb8-a29e-ee60ba78f4fb.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-1f7a81f6-0626-4b51-8d8c-2b0113f84d33.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-206a5549-1ea6-43b2-a400-1aa48d8baa16.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-317567dc-4289-4d2a-914a-b07e13a0708f.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-44413e25-b713-4b54-a645-d6459c4f6f64.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-48c2e08a-a4da-4a4e-ae9b-99bda2c9212f.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-5c6c6c5b-3271-488f-8e29-4266c5d2ba04.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-698c38e2-808c-4f54-8836-bfed01981791.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-73881122-4580-40b1-8451-3243fd441a4f.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-7af6d8f7-ce00-47b0-96b0-365feb49f2d2.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-bf430b90-b1aa-4770-a041-57b242967f0d.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-f21bb516-f1e5-46cc-90e7-0384490bc8a6.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/card.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/interviews/general/simulations/2026-10-15-需求变更-01.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/job.md"
+            },
+            {
+              "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+              "kind": "file",
+              "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/notes.md"
+            }
+          ],
+          "issues": [],
+          "empty_message": "",
+          "next_action": "choose_opportunity_then_read_context"
+        }
+      },
+      "warnings": [
+        "resume/facts/profile.md: 尚无来源，不能据此称为已核实"
+      ],
+      "errors": []
+    },
+    "board": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.check",
+      "status": "success",
+      "data": {
+        "valid": true,
+        "total": 1
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "overview": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.overview",
+      "status": "success",
+      "data": {
+        "as_of": "2026-10-14T17:32:44.664Z",
+        "timezone": "Asia/Shanghai",
+        "today": "2026-10-15",
+        "total": 1,
+        "active": 1,
+        "archived": 0,
+        "upcoming_interviews": [],
+        "stages": [
+          {
+            "id": "inbox",
+            "label": "待评估",
+            "count": 1
+          },
+          {
+            "id": "preparing",
+            "label": "准备投递",
+            "count": 0
+          },
+          {
+            "id": "applied",
+            "label": "已投递",
+            "count": 0
+          },
+          {
+            "id": "interviewing",
+            "label": "面试中",
+            "count": 0
+          },
+          {
+            "id": "offer",
+            "label": "Offer",
+            "count": 0
+          },
+          {
+            "id": "ended",
+            "label": "已结束",
+            "count": 0
+          }
+        ],
+        "cards": [
+          {
+            "id": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "company": "远帆软件",
+            "title": "项目经理",
+            "stage": "inbox",
+            "resume": null,
+            "submissions": [],
+            "archived": false,
+            "outcome": null,
+            "interviews": [],
+            "user_rating": null,
+            "recommendation": null,
+            "location": "杭州",
+            "salary": null,
+            "sources": [],
+            "next_action": {
+              "title": "下次继续 R1：按四个路标用约60秒重答同一需求变更案例",
+              "owner": "user"
+            },
+            "updated_at": "2026-10-14T17:32:15.673Z",
+            "sha256": "990d6072a0bb96e74bbf22b65d7f4c90b2c934c8d3c5158cb9e15ed1153c87ac",
+            "pending_tasks": [],
+            "file_count": 19
+          }
+        ],
+        "pending_tasks": [],
+        "attention": {
+          "waiting_user": [],
+          "overdue": [],
+          "next_actions_due": [],
+          "duplicate_sources": []
+        },
+        "relations": [
+          {
+            "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/card.md",
+            "kind": "document",
+            "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+            "label": "需求变更模拟（已暂停，待重答）"
+          },
+          {
+            "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-48c2e08a-a4da-4a4e-ae9b-99bda2c9212f.md",
+            "kind": "document",
+            "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+            "label": "模拟部分记录与恢复入口"
+          },
+          {
+            "from": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-f21bb516-f1e5-46cc-90e7-0384490bc8a6.md",
+            "kind": "document",
+            "target": "interviews/general/simulations/2026-10-15-需求变更-01.md",
+            "label": "本次模拟"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-00aa1483-0347-4360-b965-2a6dabbc3a4c.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-03ea424c-4386-4eba-9844-7d8349bdb162.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-054c1a0d-08ce-4b8a-915b-f6a1be380c73.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-0c0d6577-8dbe-4fb8-a29e-ee60ba78f4fb.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-1f7a81f6-0626-4b51-8d8c-2b0113f84d33.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-206a5549-1ea6-43b2-a400-1aa48d8baa16.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-317567dc-4289-4d2a-914a-b07e13a0708f.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-44413e25-b713-4b54-a645-d6459c4f6f64.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-48c2e08a-a4da-4a4e-ae9b-99bda2c9212f.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-5c6c6c5b-3271-488f-8e29-4266c5d2ba04.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-698c38e2-808c-4f54-8836-bfed01981791.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-73881122-4580-40b1-8451-3243fd441a4f.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-7af6d8f7-ce00-47b0-96b0-365feb49f2d2.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-bf430b90-b1aa-4770-a041-57b242967f0d.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/activity/event-f21bb516-f1e5-46cc-90e7-0384490bc8a6.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/card.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/interviews/general/simulations/2026-10-15-需求变更-01.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/job.md"
+          },
+          {
+            "from": "opp-faab214c-7c69-4b0d-8216-11c8f72a2deb",
+            "kind": "file",
+            "target": "opportunities/opp-faab214c-7c69-4b0d-8216-11c8f72a2deb/notes.md"
+          }
+        ],
+        "issues": [],
+        "empty_message": "",
+        "next_action": "choose_opportunity_then_read_context"
+      },
+      "warnings": [],
+      "errors": []
+    }
+  }
+}

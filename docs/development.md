@@ -33,6 +33,10 @@ npm run test:templates
 
 公开入口源码位于 `site/`。`npm run preview:site` 构建并启动本机预览，`npm run build:site` 只输出批准的静态文件到 `build/site/`，无须加载私人工作区。桌面下载从 site/downloads.json 读取已公开的安装包地址，未发布的架构保持不可下载；备用开始指令从 README 提取；详细命令由根目录 install.md 维护，llms.txt 导航。scripts/bootstrap.mjs 校验短入口和安装版本。腾讯配置、域名接入和验收记录见[门户与托管](portal.md)。
 
+## Agent 路线图
+
+`npm run build:agent-roadmap` 从当前仓库 Markdown 和八个用户 Skills 构建 `build/agent-roadmap/index.html`，浏览器直接打开即可离线阅读。页面源码与场景导航在 `docs/agent-roadmap/`，共同推进规则在 `docs/agent-workflow.md`，不在 HTML 里维护另一份 Skill 正文。更改方法后重新构建，使用 `npm run test:agent-roadmap` 验证导航、原文读取和窄屏。详见 [路线图维护](agent-roadmap.md)。
+
 ## 文件归属
 
 - 访谈、母版写作、JD 匹配与平台填写方法：修改对应 `.agents/skills/<skill>/`。
@@ -72,7 +76,7 @@ npm run test:templates
 
 ## 打包与发布
 
-维护者先读 [career-release](../.agents/skills/career-release/SKILL.md)，按其中的版本清单和发布顺序操作。发布分支验证后先发布并验证 npm，再合并 main 更新公网安装入口；门户徽标从 package.json 自动生成。主分支保护的查询与推荐配置也在该 Skill 中。
+维护者先读 [career-release](../.agents/skills/career-release/SKILL.md)，按其中的版本清单和发布顺序操作。npm 发布分支验证后先发布并验证 npm，再合并 main 更新公网安装入口；桌面版本独立维护，门户下载信息从 site/downloads.json 生成。主分支保护的查询与推荐配置也在该 Skill 中。
 
 ```sh
 npm test
@@ -81,11 +85,11 @@ npm run test:package
 npm pack
 ```
 
-`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、六个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
+`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、八个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；package.json 与资源构建脚本都只包含六个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。运行所需的合成内容包保留，`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
+包采用 files 白名单；package.json 与资源构建脚本都只包含八个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。运行所需的合成内容包保留，`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
 
-当前 macOS / Node 26 本地验证覆盖 60 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、未保存和分叉；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。macOS／Windows／Linux 的 Node 22 CI 已实际通过，包含每个平台 60 项测试与安装包验证；浏览器／PDF 不在这套 CI 矩阵内。
+2026-10-15 的 macOS / Node 26 本地验证覆盖 114 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、安全合并、冲突保留、离线保存及自动同步时机；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。此前三平台 Node 22 CI 已通过 60 项测试；新提交的矩阵以对应 Actions 结果为准。浏览器／PDF 不在这套 CI 矩阵内。
 
 ## 新样式演示与检查
 
@@ -115,3 +119,5 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 ## 桌面端
 
 桌面壳在 desktop，构建脚本在 scripts/desktop；复用 src 文件层和 localhost 服务。`npm run desktop:dev` 启动，`npm run desktop:test` 用合成目录验证。构建矩阵、安装包输出、签名和版本规则见[桌面开发与构建](desktop.md)。新增桌面功能需要检查真正打包后的应用，不能仅验证开发 Electron；构建资源在 .cache 与 release 下，不提交这些产物。
+
+云同步变更另外运行 `npm run test:sync`。tests/sync.test.mjs 用临时 bare 远端覆盖双设备更新／合并、冲突保留、离线保存、异常远端、恢复和自动同步时机；sync-browser 用模拟依赖状态检查界面、设置落盘与窄屏，不操作真实私人仓库。

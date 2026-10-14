@@ -3,6 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {randomUUID} from 'node:crypto';
 import {spawn} from 'node:child_process';
+import {restore} from './git.js';
 import {config,setup,withLock,updateConfig} from './setup.js';
 import {hash,noSymlinks,root} from '../presentation/io.js';
 
@@ -50,7 +51,7 @@ export class WorkspaceManager {
   const canonical=await realpath(directory);const entries=await readdir(canonical,{withFileTypes:true});
   return {path:canonical,parent:path.dirname(canonical),directories:entries.filter(e=>e.isDirectory()&&!e.name.startsWith('.')&&!['node_modules','Library','$RECYCLE.BIN','System Volume Information'].includes(e.name)).map(e=>({name:e.name,path:path.join(canonical,e.name)})).sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'))};
  }
- async create(parent:string,name:string){
+ async create(parent:string,name:string,repository?:string){
   const title=validName(name);if(/[<>:"/\\|?*\x00-\x1f]|[. ]$/.test(title)||/^\.+$/.test(title)||/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(title))throw new Error('名称不能包含路径分隔符、特殊文件名或末尾句点');
   const location=(await this.browse(parent)).path;
   for(let ancestor=location;;ancestor=path.dirname(ancestor)){
@@ -60,9 +61,9 @@ export class WorkspaceManager {
   const directory=path.join(location,title);
   if(directory===path.resolve(root)||directory.startsWith(path.resolve(root)+path.sep))throw new Error('请选择程序安装目录之外的位置');
   // Claim only a new directory. Never initialise or overwrite an existing folder.
-  try{await mkdir(directory);}catch(e){if((e as NodeJS.ErrnoException).code==='EEXIST')throw new Error('这里已经有同名文件夹，请换个名称，或使用“打开已有工作区”');throw e;}
+  try{if(repository){await stat(directory);throw new Error('这里已经有同名文件夹，请换个名称');}else await mkdir(directory);}catch(e){if(repository&&(e as NodeJS.ErrnoException).code==='ENOENT'){}else{if((e as NodeJS.ErrnoException).code==='EEXIST')throw new Error('这里已经有同名文件夹，请换个名称，或使用“打开已有工作区”');throw e;}}
   try{
-   await setup(directory,false);
+   if(repository)await restore(directory,repository);else await setup(directory,false);
    await withLock(directory,()=>updateConfig(directory,c=>{c.name=title;}));
    if(this.prepare)await this.prepare(directory);else await attachLocalRuntime(directory);
    return await this.remember(directory);
@@ -77,9 +78,10 @@ function validName(value:unknown){if(typeof value!=='string'||!value.trim()||val
 async function attachLocalRuntime(workspace:string){
  // The browser-created folder reuses this installation, without downloading a different CLI version.
  // A relocated folder can fall back to its own npm installation; machine paths stay gitignored.
+ await noSymlinks(path.join(workspace,'.local'));await mkdir(path.join(workspace,'.local'),{recursive:true});
  await writeFile(path.join(workspace,'.local/runtime.json'),JSON.stringify({node:process.execPath,cli:path.join(root,'dist/cli.js')}));
  const runner=`import {readFileSync,existsSync} from 'node:fs';\nimport {spawnSync} from 'node:child_process';\nimport {fileURLToPath} from 'node:url';\nlet runtime;try{runtime=JSON.parse(readFileSync(new URL('../.local/runtime.json',import.meta.url),'utf8'));}catch{}\nconst installed=fileURLToPath(new URL('../node_modules/@heyjianhang/career/dist/cli.js',import.meta.url));\nconst cli=runtime&&existsSync(runtime.node)&&existsSync(runtime.cli)?runtime.cli:installed;\nconst node=cli===installed?process.execPath:runtime.node;\nif(!existsSync(cli)){console.error('请先在工作区执行 npm install --ignore-scripts，再重新运行。');process.exit(1);}\nconst result=spawnSync(node,[cli,...process.argv.slice(2)],{stdio:'inherit',cwd:fileURLToPath(new URL('../',import.meta.url))});\nif(result.error)console.error(result.error.message);process.exit(result.status??1);\n`;
- await writeFile(path.join(workspace,'.career/run.mjs'),runner,{flag:'wx'});
+ try{await writeFile(path.join(workspace,'.career/run.mjs'),runner,{flag:'wx'});}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e;}
  const packageFile=path.join(workspace,'package.json'),pkg=JSON.parse(await readFile(packageFile,'utf8'));pkg.scripts.career='node .career/run.mjs';await writeFile(packageFile,JSON.stringify(pkg,null,2)+'\n');
 }
 export async function revealFolder(directory:string){

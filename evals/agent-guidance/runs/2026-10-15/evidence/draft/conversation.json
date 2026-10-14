@@ -1,0 +1,13 @@
+{
+  "extracted_from": "dialogue.txt",
+  "turns": [
+    {
+      "role": "user",
+      "content": "来不及了，先用已经讲清的知识助手项目给我写一段可用的项目简历草稿，不做整份简历。没问清的以后再补，供应商交付先不写。"
+    },
+    {
+      "role": "assistant",
+      "content": "先用这一段：\n\n:::writing{variant=\"standard\" id=\"41507\"}\n**知识助手｜开发（内部试点）**\n\n参与面向客服的企业内部知识助手试点，使用 Python 和向量检索，负责 Word 文档处理与检索功能。针对固定长度切分将表格条件与答案拆散的问题，调整为按标题和表格边界保留上下文；自行选取 12 个客服常问问题，逐条检查检索片段，并在调整后使用同一组问题复查引用完整性。\n:::\n\n已保存[项目草稿](/private/tmp/career-agent-sim-20261015-c/workspaces/draft/resume/master-preview.md)。时间、归属和其余细节以后再补，供应商交付继续暂缓。"
+    }
+  ]
+}

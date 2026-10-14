@@ -1,0 +1,1418 @@
+# 对话回放
+
+## 第 1 轮用户输入
+
+帮我看看看板里澄海数据的算法工程师适不适合，给个有依据的建议。我主要想留杭州做AI应用开发，不接受长期去外地驻场。相关材料已经放进岗位文件夹了。
+
+## 实际工具与命令
+
+所有命令工作目录：`/private/tmp/career-agent-sim-20261015-c/workspaces/company`。
+工具：`functions.exec` 调用 `tools.exec_command`。
+
+1. `cat AGENTS.md` — 退出码 0，成功读取工作区入口。
+2. 命令如下 — 退出码 0，未发现 desktop-runtime 配置；career.json 的同步选择为 local。
+```sh
+if test -f .local/desktop-runtime.json; then cat .local/desktop-runtime.json; fi
+cat career.json
+```
+3. 命令如下 — 退出码 0，成功读取岗位 Skill、工作流和数据契约。
+```sh
+cat .agents/skills/career-board/SKILL.md
+cat docs/agent-workflow.md
+cat docs/data-model.md
+```
+4. `python3 - <<'PY' ... PY` — 创建本回放文件与 `.local/run_logged.py` 日志辅助程序；本命令成功退出后记为退出码 0。
+
+后续命令由 `.local/run_logged.py` 逐条记录完整业务命令和实际退出码；工具入口仍为 `functions.exec → tools.exec_command`，外层调用格式为 `python3 .local/run_logged.py <shell-quoted command>`。
+
+### 工具命令
+
+```sh
+cat context/INDEX.md
+cat context/progress.md
+cat context/state.md
+cat resume/maintenance.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat .agents/skills/career-board/references/analysis.md
+cat .agents/skills/career-board/references/job-evaluation.md
+cat .agents/skills/career-board/references/company.md
+cat .agents/skills/career-board/references/cli.md
+cat .agents/skills/career-git/SKILL.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- workspace status --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- doctor --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat .agents/skills/career-board/references/job-evaluation.md
+cat .agents/skills/career-board/references/company-research.md
+cat context/goals.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- --help --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity schema --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- sync status --json
+```
+
+实际退出码：1。
+
+错误输出：
+```text
+
+> career
+> node "/private/tmp/career-agent-sim-20261015-c/package/dist/cli.js" sync status --json
+
+{"schema_version":"career-cli/v1","operation":"sync.status","status":"error","data":null,"warnings":[],"errors":[{"code":"GIT_NOT_INITIALIZED","message":"先运行 career history init 初始化本地版本。"}]}
+
+```
+
+### 工具命令
+
+```sh
+npm run career -- board overview --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+rg --files opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60
+cat .agents/skills/career-git/references/first-sync.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity context --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity list --query 澄海 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat resume/facts/profile.md
+rg --files resume/facts resume/sources resume/master
+cat .gitignore
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path job.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 npm run career -- history init --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+root = Path.cwd()
+opp = 'opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60'
+company = """# 澄海数据：公司与岗位条件初筛
+
+评估日期：2026-10-15。对象：招聘品牌“澄海数据”的算法工程师，岗位 ID：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。本轮仅依据岗位文件夹内的合成材料和本轮用户陈述，未联网、未做工商查询、未联系招聘方。
+
+## 当前建议
+
+先保留待核实，暂不作为优先投入机会。最影响决定的是能否明确长期在杭州工作且不要求长期异地驻场；JD 和 HR 现有说法都未解决这一点。还没有证据证明一定需要长期异地驻场，因此也不能直接认定硬冲突或替用户放弃。岗位任务与 AI 应用方向有交集，但是否主要积累应用研发能力，取决于研发、微调、客户实施的实际分配。
+
+## 证据及边界
+
+| 资料 | 时间与来源 | 能支持什么 | 不能支持什么 |
+| --- | --- | --- | --- |
+| [岗位原文](../job.md) | 发布／采集时间未提供；本轮读取于 2026-10-15 | JD 写杭州、25–35K，企业知识助手的检索、工具调用、上线评估、微调实验和客户交付 | 杭州为长期固定工作地点；无驻场；工资保障月数；各类任务占比 |
+| [HR 口述记录](../notes.md) | 记录标注 2026-10-15；为口述转录，没有承诺文件 | “办公地点先按杭州，驻场以后再确认”；团队指导安排尚待确认 | 对无长期异地驻场的承诺，或已有可靠指导机制 |
+| 岗位原文中的官网宣传转述 | 原页面、发布日期、审计／融资原件未提供 | 公司自称“行业领先、融资稳定” | 真实领先程度、当前现金或经营稳定性；也不能因缺资料认定经营差 |
+| notes.md 中匿名评论截图转述 | 主体称“澄海科技”，部门／时间／亲历程度未核对；未见截图原件 | 一条待核实线索 | 将加班评价归到“澄海数据”或“澄海数科有限公司”，更不能推广到当前团队 |
+| 本轮用户原话 | 2026-10-15，已追加 notes.md | 主要想留杭州做 AI 应用开发，不接受长期异地驻场 | 默认接受短期出差的频次、天数和具体城市；这些尚未约定 |
+
+## 主体与业务如何影响本次选择
+
+招聘品牌是“澄海数据”，招聘页主体写“澄海数科有限公司”，合同主体待确认。三者关系没有现成证据，不能把名称相似的“澄海科技”当成同家公司。后续至少确认劳动合同、发薪／社保主体与实际团队的关系。
+
+职责显示岗位围绕企业知识助手，交付检索、工具调用和上线评估，同时涉及模型微调与客户交付。这可以提供 AI 应用落地经验，也可能包含较多客户定制和现场实施；两种解释都与现有文字相容。未有客户、付费模式、收入集中度、项目预算或续约资料，不能据此认定这是成熟自有产品团队或外包公司。
+
+对用户而言，客户场景本身不构成排除理由；关键是它是否迫使长期异地驻场，以及工作是否有可持续的应用研发责任。需要对方用最近项目的实际分工说明，而非仅重复岗位标题。
+
+## 生产责任与团队资源
+
+JD 要求独立负责生产质量，但团队指导安排待确认；数据权限、产品／后端／运维支持、评估与验收负责人也未明确。若独立责任覆盖检索效果、工具调用失败处理、监控告警和上线回滚，所需能力明显超出“完成内部试点”。这是岗位责任与现有个人证据之间的缺口，不等于用户做不到，也不能从没有团队资料推断没有支持。
+
+25–35K 仅为 JD 范围，发薪月数、固定与浮动构成、试用期口径未知；用户也未给薪酬目标，暂不评价其吸引力。薪酬高低不能抵消驻场底线。
+
+## 优先核实与改变建议的条件
+
+1. **先问地点与驻场**：此岗位能否明确长期工作地为杭州，不安排长期异地驻场？若有客户现场工作，具体城市、单次最长时长、年度频次及拒绝安排的处理方式是什么？要求给出可留存、具体的答复，不能把“以后再确认”当通过。
+2. 地点条件通过后，再问近一个季度应用研发、微调训练、客户实施各占多少，入职后三个月具体交付什么，以及谁提供生产质量与运维支持。
+3. 有进一步推进意向时核实合同／发薪主体和薪资构成；如果要判断业务持续性，再取得可核对的客户项目或经营资料。
+
+若明确要求长期异地驻场，则不符合用户底线；若对方继续无法明确，只适合低成本核实，不宜投入大量准备。若书面确认地点条件、工作以应用研发为主、资源与能力匹配得到证据，再上调推进优先级。现阶段没有经营好坏或团队加班程度的可靠结论。
+"""
+match = """# 算法工程师：岗位匹配与机会建议
+
+评估日期：2026-10-15。岗位：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。依据仅限本地合成材料与用户本轮说明；未进行外部核验。
+
+## 判断
+
+**方向有交集，但目前不足以支持优先投递／重投入准备。先核实长期杭州且无长期异地驻场，再判断生产责任是否匹配。**
+
+这不是因“算法工程师”标题就排除。JD 实际是 AI 应用开发、微调实验和客户交付的混合岗位，主要比例未知。训练经验为优先项，不能擅自升级为必要条件；做过 RAG 也不能视作已有训练经验。
+
+## 不可由优势抵消的条件
+
+| 条件 | 依据与当前状态 | 决策影响 |
+| --- | --- | --- |
+| 主要留杭州 | 用户本轮明确；JD 写杭州，HR 只说“先按杭州” | 长期实际工作地点未知，不能按满足处理 |
+| 不接受长期异地驻场 | 用户本轮明确；JD “是否驻场面议”，HR “以后再确认” | 尚未确认冲突，也尚未确认符合；优先核实 |
+| 发展方向为 AI 应用开发 | 用户明确；JD 含检索、工具调用和上线评估，也有微调与客户交付 | 部分契合，必须确认研发和实施任务比例 |
+| 独立负责生产质量 | JD 明确要求；个人材料只描述内部 RAG 试点 | 胜任证据不足，需案例核对和责任边界说明 |
+| 训练经验 | JD 仅列优先；个人记录尚未核对 | 不是已知硬门槛，不直接据此排除 |
+
+“长期”的具体判定以及可接受的短期出差上限尚未约定，不能替用户放宽。先取得招聘方实际要求；若确有有限短期出差再由用户判断。
+
+## 能力证据：支持到哪里，缺在哪里
+
+现有个人依据只有 [notes.md 的“用户旧资料”](../notes.md)：做过一个 RAG 内部试点，负责文档和检索链路。正式事实库／母版中没有可进一步佐证的项目条目。本轮不把材料未体现写成没有能力。
+
+| JD 主要任务 | 现有依据 | 评价与下一处证据 |
+| --- | --- | --- |
+| 企业知识助手检索链路 | 内部 RAG 试点，负责文档和检索 | **部分支持**：有相关任务经历；自主程度、数据规模、切分与检索策略、效果验证未展开，尚不能判为同等生产交付 |
+| 工具调用 | 现有旧资料未说明 | **未知**：需具体工具、权限、错误与重试处理、实际交付证据 |
+| 上线评估、独立生产质量 | “内部试点”，生产运维经历未核对 | **未知且关键**：上线状态、评测集与验收指标、线上监控、失败降级、回滚和本人责任未说明 |
+| 微调实验 | 模型训练经历未核对 | **未知**：优先项而非门槛；确认是否只是参与实验或要独立负责数据、训练、对比实验 |
+| 客户交付 | 现有个人记录未说明 | **未知**：需了解是否有需求澄清、验收和交付经历，并先核实是否带来驻场要求 |
+
+材料没有对本人过程、判断、验证作展开，因此不打精确匹配率、不估计录用概率，也不因关键词重合给高能力分。要继续能力评估，最有价值的下一问是：那个 RAG 试点是否被真实用户持续使用，文档和检索链路中你独立负责了哪些决定，怎样判断质量达到上线标准？只有用户或现成项目材料能回答，不能代写。
+
+## 机会价值与未知分开看
+
+- **工作与成长**：检索、工具调用、评估贴近用户目标；微调和客户实施占比未知，不能确定应用研发是主线。
+- **团队与资源**：HR 已注明指导安排待确认，生产支持、数据与验收权限未知。不能默认有导师，也不能推断完全没有支持。
+- **业务持续性**：只有官网宣传转述，没有原始经营／融资证据，保持未知，不作公司好坏评级。
+- **回报**：25–35K 为 JD 标注，薪数和组成未知，用户薪资目标也未知，不能据此判断值得牺牲其他条件。
+- **生活安排**：长期杭州与长期异地驻场已作为前置条件，不能再用加权均分抵消。
+
+更完整的来源边界见 [公司分析](company.md)。与另一家“澄海科技”有关的匿名评论未归入本公司判断。
+
+## 评分与建议边界
+
+用户请求有依据的建议，没有要求分数；本轮采用条件式判断，不计算权重、总分或敏感性数值。核心条件和能力证据大量未知，recommendation 保持 null，不能用中间星级掩盖未知。已有用户四星偏好是用户自己的选择，保留不改；岗位继续待评估、未投递，不自动结束或归档。
+
+从“成长优先”或“回报优先”两种取向看，当前都不能绕过驻场底线；在地点条件未明确前，应用方向交集和 JD 薪资范围都不能改变“先核实、暂不重投入”的建议。这是条件推理，不是算分后的稳定性结论。
+
+## 下一步与重评触发
+
+先取得招聘方关于长期工作地、驻场城市／时长／频率的具体答复。本轮未对外发送，也没有虚构对方已经回复。
+
+- 对方确认必须长期异地驻场：建议不推进；最终是否放弃仍由用户决定。
+- 对方仍只说入职后／以后再确认：保持待核实和低优先级，不将不确定性视为可接受。
+- 对方明确不要求长期异地驻场且长期杭州：再核对应用研发比例、生产责任及支持条件，并展开用户 RAG 试点案例，决定是否值得准备投递。
+"""
+(root / '.local/company-analysis.md').write_text(company)
+(root / '.local/match-analysis.md').write_text(match)
+notes = (root / 'opportunities' / opp / 'notes.md').read_text()
+notes += """
+## 本轮用户原话（2026-10-15）
+
+“帮我看看看板里澄海数据的算法工程师适不适合，给个有依据的建议。我主要想留杭州做AI应用开发，不接受长期去外地驻场。相关材料已经放进岗位文件夹了。”
+
+以上是用户目标和约束。用户未表示放弃岗位、已经投递、调整四星偏好，亦未授权联系招聘方。短期出差可接受范围尚未说明。分析结论另存 analysis/company.md 与 analysis/match.md。
+"""
+(root / '.local/company-notes.md').write_text(notes)
+body = """待评估。用户已有四星偏好，尚未投递。
+
+## 当前建议（2026-10-15）
+
+方向部分吻合，先核实地点与驻场，暂不作为优先投入机会。JD 写杭州但驻场面议；2026-10-15 HR 口述仍为“以后再确认”，尚不能确认符合用户不接受长期异地驻场的底线，也不能认定必然冲突。
+
+岗位包含检索、工具调用、上线评估、微调实验和客户交付。个人材料仅显示内部 RAG 试点的文档和检索经历，尚不足以确认独立生产质量能力。训练经验为优先项。证据不够，Agent 暂不评级。
+
+## 依据与下一步
+
+- [公司与条件分析](analysis/company.md)
+- [岗位匹配与建议](analysis/match.md)
+- [岗位原文](job.md)、[已有资料及用户目标](notes.md)
+
+先取得招聘方对长期工作地、驻场城市、单次时长和频次的具体答复；符合地点底线后，再核对任务比例、生产支持与用户试点案例。尚未联系招聘方。
+"""
+patch = {
+    'body': body,
+    'recommendation': None,
+    'salary': '25–35K（JD 标注；薪数与构成待核实）',
+    'next_action': {'title': '核实长期工作地及异地驻场城市、时长、频次与是否必须接受', 'owner': 'employer', 'due': None},
+    'links': [
+        {'kind':'document','target':'analysis/company.md','label':'公司与岗位条件初筛'},
+        {'kind':'document','target':'analysis/match.md','label':'能力匹配与条件式建议'}
+    ]
+}
+(root / '.local/company-card-patch.json').write_text(json.dumps(patch, ensure_ascii=False, indent=2))
+(root / 'context/goals.md').write_text("""# 求职目标与协作偏好
+
+更新日期：2026-10-15
+
+| 项目 | 当前内容 | 状态与依据 |
+| --- | --- | --- |
+| 目标岗位／行业 | AI 应用开发；行业未指定 | 本轮用户明确，原话在澄海岗位 notes.md |
+| 城市／远程／出差 | 主要想留杭州；不接受长期去外地驻场 | 用户明确底线；远程偏好、短期出差可接受频率／时长未提供 |
+| 时间安排 | 未提供 | 待需要时了解 |
+| 薪酬期望及口径 | 未提供 | 不能把岗位 JD 范围当个人期望 |
+| 工作类型及约束 | 优先看真实工作内容，核实研发与客户实施比例 | 前半为分析方法；实际约束为上述用户目标，不擅自新增底线 |
+| 写作与协作偏好 | 本轮要有依据的岗位建议 | 2026-10-15 用户请求 |
+
+用户原话：[澄海岗位笔记](../opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/notes.md)。Agent 条件式建议不等于用户已决定投递或放弃。
+""")
+(root / 'context/progress.md').write_text("""# 职业资料阶段进度
+
+更新日期：2026-10-15
+
+## 本轮范围
+
+- 目标与终点：评估看板中澄海数据“算法工程师”是否符合用户目标，给出有依据的建议并写回岗位。
+- 当前对象：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。
+- 纳入资料：该岗位 job.md、notes.md、卡片，用户本轮“主要留杭州、AI 应用开发、不接受长期异地驻场”的约束。
+- 本轮不做：外部企业查询、联系招聘方、投递、简历生成和完整履历访谈。
+- 当前大阶段：岗位初筛本轮完成；关键招聘条件仍待核实，不等于岗位已适合或事实已外部证实。
+
+## 阶段总账
+
+| 阶段 | 状态 | 产物与依据 | 未完成项／转段条件 |
+| --- | --- | --- | --- |
+| 材料盘点与范围确定 | 本轮完成 | 已读全部相关岗位正文和本地个人材料入口 | JD 发布时间、匿名评论原件未知，未冒充已核验 |
+| 岗位公司与条件分析 | 本轮完成 | 岗位 analysis/company.md | 长期工作地、驻场、主体、任务比例和资源待招聘方说明 |
+| 能力与机会匹配 | 本轮完成 | 岗位 analysis/match.md；采用条件式建议、暂不评级 | 独立生产质量与工具调用等个人证据待展开 |
+| 完整履历访谈与资产沉淀 | 不在本轮 | resume/maintenance.md 保留未盘点状态 | 若之后需要岗位准备再聚焦 RAG 试点 |
+| 简历母版与成品 | 不在本轮 | 未生成简历、未声称已投递 | 用户选择推进并需要简历时另行进入 |
+| 后续核实与重评 | 等待补充 | context/state.md、卡片 next_action | 取得招聘方具体安排后重评；本轮没有外发 |
+
+## 范围与阶段记录
+
+2026-10-15：由初始化骨架进入澄海岗位初筛，保存公司分析、匹配分析与地点底线。初筛交付完成，招聘条件和能力证据仍为未知；不以材料文件或结构校验通过代替事实核验。原有用户四星和待评估阶段保持，暂无用户投递／放弃决定。
+""")
+(root / 'context/state.md').write_text("""# 当前进度
+
+更新日期：2026-10-15
+
+## 当前任务与实际产物
+
+本轮为澄海数据算法工程师的岗位初筛，ID：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。公司分析与匹配建议保存于该岗位 analysis/company.md、analysis/match.md；用户目标已记 notes.md、context/goals.md。大阶段见 context/progress.md。
+
+结论：方向部分契合，但长期杭州／无长期异地驻场未获确认；内部 RAG 试点不足以证明独立生产质量。暂不评级，先核实、暂不重投入。用户四星保持，阶段待评估、未投递，无放弃决定。
+
+## 下一步与待回答者
+
+优先由招聘方说明：此岗位能否明确长期在杭州且不要求长期异地驻场；如有现场任务，城市、单次时长、频率与是否必须接受各是什么？尚未联系招聘方，不把 next_action 当成已发出的请求。
+
+得到具体答复后，先与用户底线核对。若长期异地驻场为必要条件，建议不推进，实际放弃由用户确认；若条件满足，再核实应用研发／微调／实施比例和生产支持。必要时再问用户：RAG 试点是否供真实用户持续使用，你独立负责哪些决定，如何验证上线质量？
+
+## 保存与续接
+
+所有工作限于本机工作区，未联网或外发。本地版本记录状态在本轮完成保存后补充。无需补完整履历才能继续本岗位核实；resume/maintenance.md 的未盘点状态保留。
+""")
+(root / 'context/INDEX.md').write_text("""# 协作上下文入口
+
+更新日期：2026-10-15
+
+## 当前焦点
+
+澄海数据“算法工程师”岗位初筛，ID：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。初步建议已保存，优先核实长期杭州与异地驻场安排。
+
+## 按需读取
+
+- context/progress.md：本轮范围、大阶段与交付情况。
+- context/state.md：当前岗位结论及下一处招聘条件。
+- context/goals.md：用户明确的 AI 应用开发、杭州及驻场底线。
+- opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md：卡片现状。
+- 同岗位 analysis/company.md、analysis/match.md：来源边界与条件式建议。
+- resume/maintenance.md：完整履历仍未盘点，非本轮范围。
+- context/decisions.md、context/feedback.md：其他决策与反馈入口，按需读取。
+- resume/facts/profile.md、resume/questions.md、resume/master/index.md：个人资料入口，按需读取。
+
+## 最近交接
+
+2026-10-15：用户请求岗位是否适合的有据建议。已读取 JD、HR 口述与旧资料，待招聘条件核实；保留四星偏好和待评估阶段，未投递、未对外发送。
+""")
+print('分析、笔记与卡片补丁已准备；目标和续接记录已更新。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/company.md --input .local/company-analysis.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/match.md --input .local/match-analysis.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --input .local/company-notes.md --if-match 93dfaad65734d8d9bcb1f77c2bb5a58fec4f87771bcb6ff608c3492032740f27 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path card.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity update --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --input .local/company-card-patch.json --if-match 24faf11de321f29fe82e3bac92ca0b0bc4393b612238c30c4e6462900fd5fc53 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+p = Path('opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60')
+card = (p / 'card.md').read_text()
+assert 'user_rating: 4' in card
+assert 'stage: inbox' in card
+assert 'recommendation: null' in card
+assert 'archived: false' in card
+assert (p / 'notes.md').read_text().startswith('# 已收集资料\n\n均为合成材料。')
+for name in ['company', 'match']:
+    expected = Path('.local/' + name + '-analysis.md').read_text()
+    assert (p / 'analysis' / (name + '.md')).read_text() == expected
+print('已核对两份分析实际写入；原始笔记保留；四星、待评估、未归档及暂不评级均正确。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- board check --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- workspace check --json
+```
+
+实际退出码：0。
+
+## 第 1 轮最终回复
+
+我的建议是：**先保留待核实，暂不作为优先投递的岗位。** 方向有交集，但你的地点底线还没有得到保障。
+
+- **驻场是首要问题。** JD 写杭州，但注明“是否需要驻场面议”；10 月 15 日的 HR 口述仍是“驻场以后再确认”。这既不能证明一定要长期驻场，也不能视为满足你的要求。
+- **工作内容部分符合 AI 应用方向。** 检索、工具调用、上线评估都相关，但还包括微调实验和客户交付，实际比例未知。“训练经验优先”也不等于必须具备训练经验。
+- **能力匹配只能作初步判断。** 你已有的 RAG 内部试点、文档与检索链路经历相关；岗位要求“独立负责生产质量”，而上线评估、工具调用及生产运维的具体经历尚未核实。
+
+公司层面，“融资稳定”只有宣传转述；匿名加班评论指向另一家主体未核实的“澄海科技”；合同主体也未确定。这些材料不足以判断公司经营或团队氛围好坏。
+
+下一步先让招聘方明确：**能否长期在杭州、是否必须异地驻场，以及单次时长和频次。** 若必须长期异地驻场，就不符合你的底线；若能明确满足，再核对研发占比、团队支持和你的生产交付经验。
+
+已写回[公司分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/company.md)和[岗位匹配](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)，依据均来自现有材料。你的四星偏好保留，岗位仍为待评估。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+p=Path('context/state.md')
+s=p.read_text().replace('本地版本记录状态在本轮完成保存后补充。', '本轮已通过看板与工作区结构校验，并回读确认分析落盘、原笔记和四星偏好保留。完整履历仍未核实；本地版本结果见 history list 与 .local/dialogue.md，本轮只在本机保存。')
+p.write_text(s)
+reply=json.loads("\"我的建议是：**先保留待核实，暂不作为优先投递的岗位。** 方向有交集，但你的地点底线还没有得到保障。\\n\\n- **驻场是首要问题。** JD 写杭州，但注明“是否需要驻场面议”；10 月 15 日的 HR 口述仍是“驻场以后再确认”。这既不能证明一定要长期驻场，也不能视为满足你的要求。\\n- **工作内容部分符合 AI 应用方向。** 检索、工具调用、上线评估都相关，但还包括微调实验和客户交付，实际比例未知。“训练经验优先”也不等于必须具备训练经验。\\n- **能力匹配只能作初步判断。** 你已有的 RAG 内部试点、文档与检索链路经历相关；岗位要求“独立负责生产质量”，而上线评估、工具调用及生产运维的具体经历尚未核实。\\n\\n公司层面，“融资稳定”只有宣传转述；匿名加班评论指向另一家主体未核实的“澄海科技”；合同主体也未确定。这些材料不足以判断公司经营或团队氛围好坏。\\n\\n下一步先让招聘方明确：**能否长期在杭州、是否必须异地驻场，以及单次时长和频次。** 若必须长期异地驻场，就不符合你的底线；若能明确满足，再核对研发占比、团队支持和你的生产交付经验。\\n\\n已写回[公司分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/company.md)和[岗位匹配](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)，依据均来自现有材料。你的四星偏好保留，岗位仍为待评估。\"")
+with Path('.local/dialogue.md').open('a') as f:
+    f.write('\n## 第 1 轮最终回复\n\n'+reply+'\n')
+print('已保存最终回复原文与交接状态。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 npm run career -- history save --message '澄海算法岗位：保存有据初筛与驻场待核实条件' --json
+```
+
+实际退出码：0。
+
+## 第 2 轮用户输入
+
+我主要是做 RAG 应用接入，做过一次内部试点，没有训练模型，也没有独立负责生产运维。薪资期望税前 25 到 30K，比较看重有人指导和能做实际产品。能不能给个评分，方便我比较？
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+message=json.loads("\"我主要是做 RAG 应用接入，做过一次内部试点，没有训练模型，也没有独立负责生产运维。薪资期望税前 25 到 30K，比较看重有人指导和能做实际产品。能不能给个评分，方便我比较？\"")
+with Path('.local/dialogue.md').open('a') as f:
+    f.write('\n## 第 2 轮用户输入\n\n'+message+'\n')
+print('已记录第二轮用户输入。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat context/state.md
+cat context/goals.md
+cat .agents/skills/career-board/scripts/score-opportunity.mjs
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity context --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- board overview --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat context/progress.md
+cat resume/maintenance.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/match.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/company.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat .agents/skills/career-intake/references/maintenance.md
+rg -n 'kind:|schema: career-source|source.md|type: project|employment_id' .agents/skills/career-intake
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat .agents/skills/career-intake/SKILL.md
+cat .agents/skills/career-intake/templates/source.md
+cat .agents/skills/career-intake/templates/facts/project.md
+cat resume/questions.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json, datetime
+opp='opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60'
+d=Path('opportunities')/opp
+source=Path('resume/sources/source-company-assessment-20261015')
+source.mkdir(parents=True,exist_ok=True)
+stamp=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec='seconds')
+original="我主要是做 RAG 应用接入，做过一次内部试点，没有训练模型，也没有独立负责生产运维。薪资期望税前 25 到 30K，比较看重有人指导和能做实际产品。能不能给个评分，方便我比较？"
+source.joinpath('source.md').write_text(f"""---
+schema: career-source/v2
+type: source
+id: source-company-assessment-20261015
+updated: "2026-10-15"
+created_at: "{stamp}"
+kind: user-statement
+---
+
+# 澄海岗位评估对话来源
+
+## 材料与定位
+
+2026-10-15 合成对话第二轮用户原话：
+
+“{original}”
+
+旧材料定位：opportunities/{opp}/notes.md 的“用户旧资料”，记载内部 RAG 试点中负责文档和检索链路。第二轮本人补充确认主要做 RAG 应用接入与一次内部试点，未逐项重述旧资料细节。
+
+## 已明确的信息
+
+- 有一次内部 RAG 试点／应用接入经历。
+- 没有训练模型；没有独立负责生产运维。
+- 薪资期望税前 25–30K；较看重有人指导和实际产品工作。
+- 第一轮明确主要留杭州，不接受长期异地驻场，原话保存在岗位 notes.md。
+
+## 提取限制与矛盾
+
+口述与旧资料均为本隔离工作区的合成材料，未外部核验。没有模型训练经验不等于没有应用开发能力；没有独立生产运维经历不等于从未参加评测或线上协作。时间、单位、技术决策、评估结果、真实用户与使用状态未说明，不补造。
+""")
+project=Path('resume/facts/projects/project-rag-internal-pilot.md')
+project.parent.mkdir(parents=True,exist_ok=True)
+assert not project.exists(), 'Refuse to overwrite an existing fact'
+project.write_text("""---
+schema: career/v2
+type: project
+id: project-rag-internal-pilot
+updated: "2026-10-15"
+source_ids:
+  - source-company-assessment-20261015
+name: RAG 内部试点
+employment_id: null
+organization: null
+role: null
+start: null
+end: null
+is_current: null
+links: []
+---
+
+# RAG 内部试点
+
+## 项目描述
+
+用户说明主要做 RAG 应用接入，做过一次内部试点。服务对象、业务问题、项目周期和当前使用状态尚未展开。
+
+## 项目职责
+
+岗位文件夹旧资料记载本人负责文档和检索链路；第二轮本人确认以 RAG 应用接入为主。自主决策范围、团队分工与具体链路边界待补充。
+
+## 项目过程
+
+尚未展开切分、检索、工具调用、评测及上线过程，不从工具名推断能力。
+
+## 项目成果
+
+已知阶段仅为一次内部试点，未获生产上线、持续使用或量化效果证据。
+
+## 补充材料
+
+用户明确没有训练模型，也没有独立负责生产运维。这是当前整体经历边界，不代表从未参与上线评测／运维协作；不能据此给整项生产质量能力计零分。
+
+## 来源与待确认
+
+来源：source-company-assessment-20261015 的用户原话和明确定位的旧资料。仍为维护中，未深入整理或提炼母版。
+
+待补充 question-rag-production-evidence：试点是否被真实用户持续使用，本人独立做了什么决定，如何评估质量？待用户或其项目材料回答，本轮评分不以完整访谈为前置条件。
+""")
+notes=(d/'notes.md').read_text()
+notes+="\n## 第二轮用户补充（2026-10-15）\n\n“"+original+"”\n\n本轮已确认：没有训练模型、没有独立负责生产运维；此前旧资料的“尚未核对”保留作历史，本次已补充。评测、工具调用和客户交付经历仍未说明，不等同于没有。来源：resume/sources/source-company-assessment-20261015/source.md；事实：project-rag-internal-pilot。\n"
+Path('.local/company-notes-v2.md').write_text(notes)
+goals=Path('context/goals.md').read_text()
+goals=goals.replace('| 薪酬期望及口径 | 未提供 | 不能把岗位 JD 范围当个人期望 |','| 薪酬期望及口径 | 税前 25–30K；发薪月数和浮动容忍度未说明 | 2026-10-15 第二轮用户明确；不是岗位承诺 |')
+goals=goals.replace('| 工作类型及约束 | 优先看真实工作内容，核实研发与客户实施比例 | 前半为分析方法；实际约束为上述用户目标，不擅自新增底线 |','| 工作类型及约束 | 比较看重有人指导、能做实际产品 | 2026-10-15 第二轮用户明确；两者相对权重尚未精确指定 |')
+goals=goals.replace('| 写作与协作偏好 | 本轮要有依据的岗位建议 | 2026-10-15 用户请求 |','| 写作与协作偏好 | 岗位建议要有依据，并希望评分便于比较 | 2026-10-15 用户两轮请求；分开能力、价值、门槛与未知 |')
+Path('context/goals.md').write_text(goals)
+m=Path('resume/maintenance.md').read_text()
+m=m.replace('- 当前维护对象：待根据已有材料或用户本轮说明确定。','- 当前已记录对象：project-rag-internal-pilot；仅保存本次岗位评分需要的事实，完整履历仍未盘点。')
+m=m.replace('| 项目经历 | 未盘点 | resume/facts/projects/ | 核对已有经历 |','| 项目经历 | 维护中 | resume/facts/projects/project-rag-internal-pilot.md | 已记录一次 RAG 内部试点，详细过程与生产质量证据尚缺；其他项目未盘点 |')
+m=m.replace('<!-- 只为实际记录','| project-rag-internal-pilot | 项目 | 维护中 | resume/facts/projects/project-rag-internal-pilot.md | 应用接入、一次内部试点、未训练模型、未独立生产运维；question-rag-production-evidence | 尚未生成母版 | 在需要能力进一步比较时展开试点与质量验证 | 2026-10-15 |\n\n<!-- 只为实际记录')
+Path('resume/maintenance.md').write_text(m)
+q=Path('resume/questions.md').read_text()
+q=q.replace('## 待解决\n','## 待解决\n\n- question-rag-production-evidence（project-rag-internal-pilot）：试点是否供真实用户持续使用？本人独立负责哪些决定，如何评估质量？已知为一次应用内部试点，无模型训练和独立生产运维经历；评测与工具调用不能据此推断。等待用户或项目材料，本轮评分先标未知。\n')
+Path('resume/questions.md').write_text(q)
+ability={'criteria':[
+ {'id':'rag-delivery','weight':30,'score':2,'evidence':['project-rag-internal-pilot#项目职责','project-rag-internal-pilot#项目成果'],'reason':'有一次内部试点和文档检索链路的部分实际交付；范围低于独立生产任务，过程尚需核实'},
+ {'id':'tool-calling','weight':20,'score':None,'evidence':['job.md','project-rag-internal-pilot#项目过程'],'reason':'JD要求工具调用，但用户应用接入陈述不足以证明已有工具调用交付'},
+ {'id':'production-quality','weight':30,'score':None,'evidence':['job.md','project-rag-internal-pilot#补充材料'],'reason':'没有独立生产运维经历已确认，但评测与质量闭环未知；不把运维等同整个生产质量'},
+ {'id':'fine-tuning','weight':10,'score':0,'evidence':['source-company-assessment-20261015#已明确的信息','job.md'],'reason':'用户明确没有训练模型；只是附加经验与参与任务，不将优先项升级为必要条件'},
+ {'id':'customer-delivery','weight':10,'score':None,'evidence':['job.md','notes.md#第二轮用户补充'],'reason':'内部试点不能直接证明外部客户需求澄清及验收能力'}
+]}
+value={'criteria':[
+ {'id':'product-work','weight':35,'score':2,'evidence':['job.md','notes.md#第二轮用户补充'],'reason':'JD应用任务方向相符，但同时有客户交付与微调；按可接受的混合任务计2，实际产品迭代权责仍待证实，此项是弱来源暂定分'},
+ {'id':'mentoring','weight':35,'score':None,'evidence':['notes.md#已收集资料'],'reason':'用户看重指导，HR明确待确认，不能默认中间分'},
+ {'id':'cash-compensation','weight':20,'score':None,'evidence':['job.md','notes.md#第二轮用户补充'],'reason':'JD25–35K与用户税前25–30K数字有交集，但税前固定构成、实际定薪和薪数未确认，不把广告当待遇承诺'},
+ {'id':'business-continuity','weight':10,'score':None,'evidence':['job.md','notes.md#已收集资料'],'reason':'仅有融资稳定宣传，无经营财务原始材料'}
+]}
+for name,data in [('ability',ability),('value',value)]:
+ Path('.local/score-'+name+'-v2.json').write_text(json.dumps(data,ensure_ascii=False,indent=2))
+print('已保存补充事实与目标；评分输入已准备，未知项使用 null。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+data={'criteria':[
+ {'id':'application-direction','weight':20,'score':3,'evidence':['job.md','notes.md#本轮用户原话'],'reason':'限定评价JD公开任务：明确含企业知识助手的检索、工具调用、上线评估，达到AI应用任务方向锚点；不代表实际占比或成熟产品'},
+ {'id':'actual-product-ownership','weight':20,'score':None,'evidence':['job.md','notes.md#第二轮用户补充'],'reason':'用户希望实际产品，但现有材料未说明生产用户、产品迭代、模块归属与验收责任；客户交付不能直接当产品研发'},
+ {'id':'mentoring','weight':35,'score':None,'evidence':['notes.md#已收集资料','notes.md#第二轮用户补充'],'reason':'用户看重有人指导，HR称安排待确认，未知不设中间分'},
+ {'id':'cash-compensation','weight':15,'score':None,'evidence':['job.md','notes.md#第二轮用户补充'],'reason':'JD25–35K与用户税前25–30K数字有交集，但实际定薪、税前固定构成和薪数未确认'},
+ {'id':'business-continuity','weight':10,'score':None,'evidence':['job.md','notes.md#已收集资料'],'reason':'融资稳定只有宣传，缺经营财务原始材料'}
+]}
+Path('.local/score-value-v2.json').write_text(json.dumps(data,ensure_ascii=False,indent=2))
+PY
+node --input-type=module <<'JS'
+import {readFile,writeFile} from 'node:fs/promises';
+import {scoreCriteria} from './.agents/skills/career-board/scripts/score-opportunity.mjs';
+const ability=JSON.parse(await readFile('.local/score-ability-v2.json','utf8'));
+const value=JSON.parse(await readFile('.local/score-value-v2.json','utf8'));
+const vary=(input,ids,delta)=>{
+  const old=input.criteria.filter(x=>ids.includes(x.id)).reduce((s,x)=>s+x.weight,0);
+  return {criteria:input.criteria.map(x=>({...x,weight:x.weight*(ids.includes(x.id)?(old+delta)/old:(100-old-delta)/(100-old))}))};
+};
+const result={
+ ability:scoreCriteria(ability),
+ value:scoreCriteria(value),
+ sensitivity:[
+  ...[-10,10].map(delta=>({scenario:'能力：检索权重'+(delta>0?'+':'')+delta,...scoreCriteria(vary(ability,['rag-delivery'],delta))})),
+  ...[-10,10].map(delta=>({scenario:'价值：指导权重'+(delta>0?'+':'')+delta,...scoreCriteria(vary(value,['mentoring'],delta))})),
+  ...[-10,10].map(delta=>({scenario:'价值：应用方向与真实产品合计权重'+(delta>0?'+':'')+delta,...scoreCriteria(vary(value,['application-direction','actual-product-ownership'],delta))}))
+ ]
+};
+await writeFile('.local/score-results-v2.json',JSON.stringify(result,null,2));
+console.log(JSON.stringify(result,null,2));
+JS
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+p=Path('opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60')
+scores=json.loads(Path('.local/score-results-v2.json').read_text())
+text="""# 澄海数据算法工程师：分项评分与证据覆盖
+
+评估日期：2026-10-15，第二轮更新。岗位 ID：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。
+本轮用户明确要求评分便于比较。仅使用工作区合成材料，未联网、未联系招聘方。评分为 career 决策辅助启发式，不是录用概率、ATS 分数或能力等级。
+
+## 先给建议
+
+**保留待核实，暂不优先投入。** 岗位公开任务与 AI 应用方向有交集，但长期杭州／无长期异地驻场仍未确认。用户新说明的“需要指导、做实际产品”也还没有对应的招聘方证据。没有模型训练和独立生产运维经历已经确认；生产质量的具体边界和用户的评测能力仍需核实。
+
+本轮把能够评价的部分计分，其余保留 U。两张表分开，不合成一个貌似完整的总分。当前证据覆盖远低于 80%，且地点条件未知，卡片 recommendation 保持 null；这不妨碍给出下列有限的分项计算，也不修改用户自己的四星。
+
+## 来源与更新时间
+
+- J：[job.md](../job.md)。职位发布／采集日期不明；本轮读取于 2026-10-15。公开职责为企业知识助手检索、工具调用、上线评估，同时参与微调、有客户交付；训练经验优先，要求独立生产质量。
+- H：[notes.md](../notes.md) 的 HR 口述，标注 2026-10-15：杭州先定、驻场以后确认、团队指导安排待确认。
+- U：[source-company-assessment-20261015](../../../resume/sources/source-company-assessment-20261015/source.md) 的第二轮用户原话：一次 RAG 内部试点、应用接入，无训练模型和独立生产运维经历；期望税前 25–30K，看重指导和实际产品。
+- F：[project-rag-internal-pilot](../../../resume/facts/projects/project-rag-internal-pilot.md)：“项目职责／成果”保留试点和文档检索工作；“补充材料”记录无训练和独立生产运维经验。它是口述事实记录，仍为维护中，没有虚构单位、日期、上线结果或业绩。
+- 公司主体、匿名评论和融资宣传的证据边界继续见 [company.md](company.md)。
+
+第一轮原本未核实训练和运维经历；第二轮已由用户补充确认，以下替代之前的未知判断。旧原文与首次分析仍可通过 notes.md 和本地版本追溯。
+
+## 评分前置条件
+
+| 条件 | 目前状态 | 对选择的影响 |
+| --- | --- | --- |
+| 主要留杭州，不接受长期异地驻场 | 用户底线明确；HR 和 JD 均未承诺具体安排 | 未通过核实，不是已经确认冲突；任何得分都不能抵消 |
+| 独立负责生产质量 | JD 明确；其是否覆盖部署、监控、值守、回滚尚未说明 | 用户无独立生产运维经历已确认；若要求入职即独立承担这些任务，存在明确经验缺口 |
+| 训练经验 | 用户明确没有；JD 写“优先” | 算已知经验短板，不升格为必过门槛 |
+| 税前 25–30K | 用户期望；未表述为不可协商的硬下限 | JD 25–35K 只是数字有交集，实际固定工资、税前口径、薪数未知 |
+| 指导与真实产品 | 用户较看重；未表示二者为绝对否决条件 | 纳入机会价值，当前缺少证据 |
+
+没有独立生产运维经历，不能推导为没有上线评估能力，也不能推导为生产质量所有子能力都为零。短期出差接受度仍未知，不替用户放宽长期异地驻场底线。
+
+## 能力匹配
+
+暂定权重依据 JD 的任务重要性：应用交付合计 50%，独立生产质量 30%，辅助微调 10%，客户交付 10%。公开材料没有实际工时比例，权重是本轮 Agent 判断，不宣称用户或招聘方已确认。
+
+0–4 能力锚点：0＝已明确没有该项经验；1＝邻近知识／尝试；2＝已有部分交付但低于岗位复杂度或自主责任；3＝有同等任务过程、判断与验证证据；4＝有更复杂场景的可迁移证据；U＝不足以判断。优先项的 0 不等于被淘汰。
+
+| 任务与权重 | 合格行为（3 分） | 当前分数 | 证据与锚点说明 |
+| --- | --- | --- | --- |
+| RAG 文档与检索交付 30% | 能独立解释与实现检索链路，并以质量证据完成同等业务交付 | 2/4 | F“项目职责／成果”：一次内部试点、文档与检索链路，属于部分实际交付，生产规模、自主决策和效果验证不足；分数随补证可调整 |
+| 工具调用 20% | 有权限、失败处理、可验收的工具调用链路 | U | J 有要求，F“项目过程”未展开；应用接入不自动等同工具调用 |
+| 上线评估与生产质量 30% | 能制定评测与验收、定位质量问题，并说明个人生产责任边界 | U | F“补充材料”：明确没有独立生产运维；上线评测、生产协作未知，岗位运维责任也未知，不给整个维度计零 |
+| 微调实验 10% | 能参与数据准备、基线与实验对比并解释结果 | 0/4 | U“已明确的信息”：没有训练模型，当前训练经验为 0；这是优先项和辅助任务，不是硬性资格判定 |
+| 客户交付 10% | 有需求澄清、约束协调和客户验收证据 | U | J 有任务；现有内部试点记录不足以证明外部客户交付 |
+
+已知部分得分：37.5/100；证据覆盖：40%；缺失项取极值时的总分边界：15–75。未把 Python、RAG、检索等重复计为多项优势。
+
+## 机会价值
+
+权重以用户目标作暂定分配：应用方向和真实产品合计 40%，指导支持 35%，薪酬 15%，持续性 10%。这是可修订的比较口径，用户没有给精确百分比。地点作为前置条件，不再次加减分。公司业务持续性仅占一项，不另加公司总分。
+
+机会价值 0–4：0＝明确相反，1＝明显低于期望，2＝可接受但有明确代价，3＝达到该项具体锚点，4＝有证据超过期望；U＝未知。下面把公开任务方向与真实产品权责拆开，避免以任务关键词冒充产品机会。
+
+| 维度与权重 | 达到期望（3 分）的具体锚点 | 当前分数 | 依据与边界 |
+| --- | --- | --- | --- |
+| 公开任务符合 AI 应用方向 20% | JD 明确包含模型接入业务后的检索、工具使用与应用质量评估 | 3/4 | J 明确包含这些任务；只评价公开任务方向，不能证明实际占比、已上线或有成熟产品 |
+| 实际产品与迭代责任 20% | 能指出真实用户、要负责的模块及持续迭代／验收安排 | U | J 同时含客户交付与微调，没有产品权责、用户或迭代证据 |
+| 指导与支持机制 35% | 明确指导人、评审频率、入职学习路径与质量／运维支持边界 | U | H 明确指导安排待确认；“独立负责”不能冒充有人带，也不能证明一定没人带 |
+| 薪酬符合期望 15% | 可核实税前固定月薪 25–30K 及薪数、浮动和试用期口径 | U | J 25–35K 数字有交集，但没有当前实际条件，不按默认税前或上限计分 |
+| 业务持续性 10% | 有可核实的客户需求、项目预算或持续投入依据 | U | 只有“融资稳定”宣传，缺少原始经营材料；未知不是差 |
+
+已知部分得分：75/100；证据覆盖：20%；缺失项取极值时总分边界：15–95。**75 仅来自公开任务方向这一个维度，不能解读为整体值得去或比其他岗位更好。**
+
+## 数学与可比性
+
+每张表权重合计 100。已知集合 K，不删除未知项的权重：
+
+- C＝已知权重合计／全部权重×100。
+- S＝已知加权得分／（4×已知权重）×100。
+- L＝已知加权得分／（4×全部权重）×100；H＝L＋100－C。
+- 能力：已知分子 30×2＋10×0＝60，已知权重 40，所以 S＝37.5，C＝40，L＝15，H＝75。
+- 价值：已知分子 20×3＝60，已知权重 20，所以 S＝75，C＝20，L＝15，H＝95。
+
+覆盖是加权信息覆盖，不是可信度；边界不是置信区间。已知分也受口述细节和 JD 是否兑现影响，不确定性不只存在于 U。未估算录用概率。计算已由工作区 score-opportunity.mjs 复核。
+
+比较其他岗位时，机会价值沿用同一目标、维度与锚点；能力按各自岗位任务评估，不能将两份能力分直接当作同一考试成绩。必须同时看前置条件、S、C 与缺失边界，不按 S 单独排序。
+
+## 权重敏感性
+
+将最重要维度上下调整 10 个百分点，其余按比例缩放；产品方向与实际产品作为一个 40% 的组调整，两子项保持等权。比较用户实际关注的“更重指导”与“更重产品”两个情景；另检查能力检索项的权重依赖。
+
+| 情景 | 已知得分 S | 覆盖 C | 缺失边界 L–H |
+| --- | ---: | ---: | ---: |
+"""
+for s in scores['sensitivity']:
+    text+=f"| {s['scenario']} | {s['known_score']} | {s['evidence_coverage']}% | {s['missing_extremes']['lower']}–{s['missing_extremes']['upper']} |\n"
+text+="""
+各情景都不能消除驻场未知、指导未知和证据覆盖不足，当前“先核实、暂不优先投入”的行动建议不变。这不是数值稳健的高评价：能力 S 随权重约在 32–41 间变动，价值 S 不变仅因已知项只有一项；不能把不变误作证据充分。没有其他岗位，未检验跨岗位排序。
+
+## 下一步与重评条件
+
+优先核实长期工作地和驻场要求。若确认必须长期异地驻场，则建议不推进；实际放弃仍由用户决定。
+
+若地点条件明确满足，再请招聘方具体说明：谁指导、多久做一次设计／代码评审；入职三个月要交付哪个实际产品模块；谁承担监控、故障与回滚，是否要求入职即独立值守。由这些证据更新指导、产品和生产质量判断，而不是把“有人带”当默认事实。
+
+个人能力最有价值的补充是 question-rag-production-evidence：试点是否实际使用、怎样评测，你亲自做过什么质量判断。无训练和无独立生产运维已确认，不重复追问；不会把回答空白视作认可。本轮未联系招聘方，未改变阶段、用户星级或投递状态。
+"""
+Path('.local/match-analysis-v2.md').write_text(text)
+company=(p/'analysis/company.md').read_text()
+company=company.replace('25–35K 仅为 JD 范围，发薪月数、固定与浮动构成、试用期口径未知；用户也未给薪酬目标，暂不评价其吸引力。薪酬高低不能抵消驻场底线。','第二轮用户明确期望税前 25–30K。JD 的 25–35K 数字有交集，但税前口径、实际定薪、发薪月数、固定与浮动构成、试用期口径仍未知，不能按 JD 上限承诺收入。薪酬高低不能抵消驻场底线。')
+company+='''\n## 第二轮偏好与经历补充（2026-10-15）\n\n用户较看重有人指导和能做实际产品，并明确没有训练模型、没有独立负责生产运维。已有“团队指导安排待确认”因此成为更影响机会价值的未知；需要具体指导人、评审频次、上线支持和真实产品模块。\n\n生产质量不等于生产运维的全部职责；已知没有独立运维，不代表没有评测能力，仍需厘清本岗位责任边界。分项评分、权重与敏感性见 [岗位匹配](match.md)：能力已知部分 37.5、覆盖 40%；价值已知部分 75、覆盖 20%。这两项均不是岗位综合分，暂不形成推荐星级。\n'''
+Path('.local/company-analysis-v2.md').write_text(company)
+patch={
+'body':"""待评估。用户已有四星偏好，尚未投递。
+
+## 当前建议（2026-10-15，第二轮评分）
+
+先核实地点与驻场，暂不优先投入。长期杭州及不要求长期异地驻场仍未知；用户还看重有人指导和实际产品，相关安排尚未确认。
+
+能力已知部分得分 37.5/100，证据覆盖 40%，缺失极值边界 15–75；机会价值已知部分 75/100，覆盖 20%，边界 15–95。均非岗位综合分或录用概率，不可按这两个数字单独排序。Agent 推荐星级继续为空，用户四星保留。
+
+用户已明确一次 RAG 应用内部试点、无训练模型和独立生产运维经历，期望税前 25–30K。生产质量与运维职责仍需分清；训练优先项不升格为硬门槛。
+
+## 依据与下一步
+
+- [分项矩阵、计算与敏感性](analysis/match.md)
+- [公司与条件分析](analysis/company.md)
+- [岗位原文](job.md)、[原话与资料](notes.md)
+
+先确认长期工作地、驻场城市／时长／频次；条件满足后，核实指导人和评审方式、实际产品模块、生产质量与运维分工及固定薪酬。本轮尚未联系招聘方。
+""",
+'recommendation':None,
+'next_action':{'title':'先核实驻场与长期杭州；通过后核实指导人、产品模块和生产质量分工','owner':'employer','due':None}
+}
+Path('.local/company-card-patch-v2.json').write_text(json.dumps(patch,ensure_ascii=False,indent=2))
+state=Path('context/state.md').read_text()
+state=state.replace('本轮为澄海数据算法工程师的岗位初筛','本轮为澄海数据算法工程师的岗位初筛与第二轮评分')
+state=state.replace('暂不评级，先核实、暂不重投入。','第二轮已计算能力 S=37.5/C=40%、价值 S=75/C=20%，缺失极值边界分别 15–75、15–95；推荐星级暂空，先核实、暂不重投入。')
+state=state.replace('必要时再问用户：RAG 试点是否供真实用户持续使用，你独立负责哪些决定，如何验证上线质量？','第二轮新增个人事实 project-rag-internal-pilot 与来源 source-company-assessment-20261015：没有训练模型、没有独立负责生产运维已确认，不重复询问。用户税前期望 25–30K，重视指导和实际产品。地点通过后核实指导人、评审方式、实际产品与生产分工；个人再问 question-rag-production-evidence：试点是否供真实用户持续使用，你独立负责哪些决定，如何验证质量？')
+state=state.replace('resume/maintenance.md 的未盘点状态保留。','RAG 试点在 resume/maintenance.md 标为维护中，其他经历仍未盘点。')
+Path('context/state.md').write_text(state)
+progress=Path('context/progress.md').read_text()
+progress=progress.replace('采用条件式建议、暂不评级','第二轮计算分项得分、覆盖、极值边界与敏感性，推荐星级暂空')
+progress=progress.replace('resume/maintenance.md 保留未盘点状态','仅保存 project-rag-internal-pilot 的已知片段，标维护中；完整访谈不在本轮')
+progress+='\n2026-10-15 第二轮：用户补充训练／运维经历边界、税前薪资与指导／产品偏好，并要求评分。已保存来源和项目片段；能力、价值分别评价，未知保留 U，计算与权重敏感性已复核。评分交付不代表项目深入整理完成，也不改变实际求职状态。\n'
+Path('context/progress.md').write_text(progress)
+index=Path('context/INDEX.md').read_text()
+index=index.replace('初步建议已保存，优先核实长期杭州与异地驻场安排。','初步建议与第二轮分项评分已保存，优先核实长期杭州与异地驻场安排；随后核实指导与产品责任。')
+index+='\n第二轮来源与个人事实：resume/sources/source-company-assessment-20261015/source.md、resume/facts/projects/project-rag-internal-pilot.md；维护中，尚未深入访谈或生成母版。\n'
+Path('context/INDEX.md').write_text(index)
+print('评分矩阵、证据边界、敏感性结果和续接记录已准备。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --input .local/company-notes-v2.md --if-match eb1130cf3c1547cdeeb1e6fe65179acff1fc760108f70c94c94aef5fb86f4a01 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/match.md --input .local/match-analysis-v2.md --if-match 0ebf21daae8f9ef10cf109552da6e0876d009addbe557d58bdd540e2b8bfdb28 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/company.md --input .local/company-analysis-v2.md --if-match f11cfdc77ca2335499b81dd2ba461b8f62695b6703a78fcbf03e50f4a4b602ff --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity update --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --input .local/company-card-patch-v2.json --if-match f4925ba4a3b8383ecce4d1a282b44967d33c02cb33bd80e267c5d7d958c25e2e --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+p=Path('opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60')
+for a,b in [('analysis/company.md','company-analysis-v2.md'),('analysis/match.md','match-analysis-v2.md'),('notes.md','company-notes-v2.md')]:
+ assert (p/a).read_text()==(Path('.local')/b).read_text()
+s=(p/'card.md').read_text()
+assert 'stage: inbox' in s and 'user_rating: 4' in s and 'recommendation: null' in s
+print('已回读确认第二轮文档落盘，阶段与用户四星保留，Agent 暂不评级。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- board check --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- workspace check --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+reply=json.loads("\"可以。**当前建议是“待核实、低优先级”**，分项评分如下；这些是已知部分的得分，不能当作完整岗位总分或录用概率。\\n\\n| 评价 | 已知部分得分 | 证据覆盖 | 未知项取极值后的边界 |\\n| --- | ---: | ---: | ---: |\\n| 能力匹配 | 37.5/100 | 40% | 15–75 |\\n| 机会价值 | 75/100 | 20% | 15–95 |\\n\\n边界表示未知项分别取最低、最高分时的结果，并非预测区间。\\n\\n- **能力分怎么来：** RAG 检索交付暂评 2/4，占 30%；训练经验 0/4，占 10%。工具调用、上线质量和客户交付尚缺具体证据。没有独立运维经历，不等于上线评测能力为零；训练也是优先项，不是硬门槛。\\n- **价值分怎么来：** JD 的应用任务方向评 3/4，占 20%。你重视的指导安排占 35%、真实产品责任占 20%，都未知；薪酬占 15%、业务持续性占 10%，也待核实。**75 分仅来自任务方向这一项，不能说明整体值得去。**\\n\\nJD 的 25–35K 与你的税前 25–30K 期望数字有交集，但实际定薪、固定部分和薪数还没确认。更关键的是驻场底线，以及谁指导你、负责哪个产品模块、上线后由谁承担运维责任。\\n\\n已保存[完整评分依据、权重和敏感性分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)。以后比较岗位时，应把分数与覆盖度一起看；你的原有四星偏好保留。\"")
+with Path('.local/dialogue.md').open('a') as f:
+ f.write('\n## 第 2 轮最终回复\n\n'+reply+'\n')
+print('已记录第二轮最终回复。')
+PY
+```
+
+实际退出码：1。
+
+错误输出：
+```text
+SyntaxError: Non-UTF-8 code starting with '\xe3' in file <stdin> on line 3, but no encoding declared; see http://python.org/dev/peps/pep-0263/ for details
+
+```
+
+### 工具命令
+
+```sh
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 npm run career -- history save --message '澄海岗位：补充个人事实与可解释评分' --json
+```
+
+实际退出码：0。
+
+## 第 2 轮最终回复
+
+可以。**当前建议是“待核实、低优先级”**，分项评分如下；这些是已知部分的得分，不能当作完整岗位总分或录用概率。
+
+| 评价 | 已知部分得分 | 证据覆盖 | 未知项取极值后的边界 |
+| --- | ---: | ---: | ---: |
+| 能力匹配 | 37.5/100 | 40% | 15–75 |
+| 机会价值 | 75/100 | 20% | 15–95 |
+
+边界表示未知项分别取最低、最高分时的结果，并非预测区间。
+
+- **能力分怎么来：** RAG 检索交付暂评 2/4，占 30%；训练经验 0/4，占 10%。工具调用、上线质量和客户交付尚缺具体证据。没有独立运维经历，不等于上线评测能力为零；训练也是优先项，不是硬门槛。
+- **价值分怎么来：** JD 的应用任务方向评 3/4，占 20%。你重视的指导安排占 35%、真实产品责任占 20%，都未知；薪酬占 15%、业务持续性占 10%，也待核实。**75 分仅来自任务方向这一项，不能说明整体值得去。**
+
+JD 的 25–35K 与你的税前 25–30K 期望数字有交集，但实际定薪、固定部分和薪数还没确认。更关键的是驻场底线，以及谁指导你、负责哪个产品模块、上线后由谁承担运维责任。
+
+已保存[完整评分依据、权重和敏感性分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)。以后比较岗位时，应把分数与覆盖度一起看；你的原有四星偏好保留。
+
+Local save result: saved=true, commit=8bcbb252746393559528f44113e09c2741ae2670. Board and workspace checks passed.
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+reply=json.loads(r'''"\u53ef\u4ee5\u3002**\u5f53\u524d\u5efa\u8bae\u662f\u201c\u5f85\u6838\u5b9e\u3001\u4f4e\u4f18\u5148\u7ea7\u201d**\uff0c\u5206\u9879\u8bc4\u5206\u5982\u4e0b\uff1b\u8fd9\u4e9b\u662f\u5df2\u77e5\u90e8\u5206\u7684\u5f97\u5206\uff0c\u4e0d\u80fd\u5f53\u4f5c\u5b8c\u6574\u5c97\u4f4d\u603b\u5206\u6216\u5f55\u7528\u6982\u7387\u3002\n\n| \u8bc4\u4ef7 | \u5df2\u77e5\u90e8\u5206\u5f97\u5206 | \u8bc1\u636e\u8986\u76d6 | \u672a\u77e5\u9879\u53d6\u6781\u503c\u540e\u7684\u8fb9\u754c |\n| --- | ---: | ---: | ---: |\n| \u80fd\u529b\u5339\u914d | 37.5/100 | 40% | 15\u201375 |\n| \u673a\u4f1a\u4ef7\u503c | 75/100 | 20% | 15\u201395 |\n\n\u8fb9\u754c\u8868\u793a\u672a\u77e5\u9879\u5206\u522b\u53d6\u6700\u4f4e\u3001\u6700\u9ad8\u5206\u65f6\u7684\u7ed3\u679c\uff0c\u5e76\u975e\u9884\u6d4b\u533a\u95f4\u3002\n\n- **\u80fd\u529b\u5206\u600e\u4e48\u6765\uff1a** RAG \u68c0\u7d22\u4ea4\u4ed8\u6682\u8bc4 2/4\uff0c\u5360 30%\uff1b\u8bad\u7ec3\u7ecf\u9a8c 0/4\uff0c\u5360 10%\u3002\u5de5\u5177\u8c03\u7528\u3001\u4e0a\u7ebf\u8d28\u91cf\u548c\u5ba2\u6237\u4ea4\u4ed8\u5c1a\u7f3a\u5177\u4f53\u8bc1\u636e\u3002\u6ca1\u6709\u72ec\u7acb\u8fd0\u7ef4\u7ecf\u5386\uff0c\u4e0d\u7b49\u4e8e\u4e0a\u7ebf\u8bc4\u6d4b\u80fd\u529b\u4e3a\u96f6\uff1b\u8bad\u7ec3\u4e5f\u662f\u4f18\u5148\u9879\uff0c\u4e0d\u662f\u786c\u95e8\u69db\u3002\n- **\u4ef7\u503c\u5206\u600e\u4e48\u6765\uff1a** JD \u7684\u5e94\u7528\u4efb\u52a1\u65b9\u5411\u8bc4 3/4\uff0c\u5360 20%\u3002\u4f60\u91cd\u89c6\u7684\u6307\u5bfc\u5b89\u6392\u5360 35%\u3001\u771f\u5b9e\u4ea7\u54c1\u8d23\u4efb\u5360 20%\uff0c\u90fd\u672a\u77e5\uff1b\u85aa\u916c\u5360 15%\u3001\u4e1a\u52a1\u6301\u7eed\u6027\u5360 10%\uff0c\u4e5f\u5f85\u6838\u5b9e\u3002**75 \u5206\u4ec5\u6765\u81ea\u4efb\u52a1\u65b9\u5411\u8fd9\u4e00\u9879\uff0c\u4e0d\u80fd\u8bf4\u660e\u6574\u4f53\u503c\u5f97\u53bb\u3002**\n\nJD \u7684 25\u201335K \u4e0e\u4f60\u7684\u7a0e\u524d 25\u201330K \u671f\u671b\u6570\u5b57\u6709\u4ea4\u96c6\uff0c\u4f46\u5b9e\u9645\u5b9a\u85aa\u3001\u56fa\u5b9a\u90e8\u5206\u548c\u85aa\u6570\u8fd8\u6ca1\u786e\u8ba4\u3002\u66f4\u5173\u952e\u7684\u662f\u9a7b\u573a\u5e95\u7ebf\uff0c\u4ee5\u53ca\u8c01\u6307\u5bfc\u4f60\u3001\u8d1f\u8d23\u54ea\u4e2a\u4ea7\u54c1\u6a21\u5757\u3001\u4e0a\u7ebf\u540e\u7531\u8c01\u627f\u62c5\u8fd0\u7ef4\u8d23\u4efb\u3002\n\n\u5df2\u4fdd\u5b58[\u5b8c\u6574\u8bc4\u5206\u4f9d\u636e\u3001\u6743\u91cd\u548c\u654f\u611f\u6027\u5206\u6790](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)\u3002\u4ee5\u540e\u6bd4\u8f83\u5c97\u4f4d\u65f6\uff0c\u5e94\u628a\u5206\u6570\u4e0e\u8986\u76d6\u5ea6\u4e00\u8d77\u770b\uff1b\u4f60\u7684\u539f\u6709\u56db\u661f\u504f\u597d\u4fdd\u7559\u3002"''')
+with Path('.local/dialogue.md').open('a', encoding='utf-8') as f:
+ f.write('\n## \u7b2c 2 \u8f6e\u6700\u7ec8\u56de\u590d\n\n'+reply+'\n')
+ f.write('\nLocal save result: saved=true, commit=8bcbb252746393559528f44113e09c2741ae2670. Board and workspace checks passed.\n')
+print('Final reply recorded successfully.')
+PY
+```
+
+实际退出码：0。
+
+## 第 3 轮用户输入
+
+我刚又问了 HR，对方明确说这个岗位必须去苏州客户现场至少一年，暂时不能改。我不接受这个条件，但卡片和我的四星先留着，之后有变化再看。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+message=json.loads(r'''"\u6211\u521a\u53c8\u95ee\u4e86 HR\uff0c\u5bf9\u65b9\u660e\u786e\u8bf4\u8fd9\u4e2a\u5c97\u4f4d\u5fc5\u987b\u53bb\u82cf\u5dde\u5ba2\u6237\u73b0\u573a\u81f3\u5c11\u4e00\u5e74\uff0c\u6682\u65f6\u4e0d\u80fd\u6539\u3002\u6211\u4e0d\u63a5\u53d7\u8fd9\u4e2a\u6761\u4ef6\uff0c\u4f46\u5361\u7247\u548c\u6211\u7684\u56db\u661f\u5148\u7559\u7740\uff0c\u4e4b\u540e\u6709\u53d8\u5316\u518d\u770b\u3002"''')
+with Path('.local/dialogue.md').open('a',encoding='utf-8') as f:
+ f.write('\n## \u7b2c 3 \u8f6e\u7528\u6237\u8f93\u5165\n\n'+message+'\n')
+print('Round 3 input recorded.')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+cat context/state.md
+cat context/progress.md
+cat context/decisions.md
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity context --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- board overview --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/company.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/match.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity read --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import datetime,json
+opp='opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60'
+p=Path('opportunities')/opp
+stamp=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(timespec='seconds')
+quote="我刚又问了 HR，对方明确说这个岗位必须去苏州客户现场至少一年，暂时不能改。我不接受这个条件，但卡片和我的四星先留着，之后有变化再看。"
+notes=(p/'notes.md').read_text()+"""
+## 第三轮：驻场答复与用户决定（2026-10-15）
+
+用户原话：
+
+“"""+quote+"""”
+
+来源类别：用户转述招聘方答复，未取得 HR 原始消息；用户本人明确表示不接受该条件。Agent 未向 HR 发送任何消息。
+
+当前事实：此岗位必须去苏州客户现场至少一年，暂时不能改。这替代此前“驻场以后再确认”的未知状态；旧记录保留作为时间线。至少一年明确属于本次用户不接受的长期异地驻场，不需要再询问是否能接受。
+
+用户决定：当前条件下不推进，保留卡片与自己的四星，条件改变后再看。未要求归档、删除或改成已结束，因此继续保留现有阶段，分析与 next_action 说明暂停推进。没有自动监控或已发出的跟进承诺。
+"""
+Path('.local/company-notes-v3.md').write_text(notes)
+company=(p/'analysis/company.md').read_text()
+a=company.index('## 当前建议')
+b=company.index('## 证据及边界')
+company=company[:a]+"""## 当前建议（第三轮，2026-10-15）
+
+**当前条件不适合，暂不推进。** 用户最新转述 HR 明确要求苏州客户现场至少一年，暂不能改；用户明确不接受，要求保留卡片和自己的四星，以后条件有变再看。由此，驻场已从关键未知变为明确冲突。
+
+这是针对本岗位当前工作条件的判断，不是公司整体好坏评价。JD 原写杭州与早先“以后再确认”的说法保留为历史；最新具体安排优先用于本次选择，不因此指控公司欺骗。Agent 推荐更新为 1/5，不能通过薪资、任务方向或分项平均分抵消地点底线。
+
+"""+company[b:]
+company=company.replace('| [HR 口述记录](../notes.md) | 记录标注 2026-10-15；为口述转录，没有承诺文件 | “办公地点先按杭州，驻场以后再确认”；团队指导安排尚待确认 | 对无长期异地驻场的承诺，或已有可靠指导机制 |','| [早期 HR 口述记录](../notes.md) | 2026-10-15；历史口述转录 | 早期“杭州先定、驻场以后确认”；团队指导未明确 | 已由第三轮具体驻场答复更新，不能继续证明当前地点未知 |\n| [第三轮用户转述 HR 答复](../notes.md) | 2026-10-15；用户刚询问后转述，未见原始消息 | 本岗位必须苏州客户现场至少一年、暂不能改；用户明确拒绝该条件 | 不能外推公司所有岗位都需要驻场，亦非独立外部调查 |')
+company=company.replace('对用户而言，客户场景本身不构成排除理由；关键是它是否迫使长期异地驻场，以及工作是否有可持续的应用研发责任。需要对方用最近项目的实际分工说明，而非仅重复岗位标题。','对用户而言，客户场景本身并非排除理由，但本岗位的苏州至少一年驻场安排已经触及底线。当前无需继续为任务比例补证；只有地点条件实质改变后，才恢复对持续产品研发责任的核对。')
+a=company.index('## 优先核实与改变建议的条件')
+b=company.index('## 第二轮偏好与经历补充')
+company=company[:a]+"""## 再次评估的条件
+
+当前停止推进，不再把“询问是否驻场”留作未完成问题。用户希望卡片及四星保留，阶段沿用待评估，outcome 保持空，卡片未归档。
+
+今后仅在招聘方给出新的具体安排，能够满足长期杭州／无长期异地驻场时重新评估；届时保留新答复来源与时间，再核对指导人、实际产品模块、生产分工和薪酬。暂不设置主动联系、提醒或监控。公司经营和团队氛围的未知仍保留，不需要为了当前决策继续扩展调查。
+
+"""+company[b:]
+company=company.replace('这两项均不是岗位综合分，暂不形成推荐星级。','这两项均为第二轮分项计算，不是岗位综合分。第三轮依据明确的驻场硬冲突形成 1/5 的当前推荐，原分项分数保留供追溯，不能抵消冲突。')
+Path('.local/company-analysis-v3.md').write_text(company)
+match=(p/'analysis/match.md').read_text()
+match=match.replace('评估日期：2026-10-15，第二轮更新。','评估日期：2026-10-15，第三轮更新；第二轮分项计算保留。')
+a=match.index('## 先给建议')
+b=match.index('## 来源与更新时间')
+match=match[:a]+"""## 当前建议与用户决定
+
+**当前推荐 1/5：条件不适合，暂不推进。** 第三轮用户转述 HR 已明确本岗位必须去苏州客户现场至少一年、暂不能改；用户明确不接受，并要求保留卡片与自己的四星，之后条件改变再看。
+
+评分规则中，已确认的不可妥协冲突优先于低证据覆盖或任何分项总分，因此 recommendation 从 null 更新为 rating=1。它只表示当前条件不适合，不是对用户能力或整家公司的评级。用户自己的 user_rating=4 继续保留；未归档、不删除，也未自动改成已结束或记录主动放弃结果。
+
+第二轮的能力／价值表、未知项、权重和敏感性保留，因为新消息没有改变个人能力或这些可权衡项的证据。其 37.5／75 均为已知部分得分，不能平均或加权抵消驻场冲突。
+
+"""+match[b:]
+match=match.replace('- H：[notes.md](../notes.md) 的 HR 口述，标注 2026-10-15：杭州先定、驻场以后确认、团队指导安排待确认。','- H：[notes.md](../notes.md) 的早期 HR 口述，标注 2026-10-15：杭州先定、驻场以后确认；此驻场未知已被后续答复更新，指导安排仍未知。\n- H2：同文件“第三轮：驻场答复与用户决定”：2026-10-15 用户刚问 HR 后转述，必须苏州客户现场至少一年、暂不能改；没有 HR 原始消息。该答复与用户本人明确不接受相结合，足以支持本次不推进决定。')
+match=match.replace('| 主要留杭州，不接受长期异地驻场 | 用户底线明确；HR 和 JD 均未承诺具体安排 | 未通过核实，不是已经确认冲突；任何得分都不能抵消 |','| 主要留杭州，不接受长期异地驻场 | H2：必须苏州客户现场至少一年、暂不能改；用户明确不接受 | 已确认硬冲突，当前推荐 1/5，不由其他得分抵消 |')
+match=match.replace('短期出差接受度仍未知，不替用户放宽长期异地驻场底线。','短期出差接受度虽仍未知，但不影响已明确拒绝苏州至少一年驻场的决定，不再用短期出差问题拖延结论。')
+match=match.replace('## 能力匹配','## 能力匹配（第二轮计算，第三轮无新能力证据）')
+match=match.replace('## 机会价值','## 机会价值（可权衡项；驻场硬冲突另行否决）')
+match=match.replace('各情景都不能消除驻场未知、指导未知和证据覆盖不足，当前“先核实、暂不优先投入”的行动建议不变。','上述为第二轮敏感性计算；当时驻场未知，结论为先核实。第三轮驻场已明确冲突，无论更重指导还是产品，都不能改变“当前条件不适合、不推进”的建议。')
+a=match.index('## 下一步与重评条件')
+match=match[:a]+"""## 当前停止点与重评触发
+
+驻场问题已经得到用户转述的明确答复，当前条件暂不能改，用户不接受。本次工作到此完成，保留卡片、用户四星及既有资料，不继续要求用户补案例或联系 HR。
+
+仅在招聘方工作地点／驻场要求发生实质变化，并可能满足用户底线时恢复评估。先记新条件、来源与日期，再核对指导人、评审安排、实际产品模块、质量／运维分工和固定薪酬。尚无自动监控或外发行为。
+
+个人问题 question-rag-production-evidence 仍作为可复用能力材料缺口留存；当前岗位不以它为下一步，不重复询问已确认没有训练和独立生产运维经验的事实。
+"""
+Path('.local/match-analysis-v3.md').write_text(match)
+patch={
+'location':'苏州客户现场至少一年（用户转述 HR；原 JD 写杭州）',
+'recommendation':{
+'rating':1,
+'reason':'2026-10-15 用户转述 HR 明确必须苏州客户现场至少一年且暂不能改；用户不接受长期异地驻场，当前条件存在不可妥协冲突，暂不推进。用户仍要求保留卡片与四星。',
+'evidence':['notes.md：第三轮驻场答复与用户决定（2026-10-15，用户转述 HR）','analysis/match.md：当前建议与用户决定、评分前置条件','analysis/company.md：当前建议与再次评估条件'],
+'assessed_at':stamp},
+'next_action':{'title':'仅在招聘方驻场／工作地条件实质改变时重新评估；当前不推进','owner':'employer','due':None},
+'body':"""## 当前结论（2026-10-15，第三轮）
+
+当前条件不适合，暂不推进。用户转述 HR 明确：本岗位必须去苏州客户现场至少一年，暂时不能改；用户明确不接受。
+
+Agent 推荐 1/5，依据是长期异地驻场的硬冲突，不能由能力或薪资分数抵消。用户自己的四星保持，按其要求保留卡片；沿用待评估阶段、未归档、尚未投递，不自动记录已结束或主动放弃结果。
+
+## 后续条件
+
+仅在招聘方驻场或长期工作地条件实质改变后重新评估。当前无待追问用户的问题，也不继续为本岗位投入面试准备。未设置主动监控或对外联系。
+
+## 资料与历史
+
+- [用户原话和 HR 答复时间线](notes.md)
+- [当前硬条件结论与第二轮分项评分](analysis/match.md)
+- [公司与条件分析](analysis/company.md)
+- [原 JD：杭州、驻场面议](job.md)
+
+第二轮能力已知分 37.5（覆盖 40%）、机会价值已知分 75（覆盖 20%）保留作分析依据，均不是整体推荐分。此次决定依据新确认的苏州至少一年驻场条件。
+"""
+}
+Path('.local/company-card-patch-v3.json').write_text(json.dumps(patch,ensure_ascii=False,indent=2))
+event={'title':'用户转述 HR 明确苏州驻场至少一年；当前不接受但保留卡片与四星','evidence_type':'user_report','body':quote+'\n\n记录区分：HR 条件由用户转述，未取得原始消息；不接受并保留卡片及四星是用户本人决定。Agent 推荐更新为 1/5，未对外发送。','links':[{'kind':'document','target':'notes.md','label':'第三轮用户原话与来源'}]}
+Path('.local/company-event-v3.json').write_text(json.dumps(event,ensure_ascii=False,indent=2))
+decisions=Path('context/decisions.md').read_text().replace('暂无个人求职决定。','''## decision-chenghai-onsite-20261015
+
+- 日期：2026-10-15；状态：生效。
+- 适用岗位：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。
+- 用户决定：不接受苏州客户现场至少一年、暂不能改的条件；当前不推进，卡片和用户四星保留，之后条件有变化再看。
+- 依据：岗位 notes.md 第三轮原话；HR 安排为用户转述，非 Agent 联系所得。
+- 状态含义：保留当前阶段与未归档状态，不自动记已结束或主动放弃。没有持续监控、外发或自动投递。
+- 替代：此前待核实的驻场问题已得到明确答复；重新评估须有实质条件变化。''')
+Path('context/decisions.md').write_text(decisions)
+Path('context/state.md').write_text("""# 当前进度
+
+更新日期：2026-10-15
+
+## 当前对象与结论
+
+澄海数据算法工程师：opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60。
+
+第三轮用户转述 HR：必须苏州客户现场至少一年，暂时不能改。用户明确不接受，但要求保留卡片和自己的四星，之后有变化再看。当前推荐 1/5（硬条件冲突），不推进；阶段沿用待评估、未归档、未投递，未自动记录结束结果。
+
+## 已保存
+
+岗位 notes.md 保存三轮原话与 HR 答复来源；analysis/company.md、analysis/match.md 和 card.md 更新当前判断。第二轮能力 37.5／覆盖 40%、价值 75／覆盖 20%的计算仍留作有限证据，不能抵消驻场冲突。用户决定见 context/decisions.md 的 decision-chenghai-onsite-20261015。
+
+## 后续触发
+
+本轮已完成，无需等待用户补答，不再询问是否接受苏州至少一年驻场。只在获得招聘方驻场／工作地条件实质改变的新信息后再评估，先核对是否满足用户底线，再谈指导、产品、生产责任和薪酬。
+
+未设置定时检查、提醒或主动联系。用户没有要求永久关闭，因此保留卡片。个人 RAG 试点事实保持维护中，question-rag-production-evidence 不是当前岗位下一问；可在未来其他能力整理任务续接。
+
+## 保存方式
+
+只在本机工作区保存，未联网、未外发。版本与命令结果见 history list 和 .local/dialogue.md；原用户四星与既有资料保留。
+""")
+progress=Path('context/progress.md').read_text()
+progress=progress.replace('当前大阶段：岗位初筛本轮完成；关键招聘条件仍待核实，不等于岗位已适合或事实已外部证实。','当前大阶段：岗位评估本轮完成；长期驻场硬冲突已由用户最新答复确认，用户不接受当前条件，保留机会等待条件变化。')
+progress=progress.replace('长期工作地、驻场、主体、任务比例和资源待招聘方说明','苏州至少一年驻场已确认不符合底线；主体、任务比例和资源留作以后条件改变后的核实项')
+progress=progress.replace('第二轮计算分项得分、覆盖、极值边界与敏感性，推荐星级暂空','第二轮分项得分与敏感性保留；第三轮因明确驻场硬冲突更新推荐为 1/5')
+progress=progress.replace('| 后续核实与重评 | 等待补充 | context/state.md、卡片 next_action | 取得招聘方具体安排后重评；本轮没有外发 |','| 后续核实与重评 | 暂缓 | 用户明确不接受当前条件；decision-chenghai-onsite-20261015 | 仅在驻场／工作地实质变化时再评估；卡片与用户四星保留 |')
+progress+='\n2026-10-15 第三轮：用户转述 HR 必须苏州客户现场至少一年、暂不能改，并明确不接受该条件但保留卡片与四星。驻场从未知变为确认硬冲突，推荐更新为 1/5；不再继续问驻场或能力问题，当前评估完成，后续仅以条件变化恢复。\n'
+Path('context/progress.md').write_text(progress)
+index=Path('context/INDEX.md').read_text()
+index=index.replace('初步建议与第二轮分项评分已保存，优先核实长期杭州与异地驻场安排；随后核实指导与产品责任。','第三轮已确认苏州客户现场至少一年且暂不能改，用户不接受；当前推荐 1/5，保留卡片与用户四星，仅在条件变化后再评估。')
+index+='\n第三轮决定：context/decisions.md → decision-chenghai-onsite-20261015；当前无待回答问题，不进行主动监控或联系。\n'
+Path('context/INDEX.md').write_text(index)
+print('已准备第三轮分析、卡片与事件更新；用户决定和恢复条件已保存。')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path notes.md --input .local/company-notes-v3.md --if-match 273e1035dbc229c9c61f469190679503bc2135ba6f5bb744153d97e0a8f59c45 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/company.md --input .local/company-analysis-v3.md --if-match c5bea9f93d28b37d8f50ea4f5f227b8868887009999c93cfb3794e448c743581 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity write --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --path analysis/match.md --input .local/match-analysis-v3.md --if-match 9f0524dfdf09f61cef1f410f62c97e82f6d6ab9e2aae5b3d56e548a623272f99 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity update --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --input .local/company-card-patch-v3.json --if-match bdd7d28a9200e76611af80fed85c003d29ff22e99582e8bce341fb0342fb6994 --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- opportunity log --id opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60 --input .local/company-event-v3.json --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+p=Path('opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60')
+s=(p/'card.md').read_text()
+for part in ['user_rating: 4','stage: inbox','archived: false','outcome: null','rating: 1','苏州客户现场至少一年']:
+ assert part in s, part
+for a,b in [('analysis/company.md','company-analysis-v3.md'),('analysis/match.md','match-analysis-v3.md'),('notes.md','company-notes-v3.md')]:
+ assert (p/a).read_text()==(Path('.local')/b).read_text()
+print('Verified saved analysis, rating=1, user_rating=4, inbox, not archived, no outcome.')
+PY
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- board check --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+npm run career -- workspace check --json
+```
+
+实际退出码：0。
+
+### 工具命令
+
+```sh
+GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 npm run career -- history save --message '澄海岗位：记录苏州长期驻场硬冲突并保留用户偏好' --json
+```
+
+实际退出码：0。
+
+## 第 3 轮最终回复
+
+已更新：**苏州客户现场至少一年、暂不能调整，与你的底线明确冲突。** 我的当前推荐改为 **1/5：条件不适合，暂不推进**。
+
+你的**卡片和四星偏好都保留**。我已把你转述的 HR 答复、决定和依据写入[岗位卡片](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md)，后续条件记为：驻场或工作地点发生实质变化后，再重新评估。
+
+Local version save output:
+
+> career
+> node "/private/tmp/career-agent-sim-20261015-c/package/dist/cli.js" history save --message 澄海岗位：记录苏州长期驻场硬冲突并保留用户偏好 --json
+
+{"schema_version":"career-cli/v1","operation":"history.save","status":"success","data":{"saved":true,"commit":"378be1fa52c51660decc8e34aa30cd33a6eb5d93","ignored_unmanaged":[],"next_action":"offer_sync_at_milestone"},"warnings":[],"errors":[]}
+
+
+### 工具命令
+
+```sh
+python3 - <<'PY'
+from pathlib import Path
+import json
+reply=json.loads(r'''"\u5df2\u66f4\u65b0\uff1a**\u82cf\u5dde\u5ba2\u6237\u73b0\u573a\u81f3\u5c11\u4e00\u5e74\u3001\u6682\u4e0d\u80fd\u8c03\u6574\uff0c\u4e0e\u4f60\u7684\u5e95\u7ebf\u660e\u786e\u51b2\u7a81\u3002** \u6211\u7684\u5f53\u524d\u63a8\u8350\u6539\u4e3a **1/5\uff1a\u6761\u4ef6\u4e0d\u9002\u5408\uff0c\u6682\u4e0d\u63a8\u8fdb**\u3002\n\n\u4f60\u7684**\u5361\u7247\u548c\u56db\u661f\u504f\u597d\u90fd\u4fdd\u7559**\u3002\u6211\u5df2\u628a\u4f60\u8f6c\u8ff0\u7684 HR \u7b54\u590d\u3001\u51b3\u5b9a\u548c\u4f9d\u636e\u5199\u5165[\u5c97\u4f4d\u5361\u7247](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md)\uff0c\u540e\u7eed\u6761\u4ef6\u8bb0\u4e3a\uff1a\u9a7b\u573a\u6216\u5de5\u4f5c\u5730\u70b9\u53d1\u751f\u5b9e\u8d28\u53d8\u5316\u540e\uff0c\u518d\u91cd\u65b0\u8bc4\u4f30\u3002"''')
+save_result=json.loads(r'''"\n> career\n> node \"/private/tmp/career-agent-sim-20261015-c/package/dist/cli.js\" history save --message \u6f84\u6d77\u5c97\u4f4d\uff1a\u8bb0\u5f55\u82cf\u5dde\u957f\u671f\u9a7b\u573a\u786c\u51b2\u7a81\u5e76\u4fdd\u7559\u7528\u6237\u504f\u597d --json\n\n{\"schema_version\":\"career-cli/v1\",\"operation\":\"history.save\",\"status\":\"success\",\"data\":{\"saved\":true,\"commit\":\"378be1fa52c51660decc8e34aa30cd33a6eb5d93\",\"ignored_unmanaged\":[],\"next_action\":\"offer_sync_at_milestone\"},\"warnings\":[],\"errors\":[]}\n"''')
+with Path('.local/dialogue.md').open('a',encoding='utf-8') as f:
+ f.write('\n## \u7b2c 3 \u8f6e\u6700\u7ec8\u56de\u590d\n\n'+reply+'\n')
+ f.write('\nLocal version save output:\n'+save_result+'\n')
+print('Round 3 final reply and save result recorded.')
+PY
+```
+
+实际退出码：0。

@@ -1,0 +1,54 @@
+{
+  "criteria": [
+    {
+      "id": "application-direction",
+      "weight": 20,
+      "score": 3,
+      "evidence": [
+        "job.md",
+        "notes.md#本轮用户原话"
+      ],
+      "reason": "限定评价JD公开任务：明确含企业知识助手的检索、工具调用、上线评估，达到AI应用任务方向锚点；不代表实际占比或成熟产品"
+    },
+    {
+      "id": "actual-product-ownership",
+      "weight": 20,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "notes.md#第二轮用户补充"
+      ],
+      "reason": "用户希望实际产品，但现有材料未说明生产用户、产品迭代、模块归属与验收责任；客户交付不能直接当产品研发"
+    },
+    {
+      "id": "mentoring",
+      "weight": 35,
+      "score": null,
+      "evidence": [
+        "notes.md#已收集资料",
+        "notes.md#第二轮用户补充"
+      ],
+      "reason": "用户看重有人指导，HR称安排待确认，未知不设中间分"
+    },
+    {
+      "id": "cash-compensation",
+      "weight": 15,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "notes.md#第二轮用户补充"
+      ],
+      "reason": "JD25–35K与用户税前25–30K数字有交集，但实际定薪、税前固定构成和薪数未确认"
+    },
+    {
+      "id": "business-continuity",
+      "weight": 10,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "notes.md#已收集资料"
+      ],
+      "reason": "融资稳定只有宣传，缺经营财务原始材料"
+    }
+  ]
+}

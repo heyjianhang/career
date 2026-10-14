@@ -16,7 +16,7 @@ export function workspaceRoutes(workspace:string,manager:WorkspaceManager,token:
    try{
     switch(url.pathname){
      case '/api/workspaces/remember':await manager.remember(workspace);send(200,await manager.list(workspace));break;
-     case '/api/workspaces/create':{const entry=await manager.create(data.parent,data.name);send(200,{...entry,url:await open(entry.path)});break;}
+     case '/api/workspaces/create':{const entry=await manager.create(data.parent,data.name,data.repository);send(200,{...entry,url:await open(entry.path)});break;}
      case '/api/workspaces/open':{
       if(data.replaceId&&!(await manager.readRegistry()).recent.some(e=>e.id===data.replaceId))throw new Error('找不到原工作区记录');
       const entry=await manager.entry(data.path),target=await open(entry.path);await manager.remember(entry.path,data.replaceId);send(200,{...entry,url:target});break;

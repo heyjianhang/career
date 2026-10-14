@@ -47,6 +47,8 @@
 
 ## 通用格式
 
+`context/progress.md` 是普通 Markdown 大阶段总账，记录本轮范围、阶段、依据与历史；不参与 v2 实体扫描、来源摘要或冻结清单。初始化为旧工作区只补缺失文件，阶段先待核对。`workspace status` 提供读取入口，不返回语义完成判断。项目／任职的详细职业资产仍使用以下事实契约与核心章节，写法见 [职业资产方法](career-assets.md)。
+
 `resume/maintenance.md` 是跨 intake／master 使用的普通 Markdown 维护清单；模块状态、具体经历的进度与母版同步关系、初期完成日期与范围保存在此处。`context/state.md` 只引用当前对象与下一步，`questions.md` 保留具体问题，事实正文不复制到状态文件。
 
 清单模板和操作标准由 [intake 维护方法](../.agents/skills/career-intake/references/maintenance.md) 提供，初期母版完成标准由 [母版保存方法](../.agents/skills/resume-master/references/saving.md) 提供。已有工作区缺清单时初始化只补新文件，所有模块以“未盘点”开始；缺清单不使旧 v2 数据失效。

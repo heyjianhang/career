@@ -4,9 +4,11 @@
 
 ## 先确定现有状态
 
-读取 career.json 的 onboarding/sync，运行 doctor。已有 Git 时 `sync status`，GIT_NOT_INITIALIZED 才进入本地初始化。已有可用跟踪与远程则转[日常流程](daily-sync.md)。FOREIGN_REPOSITORY 表示目录属于另一个仓库，先选择独立目录并保留现有文件。
+读取 career.json 的 onboarding/sync，运行 doctor；需要同步时用 `sync environment` 检查 Git、GitHub CLI 与登录，读取官方安装入口。已有 Git 时 `sync status`，GIT_NOT_INITIALIZED 才进入本地初始化。已有可用跟踪与远程则转[日常流程](daily-sync.md)。FOREIGN_REPOSITORY 表示目录属于另一个仓库，先选择独立目录并保留现有文件。
 
 仅本机使用不需要 GitHub 账号和 gh。希望远程同步时，向用户简要说明：这会把职业资料保存到他自己的私人仓库；还没有账号或仓库，可以一步一步准备。已有当轮同步授权沿用，不再逐个请求命令批准。
+
+桌面入口是侧栏「云同步」：检查环境 → 登录 GitHub → 填写空私人仓库地址 → 连接 → 同步。Git 缺失不阻塞简历和看板；Windows 与 macOS 均提供官方安装入口和重新检测。系统安装器由用户完成，Agent 可执行已授权的准备工作。
 
 ## 准备账号与登录
 
@@ -54,12 +56,12 @@ npm run career -- history init --name "<用户提供的名字>" --email "<用户
 npm run career -- sync connect --repository "<owner/repo 或 GitHub 仓库地址>" --json
 npm run career -- workspace check --json
 npm run career -- history save --message "初始化：建立职业资料库" --json
-npm run career -- sync push --json
+npm run career -- sync run --json
 npm run career -- sync status --refresh --json
 ```
 
 连接不等于上传。连接会写入 career.json，因此首次提交放在连接之后，让本地配置和资料一起保存。检查实际修改与 .gitignore，包含资料和可选照片，排除 node_modules、build、.local、.cache 和凭据；用户要求仅本地的材料先安排排除。新建空仓库后无需用户建立 main，首次上传推送本地 main。
 
-`history save` 的 `saved:false` 表示没有新变化，不是上传完成；已有提交可继续按授权上传。`sync push` 返回 `synced:true` 后才能报告首次同步成功。最终给出实际个人目录、仓库链接和保存结果，然后按 AGENTS.md 继续经历与简历任务。
+`history save` 的 `saved:false` 表示没有新变化，不是上传完成；已有提交可继续按授权上传。`sync run` 返回 `synced:true` 后才能报告首次同步成功。最终给出实际个人目录、仓库链接和保存结果，然后按 AGENTS.md 继续经历与简历任务。
 
 参考：[GitHub 新建仓库说明](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)、[gh 网页登录](https://cli.github.com/manual/gh_auth_login)、[提交邮箱](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address)。界面变化时以实际页面和官方说明为准。

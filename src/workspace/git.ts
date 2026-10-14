@@ -1,12 +1,14 @@
-import {mkdir,stat,realpath,readdir} from 'node:fs/promises';
+import {mkdir,stat,realpath,readdir,mkdtemp,rm} from 'node:fs/promises';
 import path from 'node:path';
-import {config,withLock,updateConfig} from './setup.js';
-import {run,SetupError} from './process.js';
+import os from 'node:os';
+import {config,withLock,updateConfig,setup} from './setup.js';
+import {run,SetupError,available,executable} from './process.js';
 import {inspectWorkspace} from '../agent-api.js';
 import {noSymlinks} from '../presentation/io.js';
-const git=(dir:string,...args:string[])=>run('git',['-c','core.hooksPath=','-c','commit.gpgsign=false','-c','core.quotepath=false',...args],dir);
+export const git=(dir:string,...args:string[])=>run('git',['-c','core.hooksPath=','-c','commit.gpgsign=false','-c','core.quotepath=false',...args],dir);
+const credentialHelper=async()=>"!"+"'"+(await executable('gh')).replaceAll('\\','/').replaceAll("'","'\\''")+"' auth git-credential";
 const managed=['career.json','package.json','package-lock.json','AGENTS.md','README.md','.gitignore','.gitattributes','.career','.agents','docs','schemas','examples','context','resume','opportunities','job-search','archive'];
-function allowed(file:string){return managed.includes(file.split('/')[0]!)&&!/(^|\/)(\.env(?:\..*)?|\.npmrc|\.DS_Store|node_modules|build|\.local|\.cache)(\/|$)/.test(file)&&!/(\.log|\.tmp|\.lock)$/.test(file);}
+export function allowed(file:string){return managed.includes(file.split('/')[0]!)&&!/(^|\/)(\.env(?:\..*)?|\.npmrc|\.DS_Store|node_modules|build|\.local|\.cache)(\/|$)/.test(file)&&!/(\.log|\.tmp|\.lock)$/.test(file);}
 async function hasHead(w:string){try{await git(w,'rev-parse','--verify','HEAD');return true;}catch{return false;}}
 export async function assertRepo(w:string){
   await config(w);await noSymlinks(path.join(w,'.git'));
@@ -29,14 +31,14 @@ export async function initHistory(w:string,name?:string,email?:string){
   });
 }
 async function scan(dir:string){await noSymlinks(dir);const info=await stat(dir);if(info.isDirectory()){for(const item of await readdir(dir))await scan(path.join(dir,item));}else if(info.size>25*1024*1024)throw new SetupError('FILE_TOO_LARGE','有超过 25 MiB 的文件，请选择单独保存或缩小后再同步。');}
-async function validate(w:string){const result=await inspectWorkspace(w);if(!result.valid)throw new SetupError('WORKSPACE_INVALID','资料结构未通过检查；原文件保留。',{errors:result.errors});return result;}
+export async function validate(w:string){const result=await inspectWorkspace(w);if(!result.valid)throw new SetupError('WORKSPACE_INVALID','资料结构未通过检查；原文件保留。',{errors:result.errors});return result;}
 async function checkTracked(w:string){
   const tracked=(await git(w,'ls-files','-z')).split('\0').filter(Boolean);
   if(tracked.some(f=>!allowed(f)))throw new SetupError('UNMANAGED_TRACKED_FILES','仓库跟踪了管理范围以外的文件，请先检查，未自动提交或上传。');
 }
-export async function saveHistory(w:string,message:string){
+async function saveUnlocked(w:string,message:string){
   if(!message.trim()||message.length>200||/[\r\n]/.test(message))throw new SetupError('INVALID_MESSAGE','提供不超过 200 字的一行版本说明。');
-  return withLock(w,async()=>{
+
     await assertRepo(w);await validate(w);
     try{await git(w,'var','GIT_AUTHOR_IDENT');}catch{throw new SetupError('GIT_IDENTITY_REQUIRED','先通过 history init --name 和 --email 设置本仓库提交身份。');}
     await checkTracked(w);
@@ -48,11 +50,11 @@ export async function saveHistory(w:string,message:string){
     const changed=Boolean(await git(w,'diff','--cached','--name-only'));
     if(changed)await git(w,'commit','-m',message);
     return {saved:changed,commit:await hasHead(w)?await git(w,'rev-parse','HEAD'):null,ignored_unmanaged:candidates.filter(f=>!allowed(f)),next_action:'offer_sync_at_milestone'};
-  });
 }
+export async function saveHistory(w:string,message:string){return withLock(w,()=>saveUnlocked(w,message));}
 export async function historyList(w:string){await assertRepo(w);if(!await hasHead(w))return {entries:[]};const text=await git(w,'log','-30','--format=%H%x09%aI%x09%s');return {entries:text.split('\n').map(line=>{const [commit,date,...title]=line.split('\t');return {commit,date,title:title.join('\t')};})};}
 export async function gitStatus(w:string){
-  await assertRepo(w);const dirty=Boolean(await git(w,'status','--porcelain'));
+  await assertRepo(w);const dirty=Boolean((await git(w,'ls-files','--modified','--deleted','--others','--exclude-standard','-z')).split('\0').filter(allowed).filter(Boolean).length||await git(w,'diff','--cached','--name-only'));
   let ahead=0,behind=0,remote=false;
   if(await hasHead(w)){try{const counts=await git(w,'rev-list','--left-right','--count','HEAD...refs/remotes/origin/main');[ahead,behind]=counts.split(/\s+/).map(Number) as [number,number];remote=true;}catch{}}
   return {dirty,ahead,behind,remote_head_known:remote,diverged:ahead>0&&behind>0};
@@ -65,11 +67,11 @@ export function githubRepo(value:string){
 export function requirePrivateRepository(data:any){
   if(data.private!==true||data.permissions?.push!==true)throw new SetupError('PRIVATE_REPOSITORY_REQUIRED','仅连接当前账号有写权限的 GitHub 私人仓库。');return data;
 }
-async function remoteInfo(w:string,repo:string){
+export async function remoteInfo(w:string,repo:string){
   const data=JSON.parse(await run('gh',['api',`repos/${repo}`],w));
   return requirePrivateRepository(data);
 }
-async function verifyRemote(w:string){
+export async function verifyRemote(w:string){
   const c=await config(w);if(!c.sync?.repository)throw new SetupError('SYNC_NOT_CONNECTED','尚未连接远程仓库；运行 sync connect 或先仅保存本地。');
   const repo=githubRepo(c.sync.repository);await remoteInfo(w,repo);
   const fetchUrl=await git(w,'remote','get-url','--all','origin'),pushUrl=await git(w,'remote','get-url','--push','--all','origin');
@@ -88,7 +90,7 @@ export async function connect(w:string,repository:string,create=false){
     if(branches.length&&(await config(w)).sync?.repository!==repo)throw new SetupError('REMOTE_NOT_EMPTY','远端已有内容，请使用 workspace restore 恢复到新目录，再合并需要保留的本机资料。');
     if(!origin)await git(w,'remote','add','origin',`https://github.com/${repo}.git`);
     // HTTPS credentials remain in gh's credential store; no tokens in repository files.
-    await git(w,'config','--local','credential.https://github.com.helper','!gh auth git-credential');
+    await git(w,'config','--local','credential.https://github.com.helper',await credentialHelper());
     await updateConfig(w,c=>{c.sync={...c.sync,repository:repo,mode:'ask'};c.onboarding={...c.onboarding,sync:'connected'};});
     return {repository:repo,visibility:'private',mode:'ask',pushed:false,next_action:'save_then_sync_push'};
   });
@@ -114,11 +116,79 @@ export async function push(w:string,verify=verifyRemote){return withLock(w,async
   if(!await hasHead(w))throw new SetupError('NO_SAVED_VERSION','先保存首个本地版本。');
   await git(w,'push','--set-upstream','origin','main:main');return {synced:true,commit:await git(w,'rev-parse','HEAD'),repository:(await config(w)).sync.repository};
 });}
-export async function restore(w:string,repository:string){
-  await noSymlinks(w);try{await stat(w);throw new SetupError('DIRECTORY_EXISTS','恢复目标必须是不存在的新目录。');}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-  const parent=path.dirname(w);await mkdir(parent,{recursive:true});const repo=githubRepo(repository);await remoteInfo(parent,repo);
-  await run('git',['-c','core.hooksPath=','-c','credential.helper=!gh auth git-credential','clone','--branch','main','--single-branch','--',`https://github.com/${repo}.git`,w],parent,300_000);
-  await assertRepo(w);await validate(w);const value=await config(w);
-  await git(w,'config','--local','credential.https://github.com.helper','!gh auth git-credential');
-  return {workspace:w,tool:value.tool??null,next_action:'install_locked_dependencies_then_read_agents',next_reads:[path.join(w,'AGENTS.md'),path.join(w,'.agents/skills/career-setup/SKILL.md')],guidance:'先核对 package.json 和锁文件的 career 版本及来源，再 npm ci --ignore-scripts；不要覆盖为最新工具版本。'};
+export async function restore(w:string,repository:string,inspect=async(parent:string,repo:string)=>{
+ if(!await available('git'))throw new SetupError('DEPENDENCY_MISSING','尚未安装 Git，请在同步环境提示中安装后重新检测。');
+ if(!await available('gh'))throw new SetupError('DEPENDENCY_MISSING','尚未安装 GitHub CLI，请安装并登录后重新检测。');
+ await remoteInfo(parent,repo);
+ const branches=JSON.parse(await run('gh',['api',`repos/${repo}/branches?per_page=100`],parent));
+ if(branches.length&&!branches.some((b:any)=>b.name==='main'))throw new SetupError('BRANCH_MISMATCH','这个仓库没有 main 分支，请先核对仓库地址。');
+ return {empty:!branches.length,url:`https://github.com/${repo}.git`};
+}){
+ await noSymlinks(w);try{await stat(w);throw new SetupError('DIRECTORY_EXISTS','恢复目标必须是不存在的新目录。');}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+ const parent=path.dirname(w);await mkdir(parent,{recursive:true});const repo=githubRepo(repository),remote=await inspect(parent,repo);
+ if(remote.empty){
+  await mkdir(w); // Claim a new directory even if the remote lookup took time.
+  await setup(w,false);await initHistory(w);
+  await git(w,'remote','add','origin',remote.url);
+ }else{
+  await run('git',['-c','core.hooksPath=','-c','credential.helper='+await credentialHelper(),'clone','--no-checkout','--branch','main','--single-branch','--',remote.url,w],parent,300_000);
+  await checkTree(w,'HEAD');await git(w,'checkout','main');await assertRepo(w);await validate(w);
+  const value=await config(w);if(value.sync?.repository&&githubRepo(value.sync.repository)!==repo)throw new SetupError('REMOTE_CHANGED','仓库内记录的同步地址不一致；已保留恢复目录，请先核对。');
+ }
+ await git(w,'config','--local','credential.https://github.com.helper',await credentialHelper());
+ await withLock(w,()=>updateConfig(w,c=>{c.sync={...c.sync,repository:repo,mode:'ask'};c.onboarding={...c.onboarding,sync:'connected'};}));
+ const value=await config(w);
+ return {workspace:w,empty_repository:remote.empty,tool:value.tool??null,next_action:'install_locked_dependencies_then_read_agents',next_reads:[path.join(w,'AGENTS.md'),path.join(w,'.agents/skills/career-setup/SKILL.md')],guidance:'先核对 package.json 和锁文件的 career 版本及来源，再 npm ci --ignore-scripts；不要覆盖为最新工具版本。'};
 }
+
+// Build and validate an incoming version in an isolated checkout. Conflicts never
+// write markers into the user's working files or leave an in-progress merge there.
+export async function checkTree(w:string,ref:string){
+ const tree=await git(w,'ls-tree','-r','-l','-z',ref);
+ for(const line of tree.split('\0').filter(Boolean)){
+  const [meta,file]=line.split('\t'),[mode,type,,size]=meta!.trim().split(/\s+/);
+  if(!file||type!=='blob'||!['100644','100755'].includes(mode!)||!allowed(file)||Number(size)>25*1024*1024)throw new SetupError('REMOTE_CONTENT_REVIEW','远端包含不支持的文件、符号链接或过大附件，已保留本地资料。');
+ }
+}
+export async function synchronize(w:string,upload=true,verify=verifyRemote){return withLock(w,async()=>{
+ await assertRepo(w);
+ const saved=await saveUnlocked(w,`sync: 保存资料 ${new Date().toISOString().slice(0,16).replace('T',' ')}`);
+ const repository=await verify(w);await fetch(w);
+ const before=await gitStatus(w),head=await git(w,'rev-parse','HEAD');let updated=false;
+ if(before.behind){
+  await checkTree(w,'refs/remotes/origin/main');
+  const remoteHead=await git(w,'rev-parse','refs/remotes/origin/main');
+  const temp=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-sync-'));
+  try{
+   await git(w,'clone','--no-hardlinks','--no-checkout','--single-branch','--branch','main','--',w,temp);
+   await git(temp,'checkout','main');
+   for(const key of ['user.name','user.email'])await git(temp,'config','--local',key,await git(w,'config','--get',key));
+   await git(temp,'fetch','--',w,'refs/remotes/origin/main:refs/remotes/incoming/main');
+   try{await git(temp,'merge','--no-edit','--no-commit','refs/remotes/incoming/main');}
+   catch{
+    const files=(await git(temp,'diff','--name-only','--diff-filter=U','-z')).split('\0').filter(Boolean);
+    throw new SetupError(files.length?'SYNC_CONFLICT':'SYNC_HISTORY_MISMATCH',files.length?'同一份资料在两处修改，已暂停同步。双方版本均保留，请交给 Agent 协助合并。':'两处版本无法安全合并，已保留双方资料。',{files,local_commit:head,remote_commit:remoteHead});
+   }
+   if(before.diverged)await git(temp,'commit','-m','sync: 合并另一台设备的资料');
+   await checkTree(temp,'HEAD');await validate(temp);
+   // A fetched workspace may not silently redirect later uploads to another repository.
+   const incoming=await config(temp);
+   if(incoming.sync?.repository&&githubRepo(incoming.sync.repository)!==repository)throw new SetupError('REMOTE_CHANGED','远端资料中的仓库地址不同，未更新本地资料。');
+   const candidate=await git(temp,'rev-parse','HEAD');await git(w,'fetch','--',temp,'main');
+   if(await git(w,'rev-parse','HEAD')!==head||(await gitStatus(w)).dirty)throw new SetupError('WORKSPACE_CHANGED','同步期间资料又有修改，已保留，请稍后重试。');
+   await git(w,'merge','--ff-only',candidate);updated=true;
+  }finally{await rm(temp,{recursive:true,force:true});}
+ }
+ if(upload){
+  // Revalidate the exact saved snapshot, not files an external Agent may still be editing.
+  const uploadHead=await git(w,'rev-parse','HEAD');
+  if(!updated){
+   await checkTree(w,uploadHead);const snapshot=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-sync-check-'));
+   try{await git(w,'clone','--no-hardlinks','--no-checkout','--single-branch','--branch','main','--',w,snapshot);await git(snapshot,'checkout','--detach',uploadHead);await validate(snapshot);}finally{await rm(snapshot,{recursive:true,force:true});}
+  }
+  if(await git(w,'rev-parse','HEAD')!==uploadHead||(await gitStatus(w)).dirty)throw new SetupError('WORKSPACE_CHANGED','资料正在修改，请稍后再同步。');
+  // A concurrent remote push is rejected by Git; never force or retry blindly.
+  await git(w,'push','--set-upstream','origin','main:main');
+ }
+ return {saved:saved.saved,updated,synced:upload,repository,commit:await git(w,'rev-parse','HEAD'),...await gitStatus(w)};
+});}

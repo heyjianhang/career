@@ -19,7 +19,7 @@ const currentPackage=JSON.parse(await readFile(new URL('../package.json',import.
 test('setup gives complete next reads, local dependency pin and non-destructive retry',async t=>{
  const {workspace}=await fixture(t);const config=JSON.parse(await readFile(path.join(workspace,'career.json')));assert.equal(config.onboarding.sync,'undecided');assert.equal(config.tool.name,'@heyjianhang/career');
  const packageData=JSON.parse(await readFile(path.join(workspace,'package.json')));assert.equal(packageData.private,true);assert.equal(packageData.dependencies[currentPackage.name],currentPackage.version);
- const readme=await readFile(path.join(workspace,'AGENTS.md'),'utf8');assert.match(readme,/大节点|重要更新/);assert.match(readme,/sync status --refresh/);
+ const readme=await readFile(path.join(workspace,'AGENTS.md'),'utf8');assert.match(readme,/大节点|重要更新/);assert.match(readme,/sync overview/);assert.match(readme,/sync update/);
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);
  await writeFile(path.join(workspace,'context/state.md'),'# 我的进度\n不丢失');await localOnly(workspace);
  const retry=await setup(workspace,false);assert.equal(retry.next_action,'read_context');assert.equal(retry.handoff,null);assert.deepEqual(retry.questions,[]);assert.equal(retry.agent.conflicts.length,0);assert.equal(JSON.parse(await readFile(path.join(workspace,'career.json'))).onboarding.sync,'local');assert.match(await readFile(path.join(workspace,'context/state.md'),'utf8'),/不丢失/);

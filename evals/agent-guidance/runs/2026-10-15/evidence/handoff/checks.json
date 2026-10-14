@@ -1,0 +1,153 @@
+{
+  "captured_at": "2026-10-14T17:43:22.748Z",
+  "case": "handoff",
+  "label": "final",
+  "results": {
+    "workspace": {
+      "schema_version": "career-cli/v1",
+      "operation": "workspace.check",
+      "status": "success",
+      "data": {
+        "workspace": "/private/tmp/career-agent-sim-20261015-c/workspaces/handoff",
+        "valid": true,
+        "record_count": 7,
+        "counts": {
+          "employment": 1,
+          "profile": 1,
+          "project": 2,
+          "master-index": 1,
+          "questions": 1,
+          "source": 1
+        },
+        "opportunities": {
+          "as_of": "2026-10-14T17:43:22.421Z",
+          "timezone": "Asia/Shanghai",
+          "today": "2026-10-15",
+          "total": 0,
+          "active": 0,
+          "archived": 0,
+          "upcoming_interviews": [],
+          "stages": [
+            {
+              "id": "inbox",
+              "label": "待评估",
+              "count": 0
+            },
+            {
+              "id": "preparing",
+              "label": "准备投递",
+              "count": 0
+            },
+            {
+              "id": "applied",
+              "label": "已投递",
+              "count": 0
+            },
+            {
+              "id": "interviewing",
+              "label": "面试中",
+              "count": 0
+            },
+            {
+              "id": "offer",
+              "label": "Offer",
+              "count": 0
+            },
+            {
+              "id": "ended",
+              "label": "已结束",
+              "count": 0
+            }
+          ],
+          "cards": [],
+          "pending_tasks": [],
+          "attention": {
+            "waiting_user": [],
+            "overdue": [],
+            "next_actions_due": [],
+            "duplicate_sources": []
+          },
+          "relations": [],
+          "issues": [],
+          "empty_message": "还没有岗位。发送一段职位描述或岗位链接，Agent 会先整理成岗位卡片；可按需关联已有简历。",
+          "next_action": "collect_first_opportunity"
+        }
+      },
+      "warnings": [
+        "resume/facts/profile.md: 尚无来源，不能据此称为已核实"
+      ],
+      "errors": []
+    },
+    "board": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.check",
+      "status": "success",
+      "data": {
+        "valid": true,
+        "total": 0
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "overview": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.overview",
+      "status": "success",
+      "data": {
+        "as_of": "2026-10-14T17:43:22.745Z",
+        "timezone": "Asia/Shanghai",
+        "today": "2026-10-15",
+        "total": 0,
+        "active": 0,
+        "archived": 0,
+        "upcoming_interviews": [],
+        "stages": [
+          {
+            "id": "inbox",
+            "label": "待评估",
+            "count": 0
+          },
+          {
+            "id": "preparing",
+            "label": "准备投递",
+            "count": 0
+          },
+          {
+            "id": "applied",
+            "label": "已投递",
+            "count": 0
+          },
+          {
+            "id": "interviewing",
+            "label": "面试中",
+            "count": 0
+          },
+          {
+            "id": "offer",
+            "label": "Offer",
+            "count": 0
+          },
+          {
+            "id": "ended",
+            "label": "已结束",
+            "count": 0
+          }
+        ],
+        "cards": [],
+        "pending_tasks": [],
+        "attention": {
+          "waiting_user": [],
+          "overdue": [],
+          "next_actions_due": [],
+          "duplicate_sources": []
+        },
+        "relations": [],
+        "issues": [],
+        "empty_message": "还没有岗位。发送一段职位描述或岗位链接，Agent 会先整理成岗位卡片；可按需关联已有简历。",
+        "next_action": "collect_first_opportunity"
+      },
+      "warnings": [],
+      "errors": []
+    }
+  }
+}

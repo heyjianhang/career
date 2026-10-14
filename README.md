@@ -61,7 +61,9 @@ Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 
 | --- | --- |
 | [career-setup](.agents/skills/career-setup/SKILL.md) | 检查环境、初始化工作区，按已有状态衔接后续任务 |
 | [career-git](.agents/skills/career-git/SKILL.md) | 引导账号与私人仓库准备、首次提交、日常保存、同步和换机恢复 |
-| [career-intake](.agents/skills/career-intake/SKILL.md) | 从材料和对话提取事实，逐步收集工作、项目、教育与能力 |
+| [career-intake](.agents/skills/career-intake/SKILL.md) | 盘点资料、维护阶段与范围，收集基本资料、教育与能力，路由深入整理 |
+| [career-employment](.agents/skills/career-employment/SKILL.md) | 深入任职阶段、职责权限、协作与工作事件，建立可复用任职资产（开发版） |
+| [career-project](.agents/skills/career-project/SKILL.md) | 深入项目背景、本人角色、关键决策、实施与复盘，留下详细资产（开发版） |
 | [resume-master](.agents/skills/resume-master/SKILL.md) | 把事实整理成可读母版，保留个人贡献、来源与待补项 |
 | [career-board](.agents/skills/career-board/SKILL.md) | 收集机会、查看全局、维护任务与资料，跨会话接手岗位（开发版） |
 | [resume-tailor](.agents/skills/resume-tailor/SKILL.md) | 按用途选材，生成内容包和平台稿，调用 CLI 交付页面与文件 |
@@ -87,7 +89,7 @@ career-workspace/
 ├── career.json        # 工作区配置、工具版本、同步选择
 ├── package.json       # 本目录使用的工具
 ├── package-lock.json  # 锁定依赖版本
-├── context/           # 目标、当前进度、决定与反馈
+├── context/           # progress 大阶段、state 当前一问、目标与反馈
 ├── resume/            # 来源、事实、母版、照片、简历内容包
 └── build/             # 生成的 HTML、PDF 和构建快照
 ```
@@ -98,7 +100,7 @@ GitHub 同步可跳过，之后仍可启用。启用后每次开始核对远端�
 
 ## 桌面版（开发预览）
 
-桌面版支持创建／打开独立工作区，内置 CLI、六个 Skills 和 PDF 运行环境。创建后可复制指令交给 Agent，日常直接打开软件查看看板、简历与资料。
+桌面版支持创建／打开独立工作区，内置 CLI、八个 Skills 和 PDF 运行环境。创建后可复制指令交给 Agent，日常直接打开软件查看看板、简历与资料。
 
 Windows x64／ARM64、macOS Intel／Apple Silicon 的构建入口和手动 CI 见[桌面版说明](docs/desktop.md)。目前是本地开发预览，尚未提供公开下载安装包；上面的 npm 安装方式继续可用。
 

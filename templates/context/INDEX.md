@@ -8,7 +8,8 @@
 
 ## 按需读取
 
-- `context/state.md`：本次进展与下一步。
+- `context/progress.md`：本轮范围、大阶段状态、转段依据与历史。
+- `context/state.md`：当前一项、待回答问题与下一问；不重复大阶段总账。
 - `resume/maintenance.md`：各模块与具体经历的维护状态、母版同步和初期完成里程碑。
 - `context/goals.md`：用户已明确的目标、约束与协作偏好；首次履历维护不要求填满。
 - `context/decisions.md`：已经采纳的决定。

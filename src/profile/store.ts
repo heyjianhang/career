@@ -19,7 +19,7 @@ export const groups=[
 ];
 const roots=['context','resume/facts','resume/sources','resume/master'];
 const singles=['resume/questions.md','resume/maintenance.md','resume/master-preview.md'];
-const names:Record<string,string>={'context/INDEX.md':'协作概览','context/state.md':'当前进度','context/goals.md':'求职偏好','context/decisions.md':'已确认的决定','context/feedback.md':'反馈与调整','resume/questions.md':'待补信息','resume/maintenance.md':'资料整理进度','resume/master-preview.md':'完整经历整理','resume/facts/profile.md':'基本资料'};
+const names:Record<string,string>={'context/INDEX.md':'协作概览','context/progress.md':'职业资料阶段进度','context/state.md':'当前进度','context/goals.md':'求职偏好','context/decisions.md':'已确认的决定','context/feedback.md':'反馈与调整','resume/questions.md':'待补信息','resume/maintenance.md':'资料整理进度','resume/master-preview.md':'完整经历整理','resume/facts/profile.md':'基本资料'};
 export type MaterialFile={path:string;title:string;group:string;size:number;modified:string;kind:string};
 const plain=(x:unknown):string=>typeof x==='string'||typeof x==='number'?String(x):'';
 function parse(source:string){

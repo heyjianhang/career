@@ -1,3 +1,5 @@
+import {syncRoutes} from '../workspace/sync-api.js';
+import {SyncScheduler} from '../workspace/sync.js';
 import {WorkspaceManager} from '../workspace/local.js';
 import {workspaceRoutes} from '../workspace/local-api.js';
 import {realpath} from 'node:fs/promises';
@@ -28,6 +30,8 @@ export async function startPreview(directory:string,workspace:string,port=0,live
   const allowedThemes=new Map<string,string[]>();
   for(const [id,dir] of directories){const {manifest}=await loadBuild(dir);allowedThemes.set(id,(manifest.templates??[{id:'classic'},{id:'compact'}]).map(t=>t.id));}
   const token=randomBytes(32).toString('hex');let origin='';let busy=false;
+  const scheduler=new SyncScheduler(workspace);
+  const handleSync=syncRoutes(workspace,token);
   const handleResumes=resumeRoutes(workspace,token,isCollection,live);
   const handleWorkspaces=workspaceRoutes(workspace,manager,token,async target=>{
     if(!manager.sessions.has(target)){
@@ -49,6 +53,7 @@ export async function startPreview(directory:string,workspace:string,port=0,live
     try {
       const url=new URL(req.url??'/',origin),pathname=url.pathname;
       if(await handleWorkspaces(req,res,url,origin))return;
+      if(await handleSync(req,res,url,origin))return;
       if(await profileRequest(req,res,url,workspace))return;
       if(await boardRequest(req,res,url,workspace,origin,token))return;
       if(await handleResumes(req,res,url,origin))return;
@@ -82,12 +87,12 @@ export async function startPreview(directory:string,workspace:string,port=0,live
   await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>resolve());});
   const address=server.address();if(!address||typeof address==='string')throw new Error('启动失败');
   origin='http://127.0.0.1:'+address.port;
-  manager.origins.add(origin);
-  const stop=()=>new Promise<void>((resolve,reject)=>{
+  manager.origins.add(origin);if(live)scheduler.start();
+  const stop=async()=>{await scheduler.stop();return new Promise<void>((resolve,reject)=>{
     // Chromium may leave speculative/keep-alive connections open after its window closes.
     const drain=setTimeout(()=>server.closeAllConnections(),3000);drain.unref();
     server.close(e=>{clearTimeout(drain);e?reject(e):resolve();});
-  });
+  });};
   manager.sessions.set(workspace,Promise.resolve({url:origin,close:stop}));
   return {url:origin,server,close:options.manager?stop:()=>manager.close()};
 }

@@ -18,7 +18,7 @@ description: 安装、初始化或修复 career 个人工作区，完成客户�
 3. 选择仅本机：执行 `sync local` 并继续；不要求注册 GitHub。需要本地版本保存时由 [career-git](../career-git/SKILL.md) 准备 Git。
 4. 选择远程同步：读取 [career-git](../career-git/SKILL.md)，按其首次连接流程逐步引导。Git 尚未跟踪当前目录时也由它完成本地初始化、提交身份与首次提交；不要让用户自己拼 Git 命令。
 5. 已为 connected：按 career-git 先核对远端，再读取最新上下文；已为 local：直接续接，除非用户主动要求启用同步。
-6. 读 `context/INDEX.md`、`context/state.md`、`resume/maintenance.md`，执行用户当前请求。有旧材料先按 [career-intake](../career-intake/SKILL.md) 提取；无材料从一段经历开始。只打开或导出已有成果，直接按 [resume-tailor](../resume-tailor/SKILL.md) 处理，不重走访谈。
+6. 读 `context/INDEX.md`、`context/progress.md`、`context/state.md`、`resume/maintenance.md`，执行用户当前请求。有旧材料先按 [career-intake](../career-intake/SKILL.md) 提取；无材料从一段经历开始。只打开或导出已有成果，直接按 [resume-tailor](../resume-tailor/SKILL.md) 处理，不重走访谈。
 
 首次同步因网络、账号或仓库信息暂未完成时，记录正在等待的事项；用户暂缓同步便继续本地协作，下次按记录续接，不重新要求完整入门流程。
 

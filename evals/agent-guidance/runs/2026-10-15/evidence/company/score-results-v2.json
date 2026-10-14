@@ -1,0 +1,135 @@
+{
+  "ability": {
+    "method": "career-decision-score/v1",
+    "known_score": 37.5,
+    "evidence_coverage": 40,
+    "missing_extremes": {
+      "lower": 15,
+      "upper": 75
+    },
+    "unknown": [
+      "tool-calling",
+      "production-quality",
+      "customer-delivery"
+    ],
+    "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+  },
+  "value": {
+    "method": "career-decision-score/v1",
+    "known_score": 75,
+    "evidence_coverage": 20,
+    "missing_extremes": {
+      "lower": 15,
+      "upper": 95
+    },
+    "unknown": [
+      "actual-product-ownership",
+      "mentoring",
+      "cash-compensation",
+      "business-continuity"
+    ],
+    "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+  },
+  "sensitivity": [
+    {
+      "scenario": "能力：检索权重-10",
+      "method": "career-decision-score/v1",
+      "known_score": 31.82,
+      "evidence_coverage": 31.43,
+      "missing_extremes": {
+        "lower": 10,
+        "upper": 78.57
+      },
+      "unknown": [
+        "tool-calling",
+        "production-quality",
+        "customer-delivery"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    },
+    {
+      "scenario": "能力：检索权重+10",
+      "method": "career-decision-score/v1",
+      "known_score": 41.18,
+      "evidence_coverage": 48.57,
+      "missing_extremes": {
+        "lower": 20,
+        "upper": 71.43
+      },
+      "unknown": [
+        "tool-calling",
+        "production-quality",
+        "customer-delivery"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    },
+    {
+      "scenario": "价值：指导权重-10",
+      "method": "career-decision-score/v1",
+      "known_score": 75,
+      "evidence_coverage": 23.08,
+      "missing_extremes": {
+        "lower": 17.31,
+        "upper": 94.23
+      },
+      "unknown": [
+        "actual-product-ownership",
+        "mentoring",
+        "cash-compensation",
+        "business-continuity"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    },
+    {
+      "scenario": "价值：指导权重+10",
+      "method": "career-decision-score/v1",
+      "known_score": 75,
+      "evidence_coverage": 16.92,
+      "missing_extremes": {
+        "lower": 12.69,
+        "upper": 95.77
+      },
+      "unknown": [
+        "actual-product-ownership",
+        "mentoring",
+        "cash-compensation",
+        "business-continuity"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    },
+    {
+      "scenario": "价值：应用方向与真实产品合计权重-10",
+      "method": "career-decision-score/v1",
+      "known_score": 75,
+      "evidence_coverage": 15,
+      "missing_extremes": {
+        "lower": 11.25,
+        "upper": 96.25
+      },
+      "unknown": [
+        "actual-product-ownership",
+        "mentoring",
+        "cash-compensation",
+        "business-continuity"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    },
+    {
+      "scenario": "价值：应用方向与真实产品合计权重+10",
+      "method": "career-decision-score/v1",
+      "known_score": 75,
+      "evidence_coverage": 25,
+      "missing_extremes": {
+        "lower": 18.75,
+        "upper": 93.75
+      },
+      "unknown": [
+        "actual-product-ownership",
+        "mentoring",
+        "cash-compensation",
+        "business-continuity"
+      ],
+      "limitation": "Arithmetic only; coverage is not reliability, bounds are not confidence intervals. Review evidence, gates and user preferences before recommending."
+    }
+  ]
+}

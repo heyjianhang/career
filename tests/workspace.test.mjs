@@ -30,7 +30,7 @@ const has = (values, pattern) => assert.ok(values.some(value => pattern.test(val
 
 test('new workspace validates; reinitialization preserves edited files byte for byte', async t => {
   const dir = await temp(t);
-  assert.equal((await initialize(dir)).created.length, 11);
+  assert.equal((await initialize(dir)).created.length, 12);
   const profile = path.join(dir, 'resume/facts/profile.md');
   const custom = (await readFile(profile, 'utf8')) + '\n我的自定义内容\n';
   await writeFile(profile, custom);
@@ -42,7 +42,7 @@ test('new workspace validates; reinitialization preserves edited files byte for 
   await writeFile(maintenanceFile, maintenance);
   const result = await initialize(dir);
   assert.equal(result.created.length, 0);
-  assert.equal(result.preserved.length, 11);
+  assert.equal(result.preserved.length, 12);
   assert.equal(await readFile(profile, 'utf8'), custom);
   assert.equal(await readFile(goalsFile, 'utf8'), goals);
   assert.equal(await readFile(maintenanceFile, 'utf8'), maintenance);
@@ -54,7 +54,7 @@ test('legacy workspace gains context without changing its existing resume data',
   await rm(path.join(dir, 'context'), {recursive: true, force: true});
   const original = await readFile(path.join(dir, employmentFile), 'utf8');
   const result = await initialize(dir);
-  assert.equal(result.created.filter(file => file.startsWith('context/')).length, 5);
+  assert.equal(result.created.filter(file => file.startsWith('context/')).length, 6);
   assert.equal(await readFile(path.join(dir, employmentFile), 'utf8'), original);
   assert.deepEqual((await validate(dir)).errors, []);
   assert.doesNotMatch(await readFile(path.join(dir, 'context/INDEX.md'), 'utf8'), /__TODAY__/);
@@ -92,6 +92,26 @@ test('existing resume gains a maintenance ledger without resetting facts, master
   assert.doesNotMatch(ledger, /__TODAY__/);
   // A fresh ledger must not declare existing facts or the whole resume complete.
   assert.doesNotMatch(ledger, /初期维护：已完成|本轮已整理/);
+  assert.deepEqual((await validate(dir)).errors, []);
+});
+
+test('legacy workspace gains stage progress without changing assets or existing conversation, and preserves later edits', async t => {
+  const dir = await temp(t, true);
+  await initialize(dir);
+  const progress = path.join(dir, 'context/progress.md');
+  await rm(progress);
+  const protectedFiles = [employmentFile, 'resume/master/index.md', 'resume/maintenance.md', 'context/state.md', 'context/goals.md'];
+  const originals = await Promise.all(protectedFiles.map(file => readFile(path.join(dir, file), 'utf8')));
+  const result = await initialize(dir);
+  assert.deepEqual(result.created, ['context/progress.md']);
+  for (let i = 0; i < protectedFiles.length; i++) assert.equal(await readFile(path.join(dir, protectedFiles[i]), 'utf8'), originals[i]);
+  const content = await readFile(progress, 'utf8');
+  assert.match(content, /当前大阶段：待核对/);
+  assert.doesNotMatch(content, /__TODAY__/);
+  const edited = content + '\n本轮只整理书店任职；仍待了解现场核对过程。\n';
+  await writeFile(progress, edited);
+  assert.deepEqual((await initialize(dir)).created, []);
+  assert.equal(await readFile(progress, 'utf8'), edited);
   assert.deepEqual((await validate(dir)).errors, []);
 });
 

@@ -1,6 +1,6 @@
 # 当前架构
 
-career 定位为与 Agent 协作的个人求职工作台。开发源码由六个用户 Agent Skills 和一个 npm CLI 组成；已发布 npm 0.2.0 不包含新的 career-board。Skills 提供协作方法，CLI 执行文件校验、版本保存、页面生成、导出和可选同步。模型能力来自用户选择的 Agent 客户端，CLI 不包含模型服务。
+career 定位为与 Agent 协作的个人求职工作台。开发源码由八个用户 Agent Skills 和一个 npm CLI 组成；已发布 npm 0.2.0 不包含新的 career-board。Skills 提供协作方法，CLI 执行文件校验、版本保存、页面生成、导出和可选同步。模型能力来自用户选择的 Agent 客户端，CLI 不包含模型服务。
 
 ## 从源码到个人工作区
 
@@ -27,7 +27,7 @@ flowchart TD
 
 | 路径 | 职责 |
 | --- | --- |
-| `.agents/skills/` | 六个用户 Skills 及其参考和模板；另有不随包安装的维护者 Skill |
+| `.agents/skills/` | 八个用户 Skills 及其参考和模板；另有不随包安装的维护者 Skill |
 | `src/cli.ts` | 真实命令、参数解析和 JSON 结果 |
 | `src/workspace/` | 安装、环境检查、受管指引、本地历史与 GitHub 同步 |
 | `src/agent-api.ts` | 工作区盘点、摘要、内容包校验保存与冲突保护 |
@@ -55,6 +55,6 @@ flowchart TD
 
 ## 资料版本与同步
 
-本地版本使用独立 `main` 仓库。远程连接限用户可写的 GitHub 私人仓库，使用 GitHub CLI 的登录状态；历史保存和上传是独立动作。拉取只允许快进，未保存修改或历史分叉时停止。新会话核对资料版本，不自动升级 npm 工具。
+本地版本使用独立 `main` 仓库。远程连接限用户可写的 GitHub 私人仓库，使用 GitHub CLI 的登录状态。「更新」先保存本地版本，再获取并安全合并远端；「同步」在更新后上传。合并先在临时副本中校验，冲突时保留双方提交与本地正文，暂停同步。自动同步是默认关闭的本机设置；旧 `sync pull` 命令仍只允许快进。新会话核对资料版本，不自动升级 npm 工具。
 
 完整命令以 `npm run career -- --help --json` 为准。岗位协作 CLI 与 Skill 已在源码实现，见[岗位工作区](opportunities.md)。本地看板通过 src/board 接入共享预览服务，复用岗位文件业务层；Markdown、PDF 和图片在本机阅读。平台登录／投递、Word 导出和 JSON v3 迁移尚未实现。后续范围见[路线图](roadmap.md)。

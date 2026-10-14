@@ -30,12 +30,12 @@ export async function workspaceStatus(workspace:string) {
   const config=path.join(workspace,'career.json');
   try {await json(config);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return {workspace,initialized:false,next_reads:[],next_command:'workspace init'};throw error;}
   const validation=await inspectWorkspace(workspace);
-  const reads=['context/INDEX.md','context/state.md','resume/maintenance.md','resume/questions.md','resume/master/index.md','resume/master-preview.md'];
+  const reads=['context/INDEX.md','context/progress.md','context/state.md','resume/maintenance.md','resume/questions.md','resume/master/index.md','resume/master-preview.md'];
   const next_reads:string[]=[],missing_files:string[]=[];
   for(const relative of reads){const file=path.join(workspace,relative);await noSymlinks(file);try{if((await stat(file)).isFile())next_reads.push(file);else missing_files.push(relative);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;missing_files.push(relative);}}
   const presentations=await listPresentations(workspace);
   return {workspace,initialized:true,validation,next_reads,missing_files,presentations,
-    board_command:'career board overview --json',completion:'not_assessed',guidance:'文件数量与结构有效不等于资料完整；读取维护清单和实际正文后判断进度。'};
+    board_command:'career board overview --json',completion:'not_assessed',guidance:'文件数量与结构有效不等于资料完整；读取阶段进度、维护清单和实际正文后判断；缺少进度文件可用 workspace init 补齐后核对。'};
 }
 export async function hashWorkspaceFile(workspace:string,relative:string) {
   if(path.isAbsolute(relative)||relative.includes('\\')||relative.split('/').includes('..')||/^[a-z]+:/i.test(relative))throw new CommandError('INVALID_PATH','--path 必须是工作区内的相对文件路径');

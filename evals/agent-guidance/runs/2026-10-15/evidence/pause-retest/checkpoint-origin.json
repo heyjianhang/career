@@ -1,0 +1,6 @@
+{
+  "source_run": "career-agent-sim-20261015-c",
+  "checkpoint": "assets/turn-3",
+  "kind": "targeted pause transition replay",
+  "difference": "fresh Agent context, installed methods changed; not a statistical A/B test"
+}

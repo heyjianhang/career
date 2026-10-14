@@ -34,7 +34,7 @@ export async function initialize(workspace = defaultWorkspace) {
     const content = await readFile(path.join(projectRoot, '.agents/skills', skill, 'templates', template), 'utf8');
     files.set(dest, content.replaceAll('__TODAY__', today));
   }
-  for (const name of ['INDEX.md', 'goals.md', 'state.md', 'decisions.md', 'feedback.md']) {
+  for (const name of ['INDEX.md', 'goals.md', 'progress.md', 'state.md', 'decisions.md', 'feedback.md']) {
     const content = await readFile(path.join(projectRoot, 'templates/context', name), 'utf8');
     files.set(`context/${name}`, content.replaceAll('__TODAY__', today));
   }
@@ -53,6 +53,6 @@ if (isMain(import.meta.url)) {
     const options = args(process.argv.slice(2), ['--workspace']);
     const result = await initialize(options['--workspace']);
     console.log(`工作区：${result.workspace}\n新建 ${result.created.length} 个文件，保留 ${result.preserved.length} 个已有文件。`);
-    console.log('接下来读取 context/state.md 与 resume/maintenance.md：有材料就继续整理，内容为空时由 Agent 引导逐项维护。');
+    console.log('接下来读取 context/progress.md、context/state.md 与 resume/maintenance.md：先核对阶段和范围，再接着当前一项整理。');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }

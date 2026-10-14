@@ -1,59 +1,50 @@
-# 日常提交与同步规范
+# 日常保存、更新与同步
 
-在个人工作区使用 `npm run career -- <命令> --json`。本地文件、Git 提交和远程同步是三个状态，向用户分别说明。
+桌面工作区使用 `.local/career`（Windows 用 `.local/career.cmd`）；npm 工作区使用 `npm run career --`。以下子命令加 `--json`。正文仍先写文件并校验；Git 保存与同步由 CLI 执行，不每轮拼接 add／commit／pull／push。
 
-## 新会话先核对
+## 开始工作
 
-`onboarding.sync` 为 connected 时，先 `sync status --refresh`，再读取可能被更新的正文。只读状态不等于已经上传。
+读取 `sync overview`，返回本机自动同步设置、最近执行结果及本地版本状态，不联网。
 
-| 实际状态 | 下一步 |
+- 仅本机：继续用户任务，不登录 GitHub，也不因为 Git 缺失阻塞整理。
+- 已连接：`sync update` 后再读最新上下文。它先保存已有修改，再获取、合并远端，**不会上传**。
+- 工作台自动更新刚完成：结合 last_result 与时间，避免重复操作。WORKSPACE_BUSY 时等待已有保存，不删除锁。
+- 网络不可用：说明远端暂未核对，保留本机版本，继续不依赖远端的任务。不能把缓存状态说成最新。
+
+数据更新不会升级程序或 npm 依赖；工具版本仍遵循安装规则。
+
+## 保存节点
+
+一段经历、母版或成品简历完成时，维护正文与进度，`workspace check` 后用 `history save --message "资料：补充项目职责与成果"` 留下有意义的本地版本。无变化不产生空提交，标题不放联系方式等私人详情。
+
+用户要求同步时执行 `sync run`：受管文件校验、自动暂存提交、获取远端、合并、上传由工具完成。无需用户命名提交。重要节点默认问一次是否上传；本轮已有授权直接执行。
+
+## 自动同步
+
+界面：侧栏「云同步」→ 自动同步。等价 CLI：
+
+```sh
+npm run career -- sync preferences --automatic on --interval 5 --json
+npm run career -- sync preferences --automatic off --json
+```
+
+默认关闭，仅存于本机 `.local/sync.json`，恢复到其他设备仍默认关闭。开启表示用户授权此工作区在工作台服务运行期间定期保存并上传受管资料，不再逐次询问。仅一次同步不等于持续授权，Agent 不代替用户开启。
+
+软件或预览服务运行时执行：初次先更新；文件稳定 30 秒再开始；后续按间隔同步。退出软件即停止，不是系统后台服务。断网至少间隔五分钟重试；冲突或异常资料暂停，界面提示原因。手动同步成功恢复自动执行。`sync local` 也会关闭本机自动同步。
+
+## 异常与冲突
+
+| 状态 | 行动 |
 | --- | --- |
-| 远端领先、本地干净、无分叉 | `sync pull` 快进更新，再读最新 context 和用户任务 |
-| 无远端更新 | 直接继续，不重复 pull，也不自动升级 npm 工具 |
-| 有本地未提交修改 | 保留并检查；按已授权任务完成本地保存，再重新判断同步；来源不清的修改先说明 |
-| 本地领先、远端不领先 | 继续工作；用户本轮要求同步或到重要节点时才上传 |
-| 两边都有提交／分叉 | 保留双方历史，对比具体差异；不能强推或 reset 来消除分叉 |
-| 登录、网络或验证失败 | 告知远端未核对，保留本机内容，可继续本地任务 |
+| GIT_IDENTITY_REQUIRED | 云同步中的「版本署名」补名字／邮箱，或 history init；不猜身份、不改全局 |
+| SYNC_CONFLICT | 从 sync overview 的 last_result.details 读取冲突文件和两侧提交；本地版本与远端历史均保留，正文无冲突标记 |
+| SYNC_HISTORY_MISMATCH | 历史不相容；核对是否连错库，不拼接无关历史 |
+| COMMAND_FAILED / DEPENDENCY_MISSING | sync environment 检查 Git、gh 和登录，按实际失败重试，不索取令牌 |
+| WORKSPACE_CHANGED / WORKSPACE_BUSY | 文件正在写入或操作未结束，等待稳定再试 |
+| WORKSPACE_INVALID / REMOTE_CONTENT_REVIEW | 保留原件，按具体结构或异常文件错误修复 |
+| PRIVATE_REPOSITORY_REQUIRED / REMOTE_CHANGED | 核对私人目标与权限，不自动换库 |
+| FILE_TOO_LARGE | 单文件上限 25 MiB，确定缩小或另存，不擅自删除 |
 
-用户只选本机时不访问 GitHub。发现尚未初始化 Git、身份缺失或远端未连接，按[首次连接](first-sync.md)补齐对应部分，不重走已经完成的步骤。
+不同文件的修改可自动合并；需要 Agent 解决冲突时才进入 Git 细节。先核对报错后的两侧提交未变，读取共同祖先及两版文件，保留双方新增信息，无法判断的事实问用户。在隔离目录形成合并提交并校验后带回 main，或在已保存且干净的工作区普通合并、逐文件处理。不能用 ours/theirs 全选、reset --hard、强推、删除历史消除冲突。解决后 `workspace check`、提交并 `sync run`。
 
-## 一个工作单元，一个本地版本
-
-一段经历整理完、初版母版完成、生成一份简历或修正重要事实，先更新正文与 context/state，再检查实际修改和 `workspace check`，执行 `history save --message "<变化说明>"`。普通对话不制造提交，每个回答也无需单独提交。结构有效的阶段成果可以保存，不把待补信息编成完成。
-
-`history save` 会在受管范围内暂存并提交：配置、协作指引、context、resume，以及后续模块使用的 job-search 等目录；无变化不产生空提交。具体范围由当前 CLI 实现决定。不要用 `git add .`、强制添加被忽略文件或提交整个 home 目录来补救。
-
-提交标题用清楚的一行中文，最长 200 字，不放联系方式、薪资等敏感详情。推荐：
-
-- `初始化：建立职业资料库`
-- `资料：补充项目职责与成果`
-- `母版：更新最近一段工作经历`
-- `简历：生成产品岗位版本`
-- `维护：调整资料保存规则`
-
-个人资料只使用 main；不需要功能分支、PR 或开发仓库的发布流程。不 amend 已保存版本，不改写已同步历史。需要纠正就追加新提交。
-
-## 上传的时机
-
-初版母版、成品简历或重要资料更新完成后，默认简要说明本轮变化，并问一次：“已保存在本机，要同步到你的私人仓库吗？”用户明确要求本轮上传时直接执行，不重复确认；有持续授权时按已记录范围执行。用户说稍后或仅本地时尊重选择，不逐条小改动追问。
-
-上传前完成本地提交，再 `sync push`。它会重新核对私人目标、资料结构和远端进度；失败时保留本地版本。成功后可 `sync status --refresh` 验证状态，报告本轮提交和同步结果。当前没有后台常驻同步。
-
-## 常见中断
-
-| CLI 状态 | 处理 |
-| --- | --- |
-| GIT_IDENTITY_REQUIRED | 仅补问提交名字／邮箱，`history init --name … --email …`；不猜身份 |
-| LOCAL_CHANGES | 检查未提交内容，保存已授权范围后重试；未知文件不能随意删除或强制加入 |
-| REMOTE_AHEAD | 本机干净且可快进时 pull，重新校验再执行本轮已授权 push |
-| SYNC_DIVERGED | 读取双方 log/diff；保留两个历史，按范围合并。事实冲突问用户，纯可确认的结构冲突可处理；校验后创建新提交再推送 |
-| FOREIGN_REPOSITORY / BRANCH_MISMATCH | 核对真正的个人目录及 main；不重置上级仓库、不静默改已有分支 |
-| REMOTE_EXISTS / REMOTE_CHANGED | 展示原目标与请求目标差异，确定实际目标后处理；不自动替换 origin |
-| PRIVATE_REPOSITORY_REQUIRED | 说明目标公开或账号无写权限，引导提供正确私人仓库 |
-| UNMANAGED_TRACKED_FILES / REMOTE_CONTENT_REVIEW | 先查受管范围外文件／符号链接；不通过强制 Git 命令绕过，也不直接删除 |
-| FILE_TOO_LARGE | 当前单文件上限 25 MiB。和用户确定保留在本机还是提供较小版本；不擅自删除原件 |
-| WORKSPACE_BUSY / GIT_OPERATION_PENDING | 检查已有操作是否仍在运行，保留锁和未完成状态，不直接清理后重试 |
-
-事实冲突处理完再校验、提交；没有解决的冲突明确留在待办，不声称已同步。`history list` 可看最近版本；需要恢复旧内容时先保留当前改动，按明确范围取回旧文件并新建提交，不倒退或重写远程历史。
-
-工具依赖版本由 package.json 和锁文件固定。数据 pull 不触发升级；用户要求升级时再准备对应版本、运行 `agent install` 并处理自定义文件冲突。
+恢复旧内容时先保留当前资料，按范围取回并追加提交。UI 不需要 Git diff；历史排查可用 history list。`saved:true` 表示新建本地版本，`synced:true` 才表示本次上传成功。

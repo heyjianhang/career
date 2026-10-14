@@ -9,14 +9,20 @@
 桌面版先检查 `.local/desktop-runtime.json`：存在时，macOS 使用 `./.local/career <命令>`，Windows PowerShell 使用 `& .\\.local\\career.cmd <命令>`。后文及 Skills 中的 `npm run career --` 均替换为此入口；无需安装 Node/npm。入口只处理本目录，不能随桌面当前选择切换。入口失效时，在 career 软件重新打开此目录以修复；没有此文件时沿用 npm 入口。
 
 1. 先读本目录 `career.json`，从本目录运行 `npm run career -- doctor --json` 和 `workspace status --json`。首次安装、依赖缺失、同步尚未选择或恢复后的环境准备，读 [career-setup](.agents/skills/career-setup/SKILL.md)，按实际状态继续，不重复初始化。
-2. 用户选择远程同步但尚未建仓或连接，即使本目录还没有 Git 跟踪，也读 [career-git](.agents/skills/career-git/SKILL.md)，由 Agent 引导并执行。onboarding.sync 为 connected 时，按该 Skill 先 `sync status --refresh`，必要时快进 pull 后再读正文；local 则尊重已选本机保存，不重复询问 GitHub。
-3. 读 `context/INDEX.md`、`context/state.md` 和 `resume/maintenance.md`，找到本轮对象；只打开／导出已有成果时直接进入 resume-tailor，不重走访谈。
+2. 用户选择远程同步但尚未建仓或连接，即使本目录还没有 Git 跟踪，也读 [career-git](.agents/skills/career-git/SKILL.md)，由 Agent 引导并执行。onboarding.sync 为 connected 时，按该 Skill 先 `sync overview`，需要更新时 `sync update` 后再读正文；local 则尊重已选本机保存，不重复询问 GitHub。
+3. 读 `context/INDEX.md`、`context/progress.md`、`context/state.md` 和 `resume/maintenance.md`，找到本轮对象及未完成项；按 [引导与推进规则](docs/agent-workflow.md) 确定本轮终点与转段条件。“继续”先续接当前问题。只打开／导出已有成果时直接进入 resume-tailor，不重走访谈。
+
+缺少 progress 等起步文件时用 `workspace init` 补齐后根据实际资料核对阶段；不覆盖已有内容。
+
+经历刚能写成一句简历，不代表已深入整理。逐项维护时先问清本人分工、具体推进过程和实际交付，保留详细事实，再提炼母版。按实际内容判断进展；文件存在或结构校验通过都不能代替内容判断。用户主动跳过或先要草稿时跟随其范围，保留缺口与断点。
 
 ## 按任务使用
 
 - 安装、初始化、依赖或受管入口故障：[career-setup](.agents/skills/career-setup/SKILL.md)。
 - Git 初始化、逐步引导 GitHub 私人仓库、首次提交、日常保存与同步、换机：[career-git](.agents/skills/career-git/SKILL.md)。
 - 收集旧材料、基本信息、照片、教育、工作、项目和能力：[career-intake](.agents/skills/career-intake/SKILL.md)。有材料先读，已有回答先保存，再问影响表达的缺口。照片、个人网页、项目链接可选。
+- 详细整理公司任职、角色权限、职责地图与工作事件：[career-employment](.agents/skills/career-employment/SKILL.md)。
+- 详细整理项目背景、分工、工作线、决策、交付和复盘：[career-project](.agents/skills/career-project/SKILL.md)。按[资产写作方法](docs/career-assets.md)留下长期可复用事实；一项问完不代表本轮全部问完。
 - 首次形成或更新母版：[resume-master](.agents/skills/resume-master/SKILL.md)。事实与团队／个人贡献分清，不能编造收益。
 - 生成或打开简历、平台稿、HTML／PDF：[resume-tailor](.agents/skills/resume-tailor/SKILL.md)。用户要求整套交付时完成到可访问页面。
 
@@ -26,6 +32,8 @@
 
 文件由 Agent 编辑，先读最新内容，再按[数据契约](docs/data-model.md)保存和校验。完成一段经历或其他工作单元时更新进度，按 career-git 保存本地版本；初版母版、成品简历或重要更新完成后，按用户已有授权处理远程同步。提交与同步规则统一在 Git Skill 维护。
 
-资料的稳定 ID、来源、冻结版本与已有手改保持可追溯。源事实变化后实质更新母版与内容包，不为消除校验提示只改摘要。结束时记录实际产物、未完成事项与下一步。
+资料的稳定 ID、来源、冻结版本与已有手改保持可追溯。源事实变化后实质更新母版与内容包，不为消除校验提示只改摘要。结束时记录实际产物、未完成事项与下一步。大阶段在 progress，条目在 maintenance，当前一项与下一问在 state；默认先完成本轮纳入范围的资产整理与核对，再提炼母版，明确快速草稿例外另记原因。
 
 简历卡片是可编辑的统一内容包。网页和 Agent 共用 package.json，修改前用 resume read 读取原包及摘要，保留用户手改；平台稿由工具生成，不重复维护四份。岗位关联用 opportunity resume，历史投递按用户确认后留存。详见 [统一简历包](docs/resume-packages.md)。
+
+日常云同步用 `sync update`（只更新）和 `sync run`（保存、合并、上传），不要每次重写 Git 脚本。`sync overview` 读取本机开关和结果；已启用自动同步时遵从持续授权，否则沿用当轮授权或节点询问。详见 career-git。

@@ -15,6 +15,16 @@
 - [品牌定位](brand.md)：目标用户、产品范围与统一表达。
 - [产品路线图](roadmap.md)：经历与简历、岗位分析、求职跟踪与复盘。
 
+## Agent 引导与方法
+
+- [可视化协作路线图](agent-roadmap.md)：从 Agent 接手到资料整理、简历、岗位与面试，点击阅读真实 Skills。
+- [引导与推进规则](agent-workflow.md)：当前工作单元、转段条件、快速草稿和断点续接；随包安装到用户工作区。
+- [阶段进度模板](../templates/context/progress.md)：本轮范围、六个大阶段、依据与转段历史，初始化时写入个人目录。
+- [职业资产写作](career-assets.md)：详细事实、关键事件、复盘、来源与简历表达的分层。
+- [任职资产 Skill](../.agents/skills/career-employment/SKILL.md)、[项目资产 Skill](../.agents/skills/career-project/SKILL.md)：分别负责深挖与落盘。
+- [方法参考与取舍](agent-method-references.md)：已阅读的公开 Skills、采用方式及尚待行为验证的部分。
+- [Agent 多轮模拟套件](../evals/agent-guidance/README.md)：隐藏用户背景、隔离工作区、逐轮输入与文件证据；[首轮运行报告](../evals/agent-guidance/runs/2026-10-15/report.md)。
+
 ## 开发和贡献
 
 - [贡献指南](../CONTRIBUTING.md)：本地开发与提交前检查。
@@ -39,3 +49,5 @@
 [资源归属决定](decisions/001-resource-ownership.md)说明 Skill 与开发文档的边界；[方法与设计参考](references.md)保留来源与采用范围。当前命令始终以实际 CLI 为准。
 
 - [统一简历包与岗位关联](resume-packages.md)：网页／Agent 共用正文，平台映射、实时编辑和投递快照。
+
+- [Skill 专业方法审阅](expert-methods.md)：公司研究、岗位评分、面试考核与写作的具体判断依据。

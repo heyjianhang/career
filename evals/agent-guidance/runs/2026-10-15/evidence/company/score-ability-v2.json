@@ -1,0 +1,54 @@
+{
+  "criteria": [
+    {
+      "id": "rag-delivery",
+      "weight": 30,
+      "score": 2,
+      "evidence": [
+        "project-rag-internal-pilot#项目职责",
+        "project-rag-internal-pilot#项目成果"
+      ],
+      "reason": "有一次内部试点和文档检索链路的部分实际交付；范围低于独立生产任务，过程尚需核实"
+    },
+    {
+      "id": "tool-calling",
+      "weight": 20,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "project-rag-internal-pilot#项目过程"
+      ],
+      "reason": "JD要求工具调用，但用户应用接入陈述不足以证明已有工具调用交付"
+    },
+    {
+      "id": "production-quality",
+      "weight": 30,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "project-rag-internal-pilot#补充材料"
+      ],
+      "reason": "没有独立生产运维经历已确认，但评测与质量闭环未知；不把运维等同整个生产质量"
+    },
+    {
+      "id": "fine-tuning",
+      "weight": 10,
+      "score": 0,
+      "evidence": [
+        "source-company-assessment-20261015#已明确的信息",
+        "job.md"
+      ],
+      "reason": "用户明确没有训练模型；只是附加经验与参与任务，不将优先项升级为必要条件"
+    },
+    {
+      "id": "customer-delivery",
+      "weight": 10,
+      "score": null,
+      "evidence": [
+        "job.md",
+        "notes.md#第二轮用户补充"
+      ],
+      "reason": "内部试点不能直接证明外部客户需求澄清及验收能力"
+    }
+  ]
+}

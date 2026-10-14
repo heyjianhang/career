@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import {runSync,syncOverview,syncPreferences} from './workspace/sync.js';
+import {syncEnvironment} from './workspace/sync-environment.js';
 import path from 'node:path';
 import {runCompany,capabilities as companyCapabilities,CompanyError} from './integrations/qcc.js';
 import * as resumes from './resumes/store.js';
@@ -55,6 +57,11 @@ const commands = {
   'history.init':{args:'[--name <name>] [--email <email>] [--workspace <dir>]',description:'建立独立 main 仓库；提交身份只设置在当前仓库',options:['workspace','name','email']},
   'history.save':{args:'--message <text> [--workspace <dir>]',description:'校验后创建本地版本，不上传',options:['workspace','message']},
   'history.list':{args:'[--workspace <dir>]',description:'列出最近的本地保存版本',options:['workspace']},
+  'sync.environment':{args:'',description:'检测 Git、GitHub CLI 和登录状态，返回官方安装入口',options:[]},
+  'sync.overview':{args:'[--workspace <dir>]',description:'读取同步状态、本机自动同步设置及最近结果',options:['workspace']},
+  'sync.run':{args:'[--workspace <dir>]',description:'保存资料、合并远端并同步到私人仓库',options:['workspace']},
+  'sync.update':{args:'[--workspace <dir>]',description:'先保留本地版本，再获取并合并远端资料，不上传',options:['workspace']},
+  'sync.preferences':{args:'[--automatic on|off] [--interval <1-60>] [--workspace <dir>]',description:'读取或修改本机自动同步设置；只在工作台服务运行时自动执行',options:['workspace','automatic','interval']},
   'sync.local':{args:'[--workspace <dir>]',description:'记录暂不启用远程同步的选择',options:['workspace']},
   'sync.connect':{args:'--repository <owner/repo> [--create] [--workspace <dir>]',description:'创建或连接有写权限的 GitHub 私人仓库，不推送',options:['workspace','repository','create']},
   'sync.status':{args:'[--refresh] [--workspace <dir>]',description:'检查本地同步状态；refresh 时获取远端',options:['workspace','refresh']},
@@ -109,7 +116,7 @@ try {
     const need=(key:string)=>{if(typeof options[key]!=='string')throw new CommandError('INVALID_ARGUMENT','请提供 --'+key);return options[key] as string;};
     const required:Record<string,string[]>={'workspace.setup':['workspace'],'workspace.restore':['workspace','repository'],'workspace.hash':['path'],'resume.save':['input'],'resume.validate':['input'],'resume.freeze':['version'],'resume.export':['build','format','out'],'runtime.install':['component'],'history.save':['message'],'sync.connect':['repository']};
     for(const key of required[operation]??[])need(key);
-    const workspaceFree=operation.startsWith('company.')||['workspace.doctor','opportunity.schema','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
+    const workspaceFree=operation.startsWith('company.')||operation==='sync.environment'||['workspace.doctor','opportunity.schema','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
     if(['workspace.setup','workspace.restore'].includes(operation))need('workspace');
     const workspace=workspaceFree?(options.workspace?path.resolve(String(options.workspace)):process.cwd()):await discoverWorkspace(options.workspace as string|undefined);
     const theme=options.theme as Theme|undefined;
@@ -152,7 +159,15 @@ try {
       case 'history.init':output(await initHistory(workspace,options.name as string|undefined,options.email as string|undefined));break;
       case 'history.save':output(await saveHistory(workspace,need('message')));break;
       case 'history.list':output(await historyList(workspace));break;
-      case 'sync.local':output(await localOnly(workspace));break;
+      case 'sync.environment':output(await syncEnvironment());break;
+      case 'sync.overview':output(await syncOverview(workspace));break;
+      case 'sync.run':output(await runSync(workspace));break;
+      case 'sync.update':output(await runSync(workspace,'update'));break;
+      case 'sync.preferences':{
+        if(options.automatic!==undefined&&!['on','off'].includes(String(options.automatic)))throw new CommandError('INVALID_ARGUMENT','automatic 只能为 on 或 off');
+        output(await syncPreferences(workspace,options.automatic!==undefined||options.interval!==undefined?{...(options.automatic!==undefined?{automatic:options.automatic==='on'}:{}),...(options.interval!==undefined?{interval_minutes:Number(options.interval)}:{})}:undefined));break;
+      }
+      case 'sync.local':await syncPreferences(workspace,{automatic:false});output(await localOnly(workspace));break;
       case 'sync.connect':output(await connect(workspace,need('repository'),Boolean(options.create)));break;
       case 'sync.status':output(await syncStatus(workspace,Boolean(options.refresh)));break;
       case 'sync.pull':output(await pull(workspace));break;

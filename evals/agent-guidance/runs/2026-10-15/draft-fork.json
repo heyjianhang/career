@@ -1,0 +1,11 @@
+{
+  "from": "assets",
+  "to": "draft",
+  "copied_at": "2026-10-14T17:34:46.580Z",
+  "excluded": [
+    ".git",
+    ".local",
+    "node_modules"
+  ],
+  "reason": "新 Agent 仅从正常工作区文件恢复；不提供上一 Agent 的聊天回放或执行脚本"
+}

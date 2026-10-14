@@ -14,6 +14,11 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  assert.equal(tray.isDestroyed(),false);
  if(process.platform==='win32'){assert.equal(require('electron').Menu.getApplicationMenu(),null);assert.equal(win.isMenuBarVisible(),false);}
  for(const icon of ['icon.png','icon.ico','icon.icns','tray.ico','trayTemplate.png','trayTemplate@2x.png'])await fs.access(path.join(__dirname,'assets',icon));
+ assert.equal(await js(`typeof window.careerDesktop.syncEnvironment`),'function');
+ assert.equal(await js(`typeof window.careerDesktop.syncLogin`),'function');
+ await js(`document.getElementById('restore').click()`);
+ assert.equal(await js(`!document.getElementById('repository-field').hidden&&document.getElementById('repository').required`),true);
+ await capture('restore');await js(`document.getElementById('create-back').click()`);
  await capture('welcome-empty');
  await js(`document.getElementById('new').click();document.getElementById('name').value='面试准备 A';document.getElementById('parent').value=${JSON.stringify(base)};document.getElementById('parent').dispatchEvent(new Event('input'));`);
  assert.equal(await js(`document.getElementById('start').hidden&&!document.getElementById('create').hidden`),true);
@@ -78,5 +83,5 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  assert.equal(await js(`document.getElementById('create').hidden`),true);
  await fs.writeFile(path.join(app.getPath('userData'),'welcome.png'),(await win.webContents.capturePage()).toPNG());
  assert.equal((await state()).recent.length,2);
- return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
 };

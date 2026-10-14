@@ -1,5 +1,7 @@
 # 企查查：从主体确认到公司分析
 
+本文件只负责工具与保存。需要判断公司是否值得加入时，必须结合[公司研究方法](company-research.md)确定问题、选择证据、分析影响；仅取得工商信息不算完成公司分析。
+
 先按工作区 AGENTS 选 CLI 入口。桌面版 macOS 用 `./.local/career`；Windows PowerShell 用 `& .\.local\career.cmd`；npm 工作区用 `npm run career --`。以下命令均加 `--json`。
 
 ## 连接与范围

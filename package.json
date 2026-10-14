@@ -38,6 +38,7 @@
     "test:resumes": "npm run build && node tests/resume-library-browser.mjs",
     "test:profile": "npm run build && node tests/profile-browser.mjs",
     "test:company": "npm run build && node tests/company-browser.mjs",
+    "test:sync": "npm run build && node tests/sync-browser.mjs",
     "test:workspaces": "npm run build && node tests/workspace-settings-browser.mjs",
     "desktop:icons": "node scripts/desktop/icons.mjs",
     "desktop:prepare": "node scripts/desktop/prepare.mjs",
@@ -47,7 +48,9 @@
     "desktop:mac:x64": "npm run desktop:build -- --platform mac --arch x64",
     "desktop:win:x64": "npm run desktop:build -- --platform win --arch x64",
     "desktop:win:arm64": "npm run desktop:build -- --platform win --arch arm64",
-    "desktop:test": "node scripts/desktop/test.mjs"
+    "desktop:test": "node scripts/desktop/test.mjs",
+    "build:agent-roadmap": "node scripts/build-agent-roadmap.mjs",
+    "test:agent-roadmap": "node tests/agent-roadmap-browser.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-sc": "5.3.1",
@@ -83,6 +86,8 @@
     ".agents/skills/career-setup/",
     ".agents/skills/career-git/",
     ".agents/skills/career-intake/",
+    ".agents/skills/career-employment/",
+    ".agents/skills/career-project/",
     ".agents/skills/resume-master/",
     ".agents/skills/resume-tailor/",
     ".agents/skills/career-board/",

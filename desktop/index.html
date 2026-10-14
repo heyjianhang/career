@@ -5,11 +5,11 @@
 <section id="start" aria-labelledby="start-title">
 <h1 id="start-title" tabindex="-1">打开工作区</h1><p class="intro">岗位、简历和经历，保存在自己的文件夹里。</p>
 <section id="recent-section" aria-labelledby="recent-title" hidden><h2 id="recent-title">最近使用</h2><div id="recent"></div></section>
-<div class="entry-actions"><button id="new" class="primary"><span aria-hidden="true">＋</span> 新建工作区</button><button id="open">打开已有文件夹</button></div>
+<div class="entry-actions"><button id="new" class="primary"><span aria-hidden="true">＋</span> 新建工作区</button><button id="open">打开已有文件夹</button></div><button id="restore" class="text">从 Git 仓库恢复 →</button><p id="sync-hint" class="path"></p>
 </section>
 <section id="create" aria-labelledby="create-title" hidden>
 <div class="step-heading"><button id="create-back" class="icon-button" aria-label="返回工作区列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14"/></svg></button><h1 id="create-title" tabindex="-1">新建工作区</h1></div>
-<form id="create-form"><label for="name">名称</label><input id="name" value="我的求职" maxlength="60" required autocomplete="off">
+<div id="restore-environment" hidden></div><form id="create-form"><div id="repository-field" hidden><label for="repository">GitHub 私人仓库地址</label><input id="repository" placeholder="https://github.com/你/私人仓库" autocomplete="off"><p class="path">已有资料会恢复到新文件夹；空仓库会创建新的工作区。</p></div><label for="name">名称</label><input id="name" value="我的求职" maxlength="60" required autocomplete="off">
 <label for="parent">保存位置</label><div class="location"><input id="parent" required autocomplete="off"><button type="button" id="choose">选择…</button></div>
 <p id="destination" class="path destination"></p><div class="form-actions"><button class="primary" id="create-submit" type="submit">创建并继续 <span aria-hidden="true">→</span></button></div></form>
 </section>

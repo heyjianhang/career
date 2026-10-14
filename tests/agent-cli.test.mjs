@@ -43,7 +43,7 @@ test('workspace status is read-only and init/check preserve user data without cl
   const absent=await execute('workspace','status','--workspace',empty);assert.equal(absent.data.initialized,false);await missing(empty);
   const state=path.join(workspace,'context/state.md');await writeFile(state,'# 用户已记录的进度\n不覆盖\n');
   const init=await execute('workspace','init','--workspace',workspace);assert.deepEqual(init.data.created,[]);assert.ok(init.data.preserved.includes('context/state.md'));assert.match(await readFile(state,'utf8'),/不覆盖/);
-  const status=await execute('workspace','status','--workspace',workspace);assert.equal(status.exit,0);assert.equal(status.data.completion,'not_assessed');assert.ok(status.data.next_reads.includes(state));assert.ok(status.data.missing_files.includes('resume/master-preview.md'));assert.equal(status.data.validation.valid,true);
+  const status=await execute('workspace','status','--workspace',workspace);assert.equal(status.exit,0);assert.equal(status.data.completion,'not_assessed');assert.ok(status.data.next_reads.includes(state));assert.ok(status.data.next_reads.includes(path.join(workspace,'context/progress.md')));assert.ok(status.data.missing_files.includes('resume/master-preview.md'));assert.equal(status.data.validation.valid,true);
   const valid=await execute('workspace','check','--workspace',workspace);assert.equal(valid.exit,0);assert.equal(valid.data.valid,true);assert.ok(valid.data.record_count>0);
   await writeFile(path.join(workspace,'resume/facts/profile.md'),'broken record');
   const invalid=await execute('workspace','check','--workspace',workspace);failure(invalid,'workspace.check','WORKSPACE_INVALID');assert.equal(invalid.data.valid,false);

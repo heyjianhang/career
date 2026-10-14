@@ -12,9 +12,9 @@
 
 ## 展示与续接
 
-逐项引导的节奏见 [虚构对话](example-conversation.md)。维护状态在 maintenance.md，问题集中在 questions.md，context/state 只记录当前对象、实际产物和下一步。有来源、能准确表达的经历先生成母版条目，再按索引组合 master-preview.md，给用户看实际正文。
+逐项引导的节奏见 [虚构对话](example-conversation.md)。维护状态在 maintenance.md，问题集中在 questions.md，context/state 记录本轮终点、当前对象、实际产物、下一问与转段条件。大阶段与本轮范围在 context/progress.md；默认全部纳入范围完成资产核对后，再生成母版条目并组合 master-preview.md。用户先要草稿时可以提前提炼已知部分，但事实的未完成状态继续保留；不能把几句简历要点当作全部项目记录。
 
-说“继续”时读取现有进度并核对相关文件，不重复询问已保存的答案。仅要求资料维护时完成母版范围即可；用户已要求生成简历、PDF 或工作台时，母版可用后直接衔接 resume-tailor 的内容包与 CLI 流程，不重新索要资料或要求提供 JD。已有 JD 的定制与平台版本仍由 resume-tailor 承担。
+说“继续”时读取现有进度并核对相关文件，不重复询问已保存的答案。仅要求资料维护时保存详细资产与缺口即可，不默认生成母版；用户已要求生成简历、PDF 或工作台时，母版可用后直接衔接 resume-tailor 的内容包与 CLI 流程，不重新索要资料或要求提供 JD。已有 JD 的定制与平台版本仍由 resume-tailor 承担。
 
 ## 更新规则
 

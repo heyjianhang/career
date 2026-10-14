@@ -1,0 +1,29 @@
+{
+  "extracted_from": "dialogue.txt",
+  "turns": [
+    {
+      "role": "user",
+      "content": "帮我看看看板里澄海数据的算法工程师适不适合，给个有依据的建议。我主要想留杭州做AI应用开发，不接受长期去外地驻场。相关材料已经放进岗位文件夹了。"
+    },
+    {
+      "role": "assistant",
+      "content": "我的建议是：**先保留待核实，暂不作为优先投递的岗位。** 方向有交集，但你的地点底线还没有得到保障。\n\n- **驻场是首要问题。** JD 写杭州，但注明“是否需要驻场面议”；10 月 15 日的 HR 口述仍是“驻场以后再确认”。这既不能证明一定要长期驻场，也不能视为满足你的要求。\n- **工作内容部分符合 AI 应用方向。** 检索、工具调用、上线评估都相关，但还包括微调实验和客户交付，实际比例未知。“训练经验优先”也不等于必须具备训练经验。\n- **能力匹配只能作初步判断。** 你已有的 RAG 内部试点、文档与检索链路经历相关；岗位要求“独立负责生产质量”，而上线评估、工具调用及生产运维的具体经历尚未核实。\n\n公司层面，“融资稳定”只有宣传转述；匿名加班评论指向另一家主体未核实的“澄海科技”；合同主体也未确定。这些材料不足以判断公司经营或团队氛围好坏。\n\n下一步先让招聘方明确：**能否长期在杭州、是否必须异地驻场，以及单次时长和频次。** 若必须长期异地驻场，就不符合你的底线；若能明确满足，再核对研发占比、团队支持和你的生产交付经验。\n\n已写回[公司分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/company.md)和[岗位匹配](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)，依据均来自现有材料。你的四星偏好保留，岗位仍为待评估。"
+    },
+    {
+      "role": "user",
+      "content": "我主要是做 RAG 应用接入，做过一次内部试点，没有训练模型，也没有独立负责生产运维。薪资期望税前 25 到 30K，比较看重有人指导和能做实际产品。能不能给个评分，方便我比较？"
+    },
+    {
+      "role": "assistant",
+      "content": "可以。**当前建议是“待核实、低优先级”**，分项评分如下；这些是已知部分的得分，不能当作完整岗位总分或录用概率。\n\n| 评价 | 已知部分得分 | 证据覆盖 | 未知项取极值后的边界 |\n| --- | ---: | ---: | ---: |\n| 能力匹配 | 37.5/100 | 40% | 15–75 |\n| 机会价值 | 75/100 | 20% | 15–95 |\n\n边界表示未知项分别取最低、最高分时的结果，并非预测区间。\n\n- **能力分怎么来：** RAG 检索交付暂评 2/4，占 30%；训练经验 0/4，占 10%。工具调用、上线质量和客户交付尚缺具体证据。没有独立运维经历，不等于上线评测能力为零；训练也是优先项，不是硬门槛。\n- **价值分怎么来：** JD 的应用任务方向评 3/4，占 20%。你重视的指导安排占 35%、真实产品责任占 20%，都未知；薪酬占 15%、业务持续性占 10%，也待核实。**75 分仅来自任务方向这一项，不能说明整体值得去。**\n\nJD 的 25–35K 与你的税前 25–30K 期望数字有交集，但实际定薪、固定部分和薪数还没确认。更关键的是驻场底线，以及谁指导你、负责哪个产品模块、上线后由谁承担运维责任。\n\n已保存[完整评分依据、权重和敏感性分析](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md)。以后比较岗位时，应把分数与覆盖度一起看；你的原有四星偏好保留。\n\nLocal save result: saved=true, commit=8bcbb252746393559528f44113e09c2741ae2670. Board and workspace checks passed."
+    },
+    {
+      "role": "user",
+      "content": "我刚又问了 HR，对方明确说这个岗位必须去苏州客户现场至少一年，暂时不能改。我不接受这个条件，但卡片和我的四星先留着，之后有变化再看。"
+    },
+    {
+      "role": "assistant",
+      "content": "已更新：**苏州客户现场至少一年、暂不能调整，与你的底线明确冲突。** 我的当前推荐改为 **1/5：条件不适合，暂不推进**。\n\n你的**卡片和四星偏好都保留**。我已把你转述的 HR 答复、决定和依据写入[岗位卡片](/private/tmp/career-agent-sim-20261015-c/workspaces/company/opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md)，后续条件记为：驻场或工作地点发生实质变化后，再重新评估。\n\nLocal version save output:\n\n> career\n> node \"/private/tmp/career-agent-sim-20261015-c/package/dist/cli.js\" history save --message 澄海岗位：记录苏州长期驻场硬冲突并保留用户偏好 --json\n\n{\"schema_version\":\"career-cli/v1\",\"operation\":\"history.save\",\"status\":\"success\",\"data\":{\"saved\":true,\"commit\":\"378be1fa52c51660decc8e34aa30cd33a6eb5d93\",\"ignored_unmanaged\":[],\"next_action\":\"offer_sync_at_milestone\"},\"warnings\":[],\"errors\":[]}"
+    }
+  ]
+}

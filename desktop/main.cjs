@@ -37,7 +37,7 @@ async function openWorkspace(directory){
 }
 async function state(){
  const registry=await manager.readRegistry();
- return {version:app.getVersion(),platform:process.platform,defaultLocation:app.getPath('documents'),recent:await Promise.all(registry.recent.map(async e=>{try{return await manager.entry(e.path);}catch{return {...e,available:false};}}))};
+ return {version:app.getVersion(),platform:process.platform,sync_environment:await core.syncEnvironment.syncEnvironment(false),defaultLocation:app.getPath('documents'),recent:await Promise.all(registry.recent.map(async e=>{try{return await manager.entry(e.path);}catch{return {...e,available:false};}}))};
 }
 function handle(name,fn){ipcMain.handle('career:'+name,async(event,...args)=>{
  if(!ipcTrusted(event))throw new Error('请求不属于 career 主窗口');
@@ -84,12 +84,15 @@ function nativeControls(){
 }
 function setupIPC(){
  handle('state',state);
+ handle('syncEnvironment',()=>core.syncEnvironment.syncEnvironment());
+ handle('syncLogin',()=>core.syncEnvironment.startLogin());
+ handle('syncLoginStatus',()=>core.syncEnvironment.loginStatus());
  handle('companyStatus',()=>company.status());
  handle('companySave',value=>mutate(()=>company.save(value)));
  handle('companyCheck',()=>mutate(()=>company.run({action:'check'})));
  handle('companyRemove',()=>mutate(()=>company.remove()));
  handle('chooseDirectory',async(defaultPath)=>{const result=await dialog.showOpenDialog(win,{title:'选择资料文件夹',defaultPath:typeof defaultPath==='string'?defaultPath:app.getPath('documents'),properties:['openDirectory','createDirectory']});return result.canceled?null:result.filePaths[0];});
- handle('createWorkspace',data=>mutate(async()=>{const entry=await manager.create(data.parent,data.name);return openWorkspace(entry.path);}));
+ handle('createWorkspace',data=>mutate(async()=>{const entry=await manager.create(data.parent,data.name,data.repository);return openWorkspace(entry.path);}));
  handle('openWorkspace',directory=>mutate(()=>openWorkspace(directory)));
  handle('handoff',async()=>{const e=await entryForPage();return {...e,prompt:handoffPrompt(e.path)};});
  handle('copyPrompt',async directory=>{const e=await manager.entry(directory);if(!(await manager.readRegistry()).recent.some(r=>r.id===e.id))throw new Error('工作区尚未打开');clipboard.writeText(handoffPrompt(e.path));return true;});
@@ -112,7 +115,7 @@ async function createWindow(){
 }
 async function start(){
  company=await require('./company.cjs').createCompanyService({app,safeStorage,coreRoot});
- core={setup:await load('workspace/setup.js'),local:await load('workspace/local.js'),io:await load('presentation/io.js'),collection:await load('presentation/collection.js'),server:await load('presentation/server.js')};
+ core={syncEnvironment:await load('workspace/sync-environment.js'),setup:await load('workspace/setup.js'),local:await load('workspace/local.js'),io:await load('presentation/io.js'),collection:await load('presentation/collection.js'),server:await load('presentation/server.js')};
  manager=new core.local.WorkspaceManager(path.join(app.getPath('userData'),'workspaces.json'));manager.prepare=prepare;
  (await load('presentation/pdf.js')).setPdfRenderer(printHtml);
  protocol.handle('career-app',request=>{
@@ -134,7 +137,7 @@ else {
  if(process.platform==='win32')app.setAppUserModelId('top.heyjianhang.career');
  app.on('second-instance',showWindow);app.on('activate',showWindow);
  app.whenReady().then(start).catch(e=>{console.error(e);if(smokeOutput)void fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack})).finally(()=>app.exit(1));else{dialog.showErrorBox('career 启动失败',e.message);app.quit();}});
- const stop=()=>{shutdown??=(async()=>{try{await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
+ const stop=()=>{shutdown??=(async()=>{try{core?.syncEnvironment.stopLogin();await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
  app.on('window-all-closed',stop);
  // Close the window first so its unsaved-edit guard can cancel. Drain services while
  // Electron's normal event loop is still running, before entering the quit sequence.

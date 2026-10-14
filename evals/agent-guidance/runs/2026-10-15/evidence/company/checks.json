@@ -1,0 +1,480 @@
+{
+  "captured_at": "2026-10-14T17:41:08.879Z",
+  "case": "company",
+  "label": "final",
+  "results": {
+    "workspace": {
+      "schema_version": "career-cli/v1",
+      "operation": "workspace.check",
+      "status": "success",
+      "data": {
+        "workspace": "/private/tmp/career-agent-sim-20261015-c/workspaces/company",
+        "valid": true,
+        "record_count": 5,
+        "counts": {
+          "profile": 1,
+          "project": 1,
+          "master-index": 1,
+          "questions": 1,
+          "source": 1
+        },
+        "opportunities": {
+          "as_of": "2026-10-14T17:41:08.470Z",
+          "timezone": "Asia/Shanghai",
+          "today": "2026-10-15",
+          "total": 1,
+          "active": 1,
+          "archived": 0,
+          "upcoming_interviews": [],
+          "stages": [
+            {
+              "id": "inbox",
+              "label": "待评估",
+              "count": 1
+            },
+            {
+              "id": "preparing",
+              "label": "准备投递",
+              "count": 0
+            },
+            {
+              "id": "applied",
+              "label": "已投递",
+              "count": 0
+            },
+            {
+              "id": "interviewing",
+              "label": "面试中",
+              "count": 0
+            },
+            {
+              "id": "offer",
+              "label": "Offer",
+              "count": 0
+            },
+            {
+              "id": "ended",
+              "label": "已结束",
+              "count": 0
+            }
+          ],
+          "cards": [
+            {
+              "id": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "company": "澄海数据",
+              "title": "算法工程师",
+              "stage": "inbox",
+              "resume": null,
+              "submissions": [],
+              "archived": false,
+              "outcome": null,
+              "interviews": [],
+              "user_rating": 4,
+              "recommendation": {
+                "rating": 1,
+                "reason": "2026-10-15 用户转述 HR 明确必须苏州客户现场至少一年且暂不能改；用户不接受长期异地驻场，当前条件存在不可妥协冲突，暂不推进。用户仍要求保留卡片与四星。",
+                "evidence": [
+                  "notes.md：第三轮驻场答复与用户决定（2026-10-15，用户转述 HR）",
+                  "analysis/match.md：当前建议与用户决定、评分前置条件",
+                  "analysis/company.md：当前建议与再次评估条件"
+                ],
+                "assessed_at": "2026-10-15T01:38:00+08:00"
+              },
+              "location": "苏州客户现场至少一年（用户转述 HR；原 JD 写杭州）",
+              "salary": "25–35K（JD 标注；薪数与构成待核实）",
+              "sources": [],
+              "next_action": {
+                "title": "仅在招聘方驻场／工作地条件实质改变时重新评估；当前不推进",
+                "owner": "employer",
+                "due": null
+              },
+              "updated_at": "2026-10-14T17:38:17.374Z",
+              "sha256": "4651d382a775ba8b1206133cd823089c1e33d1c8d92b47ddb737584e764d2da2",
+              "pending_tasks": [],
+              "file_count": 22
+            }
+          ],
+          "pending_tasks": [],
+          "attention": {
+            "waiting_user": [],
+            "overdue": [],
+            "next_actions_due": [],
+            "duplicate_sources": []
+          },
+          "relations": [
+            {
+              "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md",
+              "kind": "document",
+              "target": "analysis/company.md",
+              "label": "公司与岗位条件初筛"
+            },
+            {
+              "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md",
+              "kind": "document",
+              "target": "analysis/match.md",
+              "label": "能力匹配与条件式建议"
+            },
+            {
+              "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-94baeaca-e01f-4a0c-ab39-178b2e12f349.md",
+              "kind": "document",
+              "target": "notes.md",
+              "label": "第三轮用户原话与来源"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-0a208233-182a-4cd9-b4fa-66bac74832be.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-19a7ec23-35b6-4268-878b-7c61c2d104a7.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-2db26053-8d09-4653-a755-810c8a6f7a9b.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-3c83f980-0206-4947-a5ab-c01627425418.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-56e11e30-9de4-408e-94e0-bf8c79bb7c57.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-5a73f3d4-7800-47c5-ae01-787533dfdcaa.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-65d7e547-2484-48e3-b3cb-bbf978ca7b90.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-82557449-fefa-4808-8fdb-909c07a5e45e.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-8b22de5c-9223-4dcd-8596-6a045726d18e.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-94baeaca-e01f-4a0c-ab39-178b2e12f349.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-af719408-fe4e-448b-95ec-d253a186440c.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-b0d93fbe-c5dd-486c-8ea5-534555855e40.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-b2193a12-2694-4dcf-a6dd-e08e2530eb61.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-bd7b3f83-57b0-4f32-ae6f-30216f6e5891.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-cadbfcae-d012-4086-ad27-75e170ea397a.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-da36f819-0726-4c52-b71d-fb7cb1d84e19.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-e8175baa-2a35-4b32-b2d6-dddbd0e87d57.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/company.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/job.md"
+            },
+            {
+              "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+              "kind": "file",
+              "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/notes.md"
+            }
+          ],
+          "issues": [],
+          "empty_message": "",
+          "next_action": "choose_opportunity_then_read_context"
+        }
+      },
+      "warnings": [
+        "resume/facts/profile.md: 尚无来源，不能据此称为已核实"
+      ],
+      "errors": []
+    },
+    "board": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.check",
+      "status": "success",
+      "data": {
+        "valid": true,
+        "total": 1
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "overview": {
+      "schema_version": "career-cli/v1",
+      "operation": "board.overview",
+      "status": "success",
+      "data": {
+        "as_of": "2026-10-14T17:41:08.875Z",
+        "timezone": "Asia/Shanghai",
+        "today": "2026-10-15",
+        "total": 1,
+        "active": 1,
+        "archived": 0,
+        "upcoming_interviews": [],
+        "stages": [
+          {
+            "id": "inbox",
+            "label": "待评估",
+            "count": 1
+          },
+          {
+            "id": "preparing",
+            "label": "准备投递",
+            "count": 0
+          },
+          {
+            "id": "applied",
+            "label": "已投递",
+            "count": 0
+          },
+          {
+            "id": "interviewing",
+            "label": "面试中",
+            "count": 0
+          },
+          {
+            "id": "offer",
+            "label": "Offer",
+            "count": 0
+          },
+          {
+            "id": "ended",
+            "label": "已结束",
+            "count": 0
+          }
+        ],
+        "cards": [
+          {
+            "id": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "company": "澄海数据",
+            "title": "算法工程师",
+            "stage": "inbox",
+            "resume": null,
+            "submissions": [],
+            "archived": false,
+            "outcome": null,
+            "interviews": [],
+            "user_rating": 4,
+            "recommendation": {
+              "rating": 1,
+              "reason": "2026-10-15 用户转述 HR 明确必须苏州客户现场至少一年且暂不能改；用户不接受长期异地驻场，当前条件存在不可妥协冲突，暂不推进。用户仍要求保留卡片与四星。",
+              "evidence": [
+                "notes.md：第三轮驻场答复与用户决定（2026-10-15，用户转述 HR）",
+                "analysis/match.md：当前建议与用户决定、评分前置条件",
+                "analysis/company.md：当前建议与再次评估条件"
+              ],
+              "assessed_at": "2026-10-15T01:38:00+08:00"
+            },
+            "location": "苏州客户现场至少一年（用户转述 HR；原 JD 写杭州）",
+            "salary": "25–35K（JD 标注；薪数与构成待核实）",
+            "sources": [],
+            "next_action": {
+              "title": "仅在招聘方驻场／工作地条件实质改变时重新评估；当前不推进",
+              "owner": "employer",
+              "due": null
+            },
+            "updated_at": "2026-10-14T17:38:17.374Z",
+            "sha256": "4651d382a775ba8b1206133cd823089c1e33d1c8d92b47ddb737584e764d2da2",
+            "pending_tasks": [],
+            "file_count": 22
+          }
+        ],
+        "pending_tasks": [],
+        "attention": {
+          "waiting_user": [],
+          "overdue": [],
+          "next_actions_due": [],
+          "duplicate_sources": []
+        },
+        "relations": [
+          {
+            "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md",
+            "kind": "document",
+            "target": "analysis/company.md",
+            "label": "公司与岗位条件初筛"
+          },
+          {
+            "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md",
+            "kind": "document",
+            "target": "analysis/match.md",
+            "label": "能力匹配与条件式建议"
+          },
+          {
+            "from": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-94baeaca-e01f-4a0c-ab39-178b2e12f349.md",
+            "kind": "document",
+            "target": "notes.md",
+            "label": "第三轮用户原话与来源"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-0a208233-182a-4cd9-b4fa-66bac74832be.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-19a7ec23-35b6-4268-878b-7c61c2d104a7.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-2db26053-8d09-4653-a755-810c8a6f7a9b.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-3c83f980-0206-4947-a5ab-c01627425418.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-56e11e30-9de4-408e-94e0-bf8c79bb7c57.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-5a73f3d4-7800-47c5-ae01-787533dfdcaa.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-65d7e547-2484-48e3-b3cb-bbf978ca7b90.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-82557449-fefa-4808-8fdb-909c07a5e45e.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-8b22de5c-9223-4dcd-8596-6a045726d18e.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-94baeaca-e01f-4a0c-ab39-178b2e12f349.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-af719408-fe4e-448b-95ec-d253a186440c.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-b0d93fbe-c5dd-486c-8ea5-534555855e40.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-b2193a12-2694-4dcf-a6dd-e08e2530eb61.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-bd7b3f83-57b0-4f32-ae6f-30216f6e5891.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-cadbfcae-d012-4086-ad27-75e170ea397a.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-da36f819-0726-4c52-b71d-fb7cb1d84e19.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/activity/event-e8175baa-2a35-4b32-b2d6-dddbd0e87d57.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/company.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/analysis/match.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/card.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/job.md"
+          },
+          {
+            "from": "opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60",
+            "kind": "file",
+            "target": "opportunities/opp-9cb24b4c-1b0c-4c76-ade5-5dbb8f366d60/notes.md"
+          }
+        ],
+        "issues": [],
+        "empty_message": "",
+        "next_action": "choose_opportunity_then_read_context"
+      },
+      "warnings": [],
+      "errors": []
+    }
+  }
+}

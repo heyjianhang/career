@@ -1,0 +1,254 @@
+{
+  "schema": "career-agent-simulation-result/v1",
+  "date": "2026-10-15",
+  "timezone": "Asia/Shanghai",
+  "model": "继承当前会话配置，工具未暴露精确模型 ID",
+  "method": "controlled independent subagents; coordinator is simulated user and reviewer",
+  "baseline_user_turns": 15,
+  "targeted_retest_user_turns": 1,
+  "statistical_pass_rate": null,
+  "cases": [
+    {
+      "id": "assets",
+      "turns": 4,
+      "status": "partial",
+      "passed": [
+        "concrete follow-up",
+        "fact and authority boundaries",
+        "unfinished scope preserved"
+      ],
+      "finding_ids": [
+        "G-01"
+      ],
+      "evidence": [
+        "evidence/assets/dialogue.txt",
+        "evidence/assets/artifacts.txt",
+        "evidence/assets/checks.json"
+      ]
+    },
+    {
+      "id": "company",
+      "turns": 3,
+      "status": "pass_within_scope",
+      "passed": [
+        "entity boundaries",
+        "unknown and coverage handling",
+        "real scoring helper",
+        "hard gate",
+        "user stars and stage preserved"
+      ],
+      "finding_ids": [],
+      "evidence": [
+        "evidence/company/dialogue.txt",
+        "evidence/company/artifacts.txt",
+        "evidence/company/checks.json"
+      ]
+    },
+    {
+      "id": "interview",
+      "turns": 5,
+      "status": "pass_within_scope",
+      "passed": [
+        "adaptive follow-up",
+        "correction retained",
+        "no answer fabrication",
+        "prompt level and unobserved retry retained",
+        "no real interview created"
+      ],
+      "finding_ids": [],
+      "evidence": [
+        "evidence/interview/dialogue.txt",
+        "evidence/interview/artifacts.txt",
+        "evidence/interview/checks.json"
+      ]
+    },
+    {
+      "id": "handoff",
+      "turns": 2,
+      "status": "partial",
+      "passed": [
+        "file-based continuation",
+        "user redirection",
+        "existing IDs and facts retained"
+      ],
+      "finding_ids": [
+        "G-01"
+      ],
+      "note": "Inherited the baseline routing defect; not a separate independent defect.",
+      "evidence": [
+        "evidence/handoff/dialogue.txt",
+        "evidence/handoff/artifacts.txt",
+        "evidence/handoff/checks.json"
+      ]
+    },
+    {
+      "id": "draft",
+      "turns": 1,
+      "status": "pass_with_inherited_finding",
+      "passed": [
+        "readable limited draft",
+        "detailed facts unchanged",
+        "incomplete readiness and scope exception"
+      ],
+      "finding_ids": [
+        "G-01"
+      ],
+      "evidence": [
+        "evidence/draft/dialogue.txt",
+        "evidence/draft/artifacts.txt",
+        "evidence/draft/checks.json"
+      ]
+    },
+    {
+      "id": "pause-retest",
+      "turns": 1,
+      "status": "targeted_pass",
+      "passed": [
+        "current project checkpoint retained",
+        "deferred project not assigned user-chosen priority",
+        "remaining scope not completed"
+      ],
+      "finding_ids": [
+        "G-01"
+      ],
+      "note": "Single transition replay using a fresh agent and rebuilt package; differs from baseline conversational context and excludes Git history.",
+      "evidence": [
+        "evidence/pause-retest/dialogue.txt",
+        "evidence/pause-retest/artifacts.txt",
+        "evidence/pause-retest/checks.json"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "G-01",
+      "severity": "minor",
+      "description": "Deferral inferred as user-confirmed next priority; propagated via saved state.",
+      "baseline_status": "observed",
+      "fix_status": "implemented_locally",
+      "retest_status": "targeted_pass",
+      "full_rerun": false
+    }
+  ],
+  "limits": [
+    "single run per base case",
+    "exact model ID unavailable",
+    "coordinator also judges",
+    "no live company research",
+    "no real installations or network sync",
+    "no PDF or GUI verification",
+    "no general expert-level claim"
+  ],
+  "independent_checkpoints": [
+    {
+      "case": "assets",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "assets",
+      "checkpoint": "initial",
+      "status": "success"
+    },
+    {
+      "case": "assets",
+      "checkpoint": "turn-1",
+      "status": "success"
+    },
+    {
+      "case": "assets",
+      "checkpoint": "turn-2",
+      "status": "success"
+    },
+    {
+      "case": "assets",
+      "checkpoint": "turn-3",
+      "status": "success"
+    },
+    {
+      "case": "company",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "company",
+      "checkpoint": "initial",
+      "status": "success"
+    },
+    {
+      "case": "company",
+      "checkpoint": "turn-1",
+      "status": "success"
+    },
+    {
+      "case": "company",
+      "checkpoint": "turn-2",
+      "status": "success"
+    },
+    {
+      "case": "draft",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "draft",
+      "checkpoint": "initial",
+      "status": "success"
+    },
+    {
+      "case": "handoff",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "handoff",
+      "checkpoint": "initial",
+      "status": "success"
+    },
+    {
+      "case": "handoff",
+      "checkpoint": "turn-1",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "initial",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "turn-1",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "turn-2",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "turn-3",
+      "status": "success"
+    },
+    {
+      "case": "interview",
+      "checkpoint": "turn-4",
+      "status": "success"
+    },
+    {
+      "case": "pause-retest",
+      "checkpoint": "final",
+      "status": "success"
+    },
+    {
+      "case": "pause-retest",
+      "checkpoint": "initial",
+      "status": "success"
+    }
+  ]
+}
