@@ -89,4 +89,16 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 默认生成未签名预览包。对公众分发前需要配置签名并验证安装：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据，产物用于测试。
 
-桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。此版本没有自动更新服务、开机启动或第三方 MCP／招聘 CLI 集成。后续软件升级先采用下载安装包覆盖升级，资料继续保存在原文件夹。
+桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。此版本没有自动更新服务或开机启动；开发源码已接入企查查，招聘平台 CLI 尚未内置。后续软件升级先采用下载安装包覆盖升级，资料继续保存在原文件夹。
+
+## 企查查连接（开发源码）
+
+工作区页面「设置 → 外部服务 → 企查查」支持填写 API Key、保存并测试、测试已存连接与移除。保存前调用官方 company 服务的 tools/list；失败保留原连接。企业查询可能消耗企查查积分，测试连接不调用业务工具。官方说明：<https://agent.qcc.com/guide>。
+
+API Key 通过 Electron safeStorage 加密，密文保存于本机 userData/integrations/qcc.json，权限 0600；不进入工作区、Git、导出或安装资源。macOS 使用系统钥匙串、Windows 使用系统加密；系统安全存储不可用时拒绝保存，不降级明文。移除只清除本机连接，不撤销企查查账号的 Key；换机需重新配置。
+
+桌面绑定 CLI 使用 company status/check/search/inspect/tools，精确参数以 --help 为准。runner 通过管道启动无窗口 Electron helper，由 helper 解锁凭据并调用官方固定 HTTPS 地址；Key 不传给 Agent 或 Node 模式 runner，不出现在进程参数。应用主窗口关闭后仍可运行，无需系统 Node/npm。npm 版 CLI 使用 QCC_API_KEY 环境变量，不读取桌面密文，也不提供明文保存命令。
+
+连接器在 src/integrations/qcc.ts，桌面凭据与桥接在 desktop/company*.cjs。只支持 company 域中列出的查询；不声称覆盖风险／司法／招聘平台。结果保留查询时间、来源和上游正文，Agent 按 career-board 的 references/company.md 衔接已有分析与附件能力。网络失败不自动重试。
+
+测试使用合成凭据和模拟服务响应；npm test 覆盖流式／JSON、认证、额度、限流、超时、协议异常、凭据加密与失败换 Key 保留旧连接。npm run test:company 验证设置页保存／失败换 Key／移除与 320–1180px 布局；desktop:test 验证真实 Electron safeStorage、设置页面和随包 CLI；不会使用开发者的真实账号或工作区。

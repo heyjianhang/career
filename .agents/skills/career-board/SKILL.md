@@ -36,6 +36,10 @@ description: 维护个人求职岗位库、阶段、五星偏好、协作待办�
 
 实际输入、字段和工作流见 [CLI 操作](references/cli.md)；文件所有权与页面契约见 [岗位工作区](../../../docs/opportunities.md)。
 
+## 企业背景查询
+
+用户需要确认招聘公司或分析企业背景时，使用 [企查查查询与写回](references/company.md)。先确认 CLI 能力与本机连接，再锁定企业主体、按需查询，将有来源和时间的结论写回 analysis/company.md。查询不改变岗位阶段和用户评分。
+
 ## 面试按轮接手
 
 - 先读 `interview list --opportunity <id>`；用户指定一轮时读 `interview context --opportunity <id> --round <round-id>`，结合 JD、已有分析、关联简历和前几轮记录。不要把同名轮次当成同一条，用稳定 ID 定位。

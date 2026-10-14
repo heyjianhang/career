@@ -11,6 +11,8 @@ const {boundArguments}=require('./runtime.cjs');
  if(config.schema!=='career-workspace/v1')throw new Error('工作区无效，请在 career 中重新打开。');
  process.chdir(workspace);
  const coreRoot=path.join(__dirname,'runtime/node_modules/@heyjianhang/career');
+ const company=await import(pathToFileURL(path.join(coreRoot,'dist/integrations/qcc.js')));
+ company.setCompanyHandler(async request=>{try{return await require('./company-bridge.cjs').companyRequest(request);}catch(e){throw new company.CompanyError(e.code??'QCC_DESKTOP',e.message);}});
  const pdf=await import(pathToFileURL(path.join(coreRoot,'dist/presentation/pdf.js')));
  pdf.setPdfRenderer(async html=>{
    const temp=await fs.mkdtemp(path.join(os.tmpdir(),'career-pdf-'));

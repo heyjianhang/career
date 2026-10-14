@@ -41,6 +41,29 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  await js(`document.getElementById('toggle-sidebar').click()`);await win.loadURL(win.webContents.getURL());
  await waitFor(`document.getElementById('toggle-sidebar')?.getAttribute('aria-expanded')==='false'`);
  await js(`document.getElementById('toggle-sidebar').click()`);
+ // QCC: real packaged IPC and OS encryption with a synthetic key. No account/network calls.
+ await js(`document.getElementById('open-settings').click()`);
+ await waitFor(`document.querySelector('[data-section="integrations"]')&&!document.querySelector('[data-section="integrations"]').disabled`);
+ await js(`document.querySelector('[data-section="integrations"]').click()`);
+ await waitFor(`document.getElementById('company-key')`);
+ assert.equal(await js(`document.getElementById('company-key').type`),'password');
+ assert.equal((await js(`window.careerDesktop.companyStatus()`)).configured,false);
+ await capture('qcc-settings');
+ const {safeStorage}=require('electron');assert.equal(safeStorage.isEncryptionAvailable(),true);
+ const qccFile=path.join(app.getPath('userData'),'integrations/qcc.json');await fs.mkdir(path.dirname(qccFile),{recursive:true});
+ const syntheticKey='desktop-smoke-key-not-real';
+ await fs.writeFile(qccFile,JSON.stringify({schema:'career-qcc-credential/v1',ciphertext:safeStorage.encryptString(syntheticKey).toString('base64'),saved_at:new Date().toISOString()}),{mode:0o600});
+ assert.ok(!(await fs.readFile(qccFile,'utf8')).includes(syntheticKey));
+ assert.equal((await js(`window.careerDesktop.companyStatus()`)).configured,true);
+ const companyStatus=cli(['company','status','--json']);assert.equal(companyStatus.status,0,companyStatus.stderr);assert.equal(JSON.parse(companyStatus.stdout).data.configured,true);assert.ok(!companyStatus.stdout.includes(syntheticKey));
+ // Exercise decryption through the same desktop service with a stub transport only.
+ const companyService=await require('./company.cjs').createCompanyService({app,safeStorage,coreRoot,clientFactory:key=>({run:async request=>{assert.equal(key,syntheticKey);assert.equal(request.action,'check');return {connected:true};}})});
+ assert.equal((await companyService.run({action:'check'})).connected,true);
+ await js(`document.querySelector('[data-section="integrations"]').click()`);await waitFor(`document.getElementById('company-remove')`);
+ await capture('qcc-connected');await js(`document.getElementById('company-remove').click()`);await waitFor(`document.getElementById('company-feedback')?.textContent==='已移除本机连接。'`);
+ assert.equal((await js(`window.careerDesktop.companyStatus()`)).configured,false);
+ const companyMissing=cli(['company','inspect','--company','合成企业','--json']);assert.equal(companyMissing.status,1);assert.equal(JSON.parse(companyMissing.stderr).errors[0].code,'QCC_NOT_CONFIGURED');
+ await js(`document.getElementById('settings-close').click()`);
  const h=await win.webContents.executeJavaScript('window.careerDesktop.handoff()');assert.equal(h.path,first.path);
  await fs.writeFile(path.join(app.getPath('userData'),'workbench.png'),(await win.webContents.capturePage()).toPNG());
  const pdf=await printHtml('<!doctype html><meta charset="utf-8"><style>@page{size:A4;margin:20mm}</style><h1>career 简历导出验证</h1><a href="https://example.com/project">项目链接</a>');
@@ -55,5 +78,5 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  assert.equal(await js(`document.getElementById('create').hidden`),true);
  await fs.writeFile(path.join(app.getPath('userData'),'welcome.png'),(await win.webContents.capturePage()).toPNG());
  assert.equal((await state()).recent.length,2);
- return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
 };

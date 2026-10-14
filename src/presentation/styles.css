@@ -41,3 +41,5 @@ dialog{border:1px solid var(--line);border-radius:11px;padding:0;color:var(--ink
 
 .settings-modal .button{height:40px;min-height:40px;font-size:13px;padding:0 14px}
 .desktop-handoff-prompt{width:100%;min-height:190px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:8px;background:#f7f8f3;color:var(--ink);font-family:inherit;font-size:13px;line-height:1.8}
+
+.company-heading{display:flex;gap:12px;align-items:center;margin-bottom:12px}.company-heading h3{margin:0}.company-help{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.company-help a{color:var(--green);text-decoration:underline}.company-actions{flex-wrap:wrap}.company-note{padding-top:18px;border-top:1px solid var(--line);margin-top:20px}.company-feedback{min-height:22px;margin-top:14px;color:var(--green)}

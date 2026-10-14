@@ -20,7 +20,7 @@
 - 首次形成或更新母版：[resume-master](.agents/skills/resume-master/SKILL.md)。事实与团队／个人贡献分清，不能编造收益。
 - 生成或打开简历、平台稿、HTML／PDF：[resume-tailor](.agents/skills/resume-tailor/SKILL.md)。用户要求整套交付时完成到可访问页面。
 
-- 收集岗位、查看求职进度、岗位分析、协作待办或接手某个机会：[career-board](.agents/skills/career-board/SKILL.md)。先 board overview，再 opportunity context，按需读取岗位文件。
+- 收集岗位、查看求职进度、岗位分析、协作待办或接手某个机会：[career-board](.agents/skills/career-board/SKILL.md)。先 board overview，再 opportunity context，按需读取岗位文件。查询公司背景时按该 Skill 的企查查参考使用 company 命令；Key 由本机配置提供，不写入工作区。
 
 ## 保存与续接
 

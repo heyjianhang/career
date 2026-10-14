@@ -1,4 +1,4 @@
-const {app,BrowserWindow,Menu,Tray,nativeImage,ipcMain,dialog,clipboard,shell,protocol,net}=require('electron');
+const {app,BrowserWindow,Menu,Tray,nativeImage,ipcMain,dialog,clipboard,shell,protocol,net,safeStorage}=require('electron');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
@@ -9,7 +9,7 @@ protocol.registerSchemesAsPrivileged([{scheme:'career-app',privileges:{standard:
 if(process.env.CAREER_DESKTOP_USER_DATA)app.setPath('userData',path.resolve(process.env.CAREER_DESKTOP_USER_DATA));
 const smokeIndex=process.argv.indexOf('--career-smoke');
 const smokeOutput=smokeIndex>=0?process.argv[smokeIndex+1]:null;
-let win,tray,manager,core,quitting=false,working=false,shutdown;
+let win,tray,manager,core,quitting=false,working=false,shutdown,company;
 const assets=path.join(__dirname,'assets');
 const coreRoot=path.join(__dirname,'runtime/node_modules/@heyjianhang/career');
 const load=relative=>import(pathToFileURL(path.join(coreRoot,'dist',relative)));
@@ -84,6 +84,10 @@ function nativeControls(){
 }
 function setupIPC(){
  handle('state',state);
+ handle('companyStatus',()=>company.status());
+ handle('companySave',value=>mutate(()=>company.save(value)));
+ handle('companyCheck',()=>mutate(()=>company.run({action:'check'})));
+ handle('companyRemove',()=>mutate(()=>company.remove()));
  handle('chooseDirectory',async(defaultPath)=>{const result=await dialog.showOpenDialog(win,{title:'选择资料文件夹',defaultPath:typeof defaultPath==='string'?defaultPath:app.getPath('documents'),properties:['openDirectory','createDirectory']});return result.canceled?null:result.filePaths[0];});
  handle('createWorkspace',data=>mutate(async()=>{const entry=await manager.create(data.parent,data.name);return openWorkspace(entry.path);}));
  handle('openWorkspace',directory=>mutate(()=>openWorkspace(directory)));
@@ -107,6 +111,7 @@ async function createWindow(){
  await win.loadURL(welcome);if(!smokeOutput)win.show();
 }
 async function start(){
+ company=await require('./company.cjs').createCompanyService({app,safeStorage,coreRoot});
  core={setup:await load('workspace/setup.js'),local:await load('workspace/local.js'),io:await load('presentation/io.js'),collection:await load('presentation/collection.js'),server:await load('presentation/server.js')};
  manager=new core.local.WorkspaceManager(path.join(app.getPath('userData'),'workspaces.json'));manager.prepare=prepare;
  (await load('presentation/pdf.js')).setPdfRenderer(printHtml);
@@ -122,7 +127,8 @@ async function start(){
   catch(e){await fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack}));app.exit(1);}
  }
 }
-if(process.argv.includes('--career-print'))require('./pdf-worker.cjs');
+if(process.argv.includes('--career-company'))require('./company-worker.cjs');
+else if(process.argv.includes('--career-print'))require('./pdf-worker.cjs');
 else if(!app.requestSingleInstanceLock())app.quit();
 else {
  if(process.platform==='win32')app.setAppUserModelId('top.heyjianhang.career');

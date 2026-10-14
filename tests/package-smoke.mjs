@@ -12,6 +12,7 @@ const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-package-')
 // A fresh npm ci cache may have tarballs without registry metadata.
 // Let npm resolve missing metadata as a first-time installation would.
 const env={...process.env,GIT_TERMINAL_PROMPT:'0',CAREER_LOCAL_SETTINGS:path.join(dir,'local-settings.json')};
+delete env.QCC_API_KEY;
 const run=async(file,args,cwd=root)=>(await exec(file,args,{cwd,env,maxBuffer:8*1024*1024,timeout:300_000})).stdout;
 const npm=(args,cwd=root)=>run(process.execPath,[process.env.npm_execpath,...args],cwd);
 const jsonCommand=async(cli,cwd,args)=>{
@@ -21,7 +22,7 @@ const jsonCommand=async(cli,cwd,args)=>{
 try{
  const [packed]=JSON.parse(await npm(['pack','--json','--pack-destination',dir]));
  const names=packed.files.map(f=>f.path);
- for(const file of ['dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
+ for(const file of ['dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
  const userSkills=['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
@@ -47,6 +48,9 @@ try{
  const cli=path.join(workspace,'node_modules/@heyjianhang/career/dist/cli.js');
  const command=(...args)=>jsonCommand(cli,workspace,args);
  assert.equal((await command('doctor')).tool_matches,true);
+ assert.equal((await command('company','status')).configured,false);
+ assert.equal((await command('company','tools')).sections.registration.tool,'get_company_registration_info');
+ assert.match(await readFile(path.join(workspace,'.agents/skills/career-board/references/company.md'),'utf8'),/company inspect/);
  assert.equal((await command('workspace','check')).valid,true);
  assert.equal((await command('resume','themes')).length,14);
  assert.equal((await command('board','overview')).total,0);

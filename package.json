@@ -37,6 +37,7 @@
     "test:board": "npm run build && node tests/board-browser.mjs",
     "test:resumes": "npm run build && node tests/resume-library-browser.mjs",
     "test:profile": "npm run build && node tests/profile-browser.mjs",
+    "test:company": "npm run build && node tests/company-browser.mjs",
     "test:workspaces": "npm run build && node tests/workspace-settings-browser.mjs",
     "desktop:icons": "node scripts/desktop/icons.mjs",
     "desktop:prepare": "node scripts/desktop/prepare.mjs",

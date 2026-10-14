@@ -127,3 +127,13 @@ Agent 写文件后自动刷新，保留阅读位置，慢请求不会覆盖新�
 93 项 Node 测试、文档与合成样例检查、工作区浏览器回归通过。桌面验证覆盖无系统 Node/npm 的 CLI、目录绑定与隔离、Skills、受限页面桥接、Agent 交接以及原生／CLI PDF。构建和复验方式见 [桌面说明](desktop.md)。
 
 用户已确认分步启动页：最近使用和入口、独立新建表单、Agent 引导三个状态，打开已有目录直接进入工作台。桌面首次进入工作区侧栏默认展开，同目录内手动选择保留，窄窗口自动收起。新增 Mac／Windows 托盘菜单及各尺寸图标；字标修正为整体居中。Windows 不显示原生菜单栏，Mac 保留系统菜单。关闭窗口沿用退出行为，托盘“隐藏窗口”可暂时隐藏而保留内容。构建与最新验收记录见 design-qa.md。
+
+## 企查查集成（2026-10-14，本地源码，未发布）
+
+新增 company status/tools/check/search/inspect：连接状态、能力发现、官方工具目录校验、企业主体搜索，以及工商、简介、直接股东、主要人员、工商变更、年报、实控人查询。直接调用企查查官方 company MCP，不依赖额外 qcc CLI 或新增生产依赖。返回来源、查询时间、参数和上游数据；不自动写岗位或评分。BOSS 与小红书未内置。
+
+桌面设置新增“外部服务 → 企查查”，支持保存并测试、更换、测试及移除；更换验证失败保留旧 Key。凭据使用系统安全存储加密到 userData/integrations/qcc.json，工作区、Git 和 Agent 回执不包含 Key。随包 CLI 通过独立无窗口 Electron helper 使用密钥，避免 Electron Node 模式缺少 safeStorage 的限制。npm CLI 通过 QCC_API_KEY 环境变量使用。详情见 [桌面说明](desktop.md)。
+
+career-board 新增 references/company.md，指引多候选主体确认、按需查询、错误处理、分析写回及可选原始附件；工作区 AGENTS 路由同步。两份数据对象仍独立，不另建公司数据库。
+
+本机验证：98 项 Node 测试通过；Skill 校验、文档及安装资源引用通过。真实 npm 归档（417 文件）安装后验证 company 命令和查询指引。企查查设置页覆盖保存／更换失败／移除、密码清空与 320–1180px 布局；截图 .cache/company-review。实际 macOS arm64 打包应用通过系统加密、设置 IPC、随包 helper、无系统 Node/npm CLI 和现有 PDF 等回归，隔离合成工作区。官方接口单次无效合成 Key 测试正确返回 QCC_AUTH。未用真实用户 Key 做本轮正向查询；此前独立企查查验证不能代替新集成的账号验收。Windows 代码入口已接入，尚待 Windows 实机／CI 验证。没有修改版本、推送或发布。

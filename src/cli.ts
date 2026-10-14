@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import {runCompany,capabilities as companyCapabilities,CompanyError} from './integrations/qcc.js';
 import * as resumes from './resumes/store.js';
 import * as opportunities from './opportunities/store.js';
 import {spawn} from 'node:child_process';
@@ -16,6 +17,11 @@ import {SetupError,installPdf} from './workspace/process.js';
 import type {Theme,Platform} from './presentation/types.js';
 
 const commands = {
+  'company.status':{args:'',description:'查看企查查配置状态，不联网、不返回密钥',options:['workspace']},
+  'company.tools':{args:'',description:'列出企业查询类别和官方来源，不联网',options:['workspace']},
+  'company.check':{args:'',description:'验证企查查连接，仅读取工具目录，不执行企业查询',options:['workspace']},
+  'company.search':{args:'--query <企业名称或简称>',description:'搜索企业主体；多候选由用户确认，查询可能消耗企查查积分',options:['workspace','query']},
+  'company.inspect':{args:'--company <公司全称或信用代码> [--section <类别>]',description:'查询企业信息，默认 registration；类别见 company tools',options:['workspace','company','section']},
 "resume.create":{"args": "--title <name> [--from <resume-id>]", "description": "创建空白简历包或复制为可编辑简历；旧原件保留", "options": ["workspace", "title", "from"]},
 "resume.read":{"args": "--id <resume-id>", "description": "读取完整简历包及 SHA-256，网页与 Agent 共用", "options": ["workspace", "id"]},
 "resume.relations":{"args": "--id <resume-id>", "description": "查看引用这份简历的岗位和投递历史", "options": ["workspace", "id"]},
@@ -103,12 +109,17 @@ try {
     const need=(key:string)=>{if(typeof options[key]!=='string')throw new CommandError('INVALID_ARGUMENT','请提供 --'+key);return options[key] as string;};
     const required:Record<string,string[]>={'workspace.setup':['workspace'],'workspace.restore':['workspace','repository'],'workspace.hash':['path'],'resume.save':['input'],'resume.validate':['input'],'resume.freeze':['version'],'resume.export':['build','format','out'],'runtime.install':['component'],'history.save':['message'],'sync.connect':['repository']};
     for(const key of required[operation]??[])need(key);
-    const workspaceFree=['workspace.doctor','opportunity.schema','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
+    const workspaceFree=operation.startsWith('company.')||['workspace.doctor','opportunity.schema','resume.schema','resume.platforms','resume.themes','resume.export','runtime.install'].includes(operation);
     if(['workspace.setup','workspace.restore'].includes(operation))need('workspace');
     const workspace=workspaceFree?(options.workspace?path.resolve(String(options.workspace)):process.cwd()):await discoverWorkspace(options.workspace as string|undefined);
     const theme=options.theme as Theme|undefined;
     if(theme&&operation!=='resume.export'&&!themes.includes(theme))throw new CommandError('INVALID_ARGUMENT','未知样式：'+theme);
     switch(operation) {
+      case 'company.tools':output(companyCapabilities());break;
+      case 'company.status':output(await runCompany({action:'status'}));break;
+      case 'company.check':output(await runCompany({action:'check'}));break;
+      case 'company.search':output(await runCompany({action:'search',query:need('query')}));break;
+      case 'company.inspect':output(await runCompany({action:'inspect',query:need('company'),section:options.section as string|undefined}));break;
       case 'resume.create':output(await resumes.createResume(workspace,need('title'),options.from as string|undefined));break;
       case 'resume.read':output(await resumes.readResume(workspace,need('id')));break;
       case 'resume.relations':output(await resumes.resumeRelations(workspace,need('id')));break;
@@ -203,4 +214,4 @@ try {
       }
     }
   }
-}catch(error){const e=error as Error;output(null,[],[{code:error instanceof CommandError||error instanceof SetupError?error.code:operation.startsWith('workspace.')?'WORKSPACE_ERROR':/^(board|opportunity|interview|task)\./.test(operation)?'OPPORTUNITY_ERROR':'PRESENTATION_ERROR',message:e.message,...((error instanceof CommandError||error instanceof SetupError)&&error.details?{details:error.details}:{})}]);}
+}catch(error){const e=error as Error;output(null,[],[{code:error instanceof CompanyError?error.code:error instanceof CommandError||error instanceof SetupError?error.code:operation.startsWith('workspace.')?'WORKSPACE_ERROR':/^(board|opportunity|interview|task)\./.test(operation)?'OPPORTUNITY_ERROR':'PRESENTATION_ERROR',message:e.message,...((error instanceof CommandError||error instanceof SetupError)&&error.details?{details:error.details}:{})}]);}
