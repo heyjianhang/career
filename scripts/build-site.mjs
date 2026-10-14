@@ -3,6 +3,7 @@ import {readFile, writeFile, mkdir, copyFile, rm, readdir} from 'node:fs/promise
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {readBootstrap} from './bootstrap.mjs';
+import {renderDownloads} from './site-downloads.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 export const output=path.join(root,'build/site');
@@ -11,9 +12,11 @@ const escapeHtml=text=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').repla
 
 export async function buildSite(){
   const {pkg,prompt,guide,index}=await readBootstrap();
+  const downloads=JSON.parse(await readFile(path.join(root,'site/downloads.json'),'utf8'));
   let html=await readFile(path.join(root,'site/index.html'),'utf8');
   assert.equal(html.split('{{BOOTSTRAP_PROMPT}}').length,2,'Portal must contain exactly one prompt placeholder');
-  html=html.replace('{{BOOTSTRAP_PROMPT}}',escapeHtml(prompt)).replaceAll('{{VERSION}}',escapeHtml(pkg.version));
+  html=html.replace('{{BOOTSTRAP_PROMPT}}',escapeHtml(prompt));
+  for(const [key,value] of Object.entries(renderDownloads(downloads)))html=html.replaceAll(`{{${key}}}`,value);
   assert.ok(!html.includes('{{'),'Unresolved portal placeholder');
   // Only these public inputs may enter the hosting artifact. Never publish the repository root.
   await rm(output,{recursive:true,force:true});
@@ -30,6 +33,6 @@ export async function buildSite(){
     if(ref.startsWith('#')||ref.startsWith('https://'))continue;
     assert.ok(publicFiles.includes(ref),`Missing public asset: ${ref}`);
   }
-  return {directory:output,version:pkg.version,files:actual,prompt:'from README'};
+  return {directory:output,npmVersion:pkg.version,desktopVersion:downloads.version,files:actual,prompt:'from README'};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))console.log(JSON.stringify(await buildSite(),null,2));

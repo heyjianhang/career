@@ -1,0 +1,10 @@
+{
+  "version": null,
+  "tag": null,
+  "assets": {
+    "mac-arm64": null,
+    "mac-x64": null,
+    "win-x64": null,
+    "win-arm64": null
+  }
+}

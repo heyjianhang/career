@@ -4,25 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>career · 与 Agent 协作的个人求职工作台</title>
-  <meta name="description" content="把经历，写成下一步。与 Agent 一起整理经历、维护简历母版、选择排版并导出 PDF。复制一句指令，从自己的个人求职工作区开始。">
+  <meta name="description" content="下载 career 桌面版，与 Agent 一起整理经历、准备简历、管理求职看板。资料保存在自己的工作区，支持 macOS 和 Windows。">
   <meta name="theme-color" content="#f5f6f0">
   <link rel="describedby" href="llms.txt">
   <meta property="og:title" content="career · 把经历，写成下一步。">
-  <meta property="og:description" content="与 Agent 协作的个人求职工作台。从一段经历，到一份准备好的简历。">
+  <meta property="og:description" content="与 Agent 协作的个人求职工作台。下载桌面版，从简历准备到岗位跟踪。">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#start">跳转到开始指令</a>
+  <a class="skip-link" href="#start">跳转到下载</a>
   <header class="site-header">
     <div class="container nav">
       <a class="wordmark" href="#" aria-label="career 首页">career<span>.</span></a>
       <nav aria-label="主导航">
         <a href="#look">看看效果</a>
         <a href="https://github.com/heyjianhang/career" class="github-link">GitHub <span aria-hidden="true">↗</span></a>
-        <a href="#start" class="button button-small">开始使用 <span aria-hidden="true">↗</span></a>
+        <a href="#start" class="button button-small">下载桌面版 <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
   </header>
@@ -32,25 +32,82 @@
         <p class="eyebrow"><span class="dot" aria-hidden="true"></span> 与 Agent 协作的个人求职工作台</p>
         <h1 id="hero-title">把经历，<br>写成<span class="next-step">下一步<span aria-hidden="true">。</span></span></h1>
         <p class="intro">从旧简历、项目材料，或一段对话开始。<br class="desktop-break">和 Agent 一起理清经历，准备下一次机会。</p>
-        <div class="hero-links"><a href="#look">先看看生成的简历 <span aria-hidden="true">↓</span></a></div>
+        <div class="hero-links"><a href="#look">先看看效果 <span aria-hidden="true">↓</span></a></div>
       </div>
-      <div class="start-card" id="start">
-        <div class="start-heading"><span class="step-number">01 — 开始协作</span><span class="version">v{{VERSION}}</span></div>
-        <h2>复制，发给你的 Agent。</h2>
-        <pre id="prompt" class="prompt" tabindex="0" aria-label="发给 Agent 的开始指令">{{BOOTSTRAP_PROMPT}}</pre>
-        <button type="button" id="copy" class="button copy-button">
-          <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          <span>复制开始指令</span><span aria-hidden="true" class="copy-arrow">↗</span>
-        </button>
-        <p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
-        <noscript><p>选择上方全部文字，复制后发给 Agent 即可。</p></noscript>
+      <div class="start-card download-card" id="start">
+        <div class="start-heading"><span class="step-number">CAREER DESKTOP</span><span class="version">{{DESKTOP_RELEASE}}</span></div>
+        <h2>先安装，再开始。</h2>
+        <p>简历、岗位和资料，都在自己的工作区。</p>
+        <!-- Platform icons: Bootstrap Icons (MIT).
+The MIT License (MIT)
+
+Copyright (c) 2019-2024 The Bootstrap Authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+        -->
+        <div class="download-platforms" aria-label="选择适合电脑的安装包">
+          <details class="download-picker" name="download-platform">
+            <summary aria-label="下载 macOS，选择架构"><svg class="platform-logo" aria-hidden="true" viewBox="0 0 16 16">
+  <path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/>
+  <path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/>
+</svg><span>macOS</span><svg class="picker-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="download-menu">
+              <div class="download-menu-heading">选择芯片架构 <span>DMG</span></div>
+              <div class="download-options">{{MAC_DOWNLOADS}}</div>
+              <p class="platform-help">M 系列芯片选 Apple Silicon，其他选 Intel。</p>
+            </div>
+          </details>
+          <details class="download-picker" name="download-platform">
+            <summary aria-label="下载 Windows，选择架构"><svg class="platform-logo" aria-hidden="true" viewBox="0 0 16 16">
+  <path d="M6.555 1.375 0 2.237v5.45h6.555zM0 13.795l6.555.933V8.313H0zm7.278-5.4.026 6.378L16 16V8.395zM16 0 7.33 1.244v6.414H16z"/>
+</svg><span>Windows</span><svg class="picker-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="download-menu">
+              <div class="download-menu-heading">选择处理器架构 <span>EXE</span></div>
+              <div class="download-options">{{WINDOWS_DOWNLOADS}}</div>
+              <p class="platform-help">多数电脑选 x64，ARM 设备选 ARM64。</p>
+            </div>
+          </details>
+        </div>
+        <div class="download-footer"><span>{{DOWNLOAD_STATUS}}</span><a class="text-link" href="{{RELEASE_URL}}">{{RELEASE_LABEL}} <span aria-hidden="true">↗</span></a></div>
+        <a class="alternative-link" href="#agent-install">通过 Agent 安装 <span aria-hidden="true">↓</span></a>
       </div>
     </section>
 
-    <section class="journey container" aria-label="开始后会发生什么">
-      <div><span>01</span><h2>聊聊你的经历</h2><p>有旧材料就先读，没有就从一段经历开始。</p></div>
-      <div><span>02</span><h2>整理成简历母版</h2><p>保留事实和来源，为不同机会选择合适的表达。</p></div>
-      <div><span>03</span><h2>选个样式，准备出发</h2><p>预览、导出 PDF，再复制各平台需要的填写稿。</p></div>
+    <section class="journey container" aria-label="开始使用的三个步骤">
+      <div><span>01</span><h2>安装 career</h2><p>选择适合电脑的安装包，安装后打开软件。</p></div>
+      <div><span>02</span><h2>创建自己的工作区</h2><p>选一个资料保存位置，简历和岗位都放在这里。</p></div>
+      <div><span>03</span><h2>连接你的 Agent</h2><p>复制软件中的指令，在 Agent 中打开工作区，开始协作。</p></div>
+    </section>
+
+    <section class="agent-install container" id="agent-install" aria-label="其他安装方式">
+      <details>
+        <summary>习惯直接与 Agent 协作？<span class="agent-summary-note">通过 Agent 安装</span><span aria-hidden="true">+</span></summary>
+        <div class="agent-install-body">
+          <div><h2>复制，发给你的 Agent。</h2><p>Agent 会引导你安装 npm CLI，并创建个人工作区。这是独立的命令行安装方式。</p><p>已安装桌面版？直接使用软件里的「复制给 Agent」，无需再次安装。</p></div>
+          <div class="agent-prompt">
+            <pre id="prompt" class="prompt" tabindex="0" aria-label="发给 Agent 的安装指令">{{BOOTSTRAP_PROMPT}}</pre>
+            <button type="button" id="copy" class="button copy-button button-secondary"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>复制安装指令</span></button>
+            <p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
+            <noscript><p>选择上方全部文字，复制后发给 Agent。</p></noscript>
+          </div>
+        </div>
+      </details>
     </section>
 
     <section class="showcase" id="look" aria-labelledby="look-title">
@@ -69,26 +126,26 @@
         <div class="product-preview">
           <div class="preview-toolbar"><div class="preview-switch" role="group" aria-label="切换产品截图"><button type="button" data-preview="workspace" aria-pressed="true">简历工作台</button><button type="button" data-preview="styles" aria-pressed="false">排版样式</button></div><button class="icon-button" id="expand" type="button" aria-label="放大产品截图"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg></button></div>
           <button type="button" id="preview-image-button" class="preview-image-button" aria-label="放大简历工作台截图"><img id="preview-image" src="assets/workspace.jpg" alt="career 简历工作台，展示分页简历、照片、项目链接和导出按钮；内容为虚构示例" width="1440" height="1080" loading="lazy"></button>
-          <p class="image-caption">实际产品截图 · 使用虚构资料演示</p>
         </div>
       </div>
     </section>
 
     <section class="future container" aria-labelledby="future-title">
-      <div><p class="eyebrow">从简历开始，贯穿一次求职</p><h2 id="future-title">下一步，继续和你一起。</h2></div>
-      <div class="future-copy"><p>career 正从经历整理与简历准备，逐步走向岗位分析、求职进展跟踪与复盘。</p><a class="text-link" href="https://github.com/heyjianhang/career/blob/main/docs/roadmap.md">看看后续规划 <span aria-hidden="true">↗</span></a></div>
+      <div><p class="eyebrow">从简历开始，贯穿一次求职</p><h2 id="future-title">不止简历，也记住每一次机会。</h2></div>
+      <div class="future-copy"><p>在桌面版的求职看板中整理岗位，把公司分析、匹配判断和每轮面试记录放在一起。换一次对话，也能和 Agent 接着上次继续。</p><a class="text-link" href="https://github.com/heyjianhang/career/blob/main/docs/roadmap.md">了解后续规划 <span aria-hidden="true">↗</span></a></div>
     </section>
 
     <section class="faq container" aria-labelledby="faq-title">
       <div><p class="eyebrow">开始之前</p><h2 id="faq-title">你可能还想知道</h2><p>剩下的，交给 Agent 一步步引导。</p></div>
       <div class="faq-list">
-        <details><summary>我不会写代码，也能使用吗？<span aria-hidden="true">+</span></summary><p>可以。把上面的一句指令发给 Agent，它会先和你确定保存位置，再安装工具。完成后，在 Agent 软件中打开新建的 career-workspace 文件夹，新建对话并发送它给出的开始指令，就能开始整理经历。</p></details>
+        <details><summary>我不会写代码，也能使用吗？<span aria-hidden="true">+</span></summary><p>可以。安装桌面版后，在软件里创建或打开工作区，再按提示连接自己的 Agent。桌面版已包含运行环境，无需单独安装 Node.js 或 npm。</p></details>
+        <details><summary>软件自带 AI 吗？<span aria-hidden="true">+</span></summary><p>career 提供工作区、工具和协作指引，搭配你自己的 Agent 客户端使用。Agent 需要能读写本地文件、运行命令；模型服务由该客户端提供。</p></details>
         <details><summary>需要先准备完整的简历吗？<span aria-hidden="true">+</span></summary><p>不需要。有旧简历或项目材料就交给 Agent，没有也可以从一段工作、项目或学习经历开始。简历照片、个人网页和项目链接都可以之后再补充。</p></details>
-        <details><summary>我的资料会存在哪里？<span aria-hidden="true">+</span></summary><p>资料默认保存在你选定位置下的 career-workspace 文件夹中。可以只在本机保存，也可以让 Agent 引导连接自己的 GitHub 私人仓库，方便备份和换机继续。你使用的 Agent 如何处理对话与文件，由该客户端的设置和条款决定。</p></details>
-        <details><summary>现在可以直接投递和跟踪岗位吗？<span aria-hidden="true">+</span></summary><p>当前可以整理经历、维护简历母版、生成不同版本、选择排版、导出文件和准备平台填写稿。岗位分析与求职跟踪仍在规划中，目前不包含自动填表或自动投递。</p></details>
+        <details><summary>我的资料会存在哪里？<span aria-hidden="true">+</span></summary><p>资料保存在你创建工作区时选择的本地文件夹中。可以只在本机保存，也可以让 Agent 引导连接自己的 GitHub 私人仓库，方便备份和换机继续。你使用的 Agent 如何处理对话与文件，由该客户端的设置和条款决定。</p></details>
+        <details><summary>能管理岗位和面试进度吗？<span aria-hidden="true">+</span></summary><p>桌面版可以用看板跟踪岗位阶段，关联简历，保存公司分析和每轮面试记录。你可以和 Agent 一起整理材料、准备面试，实际沟通与投递由你完成。npm 0.2.0 主要提供简历能力，暂不包含看板。</p></details>
       </div>
     </section>
-    <div class="closing container"><span class="closing-dot" aria-hidden="true">✳</span><p>下一步，就从你的第一段经历开始。</p><a class="button" href="#start">开始使用 career <span aria-hidden="true">↗</span></a></div>
+    <div class="closing container"><span class="closing-dot" aria-hidden="true">✳</span><p>下一步，就从你的第一段经历开始。</p><a class="button" href="#start">下载 career <span aria-hidden="true">↗</span></a></div>
   </main>
   <footer class="container footer"><a class="wordmark" href="#">career<span>.</span></a><span>与 Agent 协作的个人求职工作台</span><div><a href="https://github.com/heyjianhang/career">GitHub ↗</a><a href="https://github.com/heyjianhang/career/blob/main/LICENSE">MIT 开源协议</a></div></footer>
   <dialog id="image-dialog" aria-label="产品截图预览"><div class="dialog-bar"><span id="dialog-title">简历工作台</span><button class="icon-button" id="close-preview" type="button" aria-label="关闭截图预览">×</button></div><img id="dialog-image" src="assets/workspace.jpg" alt="简历工作台截图" width="1440" height="1080"></dialog>

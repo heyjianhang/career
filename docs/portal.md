@@ -1,6 +1,6 @@
 # 门户页面与托管
 
-门户让访客了解 career、复制一句安装指令，再与自己的 Agent 协作。页面不收集履历，不连接个人资料目录，也不提供在线 Agent 会话。
+门户以桌面安装包为主要入口：下载安装、创建个人工作区，再连接自己的 Agent。npm CLI 的复制指令保留在折叠的「通过 Agent 安装」中。页面不收集履历，不连接个人资料目录，也不提供在线 Agent 会话。
 
 ## 本地开发
 
@@ -19,6 +19,23 @@ node scripts/build-site.mjs
 ```
 
 产物固定为 `build/site/` 的十个公开文件：index.html、style.css、app.js、favicon.svg、404.html、robots.txt、install.md、llms.txt，以及两张合成产品截图。构建采用明确文件清单；只把该目录交给托管服务，不能上传仓库根目录、个人 workspace 或本机配置。门户不在 npm 的 files 白名单内。
+
+## 桌面下载入口
+
+首页只展示并排的 macOS（苹果图标）和 Windows 下载入口，点击后下拉选择架构；菜单支持键盘、Esc、点击外部关闭，未发布架构在菜单内标为准备中。图标使用随仓库依赖的 Bootstrap Icons，MIT 声明保留在 HTML 中。
+
+下载入口只读取 [site/downloads.json](../site/downloads.json)，不读取 npm 版本，也不会根据 desktop/package.json 的本地候选版本猜测下载地址。`version`、`tag` 描述已公开的桌面 Release；四个 assets 分别对应 mac-arm64、mac-x64、win-x64、win-arm64，填写该 Release 中已验证的完整 GitHub 下载 URL。未发布的架构保留 null。
+
+全部地址为空时，版本和 tag 也保持 null；页面显示「预览版准备中」，按钮不可下载，发布进度链接指向仓库 Releases。某个架构已发布后，对应按钮才启用；可以分平台开放，不要求四个产物同时可用。alpha/beta 等版本明确标为预览版。门户版本独立于 npm 0.2.0，旧命令行入口仍指向实际已发布的 npm 版本。
+
+更新下载的顺序：
+
+1. 按桌面发布流程构建、安装验收并公开 GitHub Release，记录源码 SHA、版本和 SHA-256。
+2. 确认 Release 不是草稿，匿名访问下载 URL 成功；核对文件名、系统、架构和校验值。Actions 的临时 artifact 不作为公众下载地址。
+3. 将真实版本、标签与 URL 写入 downloads.json，运行 `node --test tests/portal.test.mjs`、`npm run build:site` 和 `npm run check:docs`。
+4. 在本机预览检查启用的下载链接、未发布架构、窄屏及备用复制入口；按授权提交／部署，再核对线上链接。
+
+`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前 GitHub 尚无公开桌面 Release，下载布局先在本地准备，不能报告已开放下载。
 
 ## 腾讯 EdgeOne Pages / Makers
 

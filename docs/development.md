@@ -31,7 +31,7 @@ npm run test:templates
 
 ## 门户页面
 
-公开入口源码位于 `site/`。`npm run preview:site` 构建并启动本机预览，`npm run build:site` 只输出批准的静态文件到 `build/site/`，无须加载私人工作区。开始指令从 README 提取；详细命令由根目录 install.md 维护，llms.txt 导航。scripts/bootstrap.mjs 校验短入口和安装版本。腾讯配置、域名接入和验收记录见[门户与托管](portal.md)。
+公开入口源码位于 `site/`。`npm run preview:site` 构建并启动本机预览，`npm run build:site` 只输出批准的静态文件到 `build/site/`，无须加载私人工作区。桌面下载从 site/downloads.json 读取已公开的安装包地址，未发布的架构保持不可下载；备用开始指令从 README 提取；详细命令由根目录 install.md 维护，llms.txt 导航。scripts/bootstrap.mjs 校验短入口和安装版本。腾讯配置、域名接入和验收记录见[门户与托管](portal.md)。
 
 ## 文件归属
 

@@ -1,3 +1,33 @@
+const downloadPickers = [...document.querySelectorAll('.download-picker')];
+function closeDownloadPickers(except) {
+  for (const picker of downloadPickers) if (picker !== except) picker.open = false;
+}
+for (const picker of downloadPickers) {
+  picker.addEventListener('toggle', () => { if (picker.open) closeDownloadPickers(picker); });
+  picker.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && picker.open) {
+      event.preventDefault();
+      picker.open = false;
+      picker.querySelector('summary').focus();
+    }
+  });
+  picker.addEventListener('focusout', () => {
+    requestAnimationFrame(() => { if (!picker.contains(document.activeElement)) picker.open = false; });
+  });
+  picker.addEventListener('click', event => {
+    if (event.target.closest('a.download-option')) picker.open = false;
+  });
+}
+document.addEventListener('click', event => {
+  closeDownloadPickers(event.target.closest('.download-picker'));
+});
+
+// Keep the alternative installer closed until explicitly requested.
+document.querySelector('.alternative-link').addEventListener('click', () => {
+  document.querySelector('#agent-install details').open = true;
+});
+if (location.hash === '#agent-install') document.querySelector('#agent-install details').open = true;
+
 const prompt = document.querySelector('#prompt');
 const copy = document.querySelector('#copy');
 const status = document.querySelector('#copy-status');
@@ -6,7 +36,7 @@ copy.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(prompt.textContent);
     status.textContent = '已复制，粘贴给你的 Agent 就可以开始。';
-    copy.querySelector('span').textContent = '已复制开始指令';
+    copy.querySelector('span').textContent = '已复制安装指令';
   } catch {
     prompt.focus();
     const range = document.createRange();
