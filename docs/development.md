@@ -87,7 +87,7 @@ npm pack
 
 `test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、八个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；package.json 与资源构建脚本都只包含八个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。运行所需的合成内容包保留，`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
+包采用 files 白名单；package.json 与资源构建脚本都只包含八个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。合成内容包只留在开发仓库，测试时显式导入，不安装到用户目录；`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
 
 2026-10-15 的 macOS / Node 26 本地验证覆盖 114 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、安全合并、冲突保留、离线保存及自动同步时机；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。此前三平台 Node 22 CI 已通过 60 项测试；新提交的矩阵以对应 Actions 结果为准。浏览器／PDF 不在这套 CI 矩阵内。
 

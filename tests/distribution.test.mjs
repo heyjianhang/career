@@ -17,7 +17,11 @@ const fails=(code)=>e=>e.code===code;
 const currentPackage=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 
 test('setup gives complete next reads, local dependency pin and non-destructive retry',async t=>{
- const {workspace}=await fixture(t);const config=JSON.parse(await readFile(path.join(workspace,'career.json')));assert.equal(config.onboarding.sync,'undecided');assert.equal(config.tool.name,'@heyjianhang/career');
+ const {workspace}=await fixture(t);
+ assert.equal(await stat(path.join(workspace,'examples')).catch(()=>null),null);
+ assert.equal((await execute(workspace,'resume','list')).data.entries.length,0);
+ assert.equal((await execute(workspace,'board','overview')).data.total,0);
+ const config=JSON.parse(await readFile(path.join(workspace,'career.json')));assert.equal(config.onboarding.sync,'undecided');assert.equal(config.tool.name,'@heyjianhang/career');
  const packageData=JSON.parse(await readFile(path.join(workspace,'package.json')));assert.equal(packageData.private,true);assert.equal(packageData.dependencies[currentPackage.name],currentPackage.version);
  const readme=await readFile(path.join(workspace,'AGENTS.md'),'utf8');assert.match(readme,/大节点|重要更新/);assert.match(readme,/sync overview/);assert.match(readme,/sync update/);
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);

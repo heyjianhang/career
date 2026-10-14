@@ -29,7 +29,7 @@ try{
   const included=[...new Set(names.filter(name=>name.startsWith(prefix)).map(name=>name.slice(prefix.length).split('/')[0]))].sort();
   assert.deepEqual(included,[...userSkills].sort(),'Only user Skills belong in the npm package');
  }
- assert.ok(!names.some(f=>/^(workspace|src|tests|research|\.cache|node_modules|outputs)\//.test(f)),'private and development material must stay outside the package');
+ assert.ok(!names.some(f=>/^(workspace|src|tests|research|examples|resources\/workspace\/examples|\.cache|node_modules|outputs)\//.test(f)),'private and development material must stay outside the package');
  const archive=path.join(dir,packed.filename),bootstrap=path.join(dir,'bootstrap');
  await npm(['install','--prefix',bootstrap,'--ignore-scripts','--no-audit','--no-fund',archive]);
  const bootstrapCli=path.join(bootstrap,'node_modules/@heyjianhang/career/dist/cli.js');
@@ -68,6 +68,8 @@ try{
  assert.ok((await stat(path.join(workspace,'docs/career-assets.md'))).isFile());
  assert.equal((await command('resume','themes')).length,14);
  assert.equal((await command('board','overview')).total,0);
+ assert.equal((await command('resume','list')).entries.length,0);
+ assert.ok(!(await stat(path.join(workspace,'examples')).catch(()=>null)),'No demonstration files in a new workspace');
  const spec=await command('opportunity','schema');
  const input=path.join(dir,'opportunity.json');
  await writeFile(input,JSON.stringify(spec.examples.create));
@@ -112,7 +114,9 @@ try{
   const worker=await fetch(new URL('/board-assets/pdf/pdf.worker.mjs',base));assert.equal(worker.status,200);assert.ok((await worker.text()).length>1000);
  }finally{preview.kill();await new Promise(resolve=>{if(preview.exitCode!==null)resolve();else preview.once('exit',resolve);});}
  await command('sync','local');
- await command('resume','save','--input',path.join(workspace,'examples/presentation/package.json'));
+ const legacyFixture=path.join(dir,'legacy-fixture.json');
+ await writeFile(legacyFixture,await readFile(path.join(root,'examples/presentation/package.json')));
+ await command('resume','save','--input',legacyFixture);
  const built=await command('resume','build','--collection');
  assert.ok((await stat(path.join(built.directory,'index.html'))).isFile());
  await command('history','init','--name','Career Package Test','--email','package-test@example.invalid');

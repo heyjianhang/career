@@ -11,8 +11,6 @@ for(const name of ['career-setup','career-git','career-intake','career-employmen
  await cp('.agents/skills/'+name,out+'/.agents/skills/'+name,{recursive:true});
 }
 await cp('schemas',out+'/schemas',{recursive:true});
-await mkdir(out+'/examples/presentation',{recursive:true});
-await cp('examples/presentation/package.json',out+'/examples/presentation/package.json');
 for(const file of ['data-model.md','context-protocol.md','agent-workflow.md','career-assets.md','installation.md','opportunities.md','resume-packages.md']){
  let text=await readFile('docs/'+file,'utf8');
  if(file==='context-protocol.md')text=text.replace(/^.*\]\((?:context\.md|decisions\/)\).*\n/gm,'');

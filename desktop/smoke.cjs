@@ -30,10 +30,18 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  const first=await manager.entry(path.join(base,'面试准备 A')),second=await manager.create(base,'另一份 B');
  const a=await openWorkspace(first.path),b=await openWorkspace(second.path);assert.notEqual(a.url,b.url);
  for(const file of ['AGENTS.md','.agents/skills/career-setup/SKILL.md','.agents/skills/career-board/SKILL.md','.local/career','.local/career.cmd'])await fs.access(path.join(first.path,file));
- for(const skill of ['career-setup','career-git','career-intake','resume-master','resume-tailor','career-board'])await fs.access(path.join(first.path,'.agents/skills',skill,'SKILL.md'));
+ for(const skill of ['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board'])await fs.access(path.join(first.path,'.agents/skills',skill,'SKILL.md'));
  const cli=args=>{const result=spawnSync(process.execPath,[path.join(__dirname,'runner.cjs'),'--workspace',first.path,...args],{encoding:'utf8',env:{...process.env,ELECTRON_RUN_AS_NODE:'1',PATH:process.platform==='win32'?path.join(process.env.SystemRoot,'System32'):'/usr/bin:/bin'},cwd:second.path,timeout:60000});if(result.error)throw result.error;return result;};
  const doctor=cli(['doctor','--json']);assert.equal(doctor.status,0,doctor.stderr);assert.equal(JSON.parse(doctor.stdout).data.workspace,first.path);
  const wrong=cli(['resume','create','--title','不能写入 B','--workspace',second.path,'--json']);assert.notEqual(wrong.status,0);
+ for(const workspace of [first.path,second.path]){
+  assert.equal(await fs.stat(path.join(workspace,'examples')).catch(()=>null),null);
+  for(const folder of ['resume/presentations','resume/versions','opportunities'])assert.deepEqual(await fs.readdir(path.join(workspace,folder)).catch(e=>{if(e.code==='ENOENT')return [];throw e;}),[]);
+ }
+ for(const session of [a,b]){
+  assert.equal((await(await fetch(new URL('/api/library/list',session.url))).json()).entries.length,0);
+  assert.equal((await(await fetch(new URL('/api/board/overview',session.url))).json()).total,0);
+ }
  const create=cli(['resume','create','--title','本机验证简历','--json']);assert.equal(create.status,0,create.stderr);
  const resumes=await import(pathToFileURL(path.join(coreRoot,'dist/resumes/store.js')));
  assert.equal((await resumes.library(second.path)).entries.length,0);
@@ -83,5 +91,5 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  assert.equal(await js(`document.getElementById('create').hidden`),true);
  await fs.writeFile(path.join(app.getPath('userData'),'welcome.png'),(await win.webContents.capturePage()).toPNG());
  assert.equal((await state()).recent.length,2);
- return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','six Skills','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','eight Skills and empty initial resume/job libraries without demonstration files','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
 };

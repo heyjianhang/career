@@ -11,6 +11,9 @@ for(let i=0;i<args.length;i++){if(args[i]==='--dir')options.dir=true;else if(['-
 if(!['mac','win'].includes(options.platform))throw new Error('安装包支持 mac / win；请在对应操作系统上构建。');
 if((options.platform==='mac'&&process.platform!=='darwin')||(options.platform==='win'&&process.platform!=='win32'))throw new Error('请在目标操作系统上构建安装包，或运行 GitHub Actions 桌面构建工作流。');
 if(!['arm64','x64','all'].includes(options.arch))throw new Error('架构必须是 arm64、x64 或 all');
+// electron-builder 26.15.3 may choose an ARM64 7z filter unsupported by NSIS.
+// Use the compatible BCJ filter for both Windows targets (upstream issue #9983).
+if(options.platform==='win')process.env.ELECTRON_BUILDER_7Z_FILTER??='BCJ';
 await prepare();
 const electronVersion=JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).devDependencies.electron;
 const architectures=options.arch==='all'?[Arch.arm64,Arch.x64]:[Arch[options.arch]];

@@ -93,7 +93,6 @@
     ".agents/skills/career-board/",
     "templates/context/",
     "schemas/",
-    "examples/presentation/package.json",
     "docs/installation.md"
   ],
   "publishConfig": {

@@ -10,10 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: macos-latest, platform: mac, arch: arm64}
-          - {os: macos-latest, platform: mac, arch: x64}
-          - {os: windows-latest, platform: win, arch: x64}
-          - {os: windows-latest, platform: win, arch: arm64}
+          - {os: macos-15, platform: mac, arch: arm64, app: release/desktop/mac-arm64/career.app/Contents/MacOS/career}
+          - {os: macos-15-intel, platform: mac, arch: x64, app: release/desktop/mac/career.app/Contents/MacOS/career}
+          - {os: windows-latest, platform: win, arch: x64, app: release/desktop/win-unpacked/career.exe}
+          - {os: windows-11-arm, platform: win, arch: arm64, app: release/desktop/win-arm64-unpacked/career.exe}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     steps:
@@ -27,8 +27,19 @@ jobs:
       - run: npm run check:docs
       - name: Build installer (no publishing)
         run: npm run desktop:build -- --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
-      - name: Test desktop on runner's native architecture
-        run: npm run desktop:test
+      - name: Test the packaged desktop on its native architecture
+        run: npm run desktop:test -- --app "${{ matrix.app }}"
+      - name: Preserve synthetic smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-smoke-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            .cache/desktop-test-*/report.json
+            .cache/desktop-test-*/*.png
+          if-no-files-found: ignore
+          include-hidden-files: true
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: career-${{ matrix.platform }}-${{ matrix.arch }}

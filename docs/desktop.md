@@ -5,7 +5,7 @@
 ## 使用流程
 
 1. 安装并启动 career，创建工作区：填写显示名称、选择保存位置。软件会在该位置新建同名普通文件夹；也可以打开已有 career 工作区。
-2. 工作区已具备 AGENTS.md、八个用户 Skills、资料结构和 CLI 入口。点击「复制给 Agent」，在 Agent 软件中打开该文件夹并新建对话。
+2. 新工作区没有预置简历、岗位或演示文件；只具备空的资料结构、引导文档及工具。工作区已具备 AGENTS.md、八个用户 Skills、资料结构和 CLI 入口。点击「复制给 Agent」，在 Agent 软件中打开该文件夹并新建对话。
 3. Agent 读取指引、检查状态，继续选择本地保存／私人仓库同步，然后收集经历或接着已有进度。无需重新安装 Node、npm 或 career 包。
 4. 平时直接打开 career。设置里可以切换工作区、重命名显示名称，再次复制 Agent 指令；工作区菜单也可回到启动页。
 
@@ -85,7 +85,7 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 # Windows 示例：release/desktop/win-unpacked/career.exe
 ```
 
-桌面测试用独立合成目录，覆盖 CLI 在缺少系统 Node/npm 的 PATH 下执行、目录绑定、两个工作区隔离、随包 Skills、页面沙箱、Agent 交接、原生和 CLI 的 PDF 导出。证据和截图在 `.cache/desktop-test-*/`。CI 的运行验证使用 runner 原生架构；交叉架构产物仍需对应机器安装验收，不能把构建成功当成已通过目标设备测试。
+桌面测试用独立合成目录，覆盖 CLI 在缺少系统 Node/npm 的 PATH 下执行、目录绑定、两个工作区隔离、随包 Skills、页面沙箱、Agent 交接、原生和 CLI 的 PDF 导出。证据和截图在 `.cache/desktop-test-*/`。CI 的四个任务使用 macOS ARM64／Intel、Windows ARM64／x64 原生 runner，通过 --app 检查刚构建出的应用并保留合成报告；不以开发 Electron 代替产物。安装器交互与系统拦截提示仍需人工安装验收，不能把构建成功当成已完成安装测试。
 
 默认生成未签名预览包。对公众分发前需要配置签名并验证安装：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据，产物用于测试。
 
@@ -97,8 +97,10 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 API Key 通过 Electron safeStorage 加密，密文保存于本机 userData/integrations/qcc.json，权限 0600；不进入工作区、Git、导出或安装资源。macOS 使用系统钥匙串、Windows 使用系统加密；系统安全存储不可用时拒绝保存，不降级明文。移除只清除本机连接，不撤销企查查账号的 Key；换机需重新配置。
 
-桌面绑定 CLI 使用 company status/check/search/inspect/tools，精确参数以 --help 为准。runner 通过管道启动无窗口 Electron helper，由 helper 解锁凭据并调用官方固定 HTTPS 地址；Key 不传给 Agent 或 Node 模式 runner，不出现在进程参数。应用主窗口关闭后仍可运行，无需系统 Node/npm。npm 版 CLI 使用 QCC_API_KEY 环境变量，不读取桌面密文，也不提供明文保存命令。
+桌面绑定 CLI 使用 company status/check/search/inspect/tools，精确参数以 --help 为准。runner 通过独立临时目录与无窗口 Electron helper 交换有大小限制的请求／结果，结束或失败后清理；不依赖 Windows GUI 进程的标准输入输出。runner 启动 helper，由 helper 解锁凭据并调用官方固定 HTTPS 地址；Key 不传给 Agent 或 Node 模式 runner，不进入临时交换文件或进程参数。应用主窗口关闭后仍可运行，无需系统 Node/npm。npm 版 CLI 使用 QCC_API_KEY 环境变量，不读取桌面密文，也不提供明文保存命令。
 
 连接器在 src/integrations/qcc.ts，桌面凭据与桥接在 desktop/company*.cjs。只支持 company 域中列出的查询；不声称覆盖风险／司法／招聘平台。结果保留查询时间、来源和上游正文，Agent 按 career-board 的 references/company.md 衔接已有分析与附件能力。网络失败不自动重试。
 
 测试使用合成凭据和模拟服务响应；npm test 覆盖流式／JSON、认证、额度、限流、超时、协议异常、凭据加密与失败换 Key 保留旧连接。npm run test:company 验证设置页保存／失败换 Key／移除与 320–1180px 布局；desktop:test 验证真实 Electron safeStorage、设置页面和随包 CLI；不会使用开发者的真实账号或工作区。
+
+Windows 构建在当前锁定的 electron-builder 26.15.3 中默认使用 BCJ 压缩过滤器，避免 ARM64 过滤器与 NSIS 解码器不兼容；可通过 ELECTRON_BUILDER_7Z_FILTER 显式覆盖。来源：[上游问题 #9983](https://github.com/electron-userland/electron-builder/issues/9983)。
