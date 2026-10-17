@@ -11,7 +11,7 @@
 ## 来源与维护
 
 - 共同推进规则：[agent-workflow.md](agent-workflow.md)，随安装包进入个人工作区。
-- 实际方法：十二个用户 Skills。具体能力保持在对应 SKILL.md 和 references；路线图不替代它们。任职和项目分别使用 career-employment、career-project；公司与具体简历匹配分别使用 career-company、career-match，由 career-board 编排。
+- 实际方法：十三个用户 Skills。具体能力保持在对应 SKILL.md 和 references；路线图不替代它们。任职和项目分别使用 career-employment、career-project；公司与具体简历匹配分别使用 career-company、career-match，由 career-board 编排。
 - 大阶段：`templates/context/progress.md` 是用户工作区的阶段总账模板；页面展示默认路线和模板，不冒充某个用户的实时完成度。
 - 资产写法与参考：`docs/career-assets.md`、`docs/agent-method-references.md`，说明详细记录如何转成表达，以及参考方法的取舍。
 - 页面布局、场景摘要：[源码目录](agent-roadmap/)。摘要改动后核对对应方法；方法改变后重新构建。

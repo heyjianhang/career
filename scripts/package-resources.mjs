@@ -10,7 +10,7 @@ for(const name of ['gitignore','gitattributes']){
  await rm(out+'/.'+name);
 }
 // Maintainer Skills stay in the development repository. Match package.json files.
-for(const name of ['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','boss-zhipin-scraper','jd-research']){
+for(const name of ['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','boss-zhipin-scraper','jd-research']){
  await cp('.agents/skills/'+name,out+'/.agents/skills/'+name,{recursive:true});
 }
 await cp('schemas',out+'/schemas',{recursive:true});

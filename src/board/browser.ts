@@ -1,6 +1,8 @@
 import type {overview,show} from '../opportunities/store.js';
 type Board=Awaited<ReturnType<typeof overview>>;
 type Detail=Awaited<ReturnType<typeof show>>;
+type Outreach=import('../opportunities/outreach.js').Outreach;
+type MatchSummary=import('../opportunities/match.js').MatchSummary;
 type Session={token:string;stages:Record<string,string>;outcomes:Record<string,string>;interviewStatuses:Record<string,string>;platforms:Record<string,string>;documents:{id:string;label:string;path:string}[]};
 type DocumentResult={content:string;source:string;html:string;toc:{id:string;label:string;level:number}[];sha256:string};
 const $=<T extends HTMLElement=HTMLElement>(selector:string)=>document.querySelector<T>(selector)!;
@@ -174,7 +176,7 @@ for(const id of ['board-search','archive-filter'])$('#'+id).addEventListener('in
 async function refresh(force=false){if(mutating||draggedCard||stageMove)return;if(refreshing){if(force)refreshAgain=true;return;}refreshing=true;const request=boardRefreshId;try{
  const previous=board,next=await api<Board>('overview');if(request!==boardRefreshId||draggedCard||stageMove||mutating)return;board=next;$('#board-error').hidden=true;
  if(force||JSON.stringify(previous?.cards)!==JSON.stringify(board.cards)||board.issues.length)renderBoard();
- if(drawer.open&&detail){const id=detail.id,latest=await api<Detail>('detail?id='+encodeURIComponent(id));if(detail?.id!==id)return;const changed=detail.card.sha256!==latest.card.sha256,filesChanged=JSON.stringify(detail.files)!==JSON.stringify(latest.files);detail=latest;if(changed)renderHeader();if(tab==='files'&&filesChanged)renderTree();if(tab==='resume'){if(force||changed)await renderResumes();}else if(tab==='interviews'){const version=JSON.stringify(detail.interviews);if(force||roundListVersion!==version){if(roundId&&!detail.interviews.some(r=>r.meta.id===roundId))roundId=null;renderInterviews();}if(roundId)await loadDocument(true);}else if(force||activePath.toLowerCase().endsWith('.md'))await loadDocument(true);}
+ if(drawer.open&&detail){const id=detail.id,latest=await api<Detail>('detail?id='+encodeURIComponent(id));if(detail?.id!==id)return;const changed=detail.card.sha256!==latest.card.sha256,filesChanged=JSON.stringify(detail.files)!==JSON.stringify(latest.files);detail=latest;if(changed)renderHeader();if(tab==='files'&&filesChanged)renderTree();if(tab==='resume'){await renderResumes(true);}else if(tab==='outreach'){await renderOutreach(true);}else if(tab==='interviews'){const version=JSON.stringify(detail.interviews);if(force||roundListVersion!==version){if(roundId&&!detail.interviews.some(r=>r.meta.id===roundId))roundId=null;renderInterviews();}if(roundId)await loadDocument(true);}else if(force||activePath.toLowerCase().endsWith('.md'))await loadDocument(true);}
  }catch(e){notice(e);}finally{refreshing=false;if(refreshAgain){refreshAgain=false;void refresh(true);}}}
 $('#refresh-board').onclick=()=>void refresh(true);
 function savePosition(){const scroller=view.querySelector<HTMLElement>('.reader-scroll,.media-canvas');if(scroller&&currentKey)positions.set(currentKey,scroller.scrollTop);}
@@ -205,11 +207,17 @@ $('#close-drawer').onclick=closeDrawer;
 drawer.addEventListener('cancel',e=>{e.preventDefault();closeDrawer();});
 drawer.addEventListener('close',()=>{savePosition();loadId++;disposeMedia();setExpanded(false);renderBoard();if(detail)kanban.querySelector<HTMLElement>(`[data-opportunity="${detail.id}"]`)?.focus({preventScroll:true});});
 drawer.addEventListener('click',e=>{if(e.target===drawer){const r=drawer.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right)closeDrawer();}});
-$('#copy-job').onclick=async()=>{try{await copy((await api('context?id='+detail!.id)).prompt);}catch(e){toast((e as Error).message);}};
+$('#copy-job').onclick=async()=>{if(tab==='outreach'){$('#outreach-generate')?.click();return;}try{await copy((await api('context?id='+detail!.id)).prompt+(tab==='match'?'\n'+matchInstruction:''));}catch(e){toast((e as Error).message);}};
 async function selectTab(value:string){savePosition();tab=value;sourceMode=false;docVersion='';$('#primary-tools').append(readerTools);setDocumentTools();$('#interview-navigation').hidden=tab!=='interviews';$('#interview-actions').hidden=tab!=='interviews'||!roundId;$('#job-panel').classList.toggle('files-mode',tab==='files');tree.hidden=tab!=='files';
- document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});$('#job-panel').setAttribute('aria-labelledby','tab-'+tab);if(tab==='resume'){loadId++;disposeMedia();activePath='';await renderResumes();return;}if(tab==='files')renderTree();if(tab==='interviews'){renderInterviews();if(!roundId)return;}await loadDocument();}
+ document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===tab));b.tabIndex=b.dataset.tab===tab?0:-1;});$('#job-panel').setAttribute('aria-labelledby','tab-'+tab);keepSelectedTabVisible();if(tab==='resume'||tab==='outreach'){loadId++;disposeMedia();activePath='';if(tab==='resume')await renderResumes();else await renderOutreach();return;}if(tab==='files')renderTree();if(tab==='interviews'){renderInterviews();if(!roundId)return;}await loadDocument();}
+function keepSelectedTabVisible(){
+ if(!drawer.open)return;const nav=$('#job-tabs'),selected=$('#tab-'+tab);if(!selected)return;
+ const bounds=nav.getBoundingClientRect(),item=selected.getBoundingClientRect();
+ if(item.left<bounds.left)nav.scrollLeft+=item.left-bounds.left;else if(item.right>bounds.right)nav.scrollLeft+=item.right-bounds.right;
+}
+new ResizeObserver(keepSelectedTabVisible).observe($('#job-tabs'));
 $('#job-tabs').addEventListener('click',e=>{const button=(e.target as HTMLElement).closest<HTMLElement>('[data-tab]');if(button)void selectTab(button.dataset.tab!);});
-$('#job-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=['overview','company','match','interviews','files','resume'];const index=e.key==='Home'?0:e.key==='End'?tabs.length-1:(tabs.indexOf(tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;$('#tab-'+tabs[index]).focus();void selectTab(tabs[index]!);});
+$('#job-tabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=['overview','company','match','interviews','files','resume','outreach'];const index=e.key==='Home'?0:e.key==='End'?tabs.length-1:(tabs.indexOf(tab)+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length;$('#tab-'+tabs[index]).focus();void selectTab(tabs[index]!);});
 function fileIcon(p:string){return /\.pdf$/i.test(p)?'file-earmark-pdf':/\.(png|jpe?g|webp|gif)$/i.test(p)?'file-earmark-image':'file-earmark-text';}
 function renderTree(){if(!detail)return;const wasOpen=new Set(Array.from(tree.querySelectorAll<HTMLDetailsElement>('details[open]')).map(e=>e.dataset.folder));const first=!tree.dataset.card||tree.dataset.card!==detail.id;tree.dataset.card=detail.id;const scroll=tree.scrollTop;
  type Node={files:string[];dirs:Map<string,Node>};const root:Node={files:[],dirs:new Map()};const prefix=`opportunities/${detail.id}/`;
@@ -219,11 +227,22 @@ function renderTree(){if(!detail)return;const wasOpen=new Set(Array.from(tree.qu
  tree.innerHTML='<p class="file-tree-title">岗位资料</p>'+nodes(root);tree.scrollTop=scroll;
  tree.querySelectorAll<HTMLElement>('[data-file]').forEach(e=>e.onclick=()=>{savePosition();fileSelection=e.dataset.file!;sourceMode=false;docVersion='';renderTree();void loadDocument();});
 }
+const matchInstruction='请使用「简历与岗位匹配」技能（career-match），分析职位描述与当前关联简历。按该技能的 storage 格式写入 analysis/match.md，包含总体结论、逐项证据与 0–4 评分、权重、必要条件、真实输入摘要，下方保留详细分析；未知项留空，不按关键词凑分，不修改我的个人星标。若未关联，先推荐已有版本并询问是否绑定，不自动选择或生成当前版匹配结论。';
+function matchMarkup(result:MatchSummary){
+ const score=result.score,meta=result.meta,old=result.state==='stale'||result.state==='unverified';
+ const value=score?.value??null,percent=value===null?0:Math.max(0,Math.min(100,value));
+ const unknown=score&&score.coverage<100;
+ const verdict=result.state==='missing'?'还没有匹配分析':result.state==='unscored'?'已有分析，尚未形成总体评分':result.state==='invalid'?'总体评分待核对':value===null?'证据不足，暂不评分':old?'上次分析结果':unknown?'基于已知证据的匹配度':'总体匹配度';
+ return `<section class="match-overview" aria-labelledby="match-title"><header><div><p class="match-eyebrow">简历与岗位匹配</p><h3 id="match-title">${verdict}</h3></div><button id="update-match" class="button">${result.exists?'更新分析':'开始分析'}</button></header>${result.warnings.length?`<p class="outreach-warning" role="status">${esc(result.warnings.join('；'))}</p>`:''}${score?`<div class="match-score-row"><div class="match-score"><strong>${value===null?'—':value}</strong>${value===null?'':'<span> / 100</span>'}<div class="match-stars" role="img" aria-label="${value===null?'证据不足，未评分':`匹配分 ${value}，满分 100`}"><span aria-hidden="true">${[1,2,3,4,5].map(()=>icon('star')).join('')}</span><span aria-hidden="true" class="match-stars-fill" style="width:${percent}%">${[1,2,3,4,5].map(()=>icon('star-fill')).join('')}</span></div></div><div class="match-coverage"><strong>证据覆盖 ${score.coverage}%</strong><p>${unknown?'部分要求尚无法判断，需补充后再看总体结论。':'各项要求均有可判定依据。'}</p>${unknown?`<small>未知项取极值时：${score.lower}–${score.upper} 分</small>`:''}</div></div>`:'<p class="edit-hint">结合具体经历核对岗位要求，生成总体结论和详细分析。</p>'}${meta?`<p class="match-conclusion">${esc(meta.summary)}</p>${meta.hard_conditions.length?`<ul class="match-conditions">${meta.hard_conditions.map(c=>`<li data-condition="${c.status}"><strong>${c.status==='unmet'?'条件不满足':c.status==='unknown'?'条件待确认':'条件符合'} · ${esc(c.label)}</strong><span>${esc(c.reason)}</span></li>`).join('')}</ul>`:''}<p class="match-source">依据：${esc(result.resumeTitle??meta.resume_id)} · ${esc(meta.assessed_at.slice(0,10))}${old?' · 待更新':''}</p><details class="match-method"><summary>评分怎么看</summary><p>按各项任务的 0–4 分及权重计算，未知项不当作零分。证据覆盖表示可判断的要求占比；分数用于辅助判断，不代表录用概率。星形图示按百分制等比例展示，与上方个人星标独立。</p><ul>${meta.criteria.map(c=>`<li><strong>${esc(c.id)}</strong><span>权重 ${c.weight}% · ${c.score===null?'待补充':`${c.score} / 4`}</span><p>${esc(c.reason)}</p></li>`).join('')}</ul></details>`:''}</section>`;
+}
+function bindMatch(){
+ $('#update-match')?.addEventListener('click',async()=>{if(!detail)return;const op=detail.id;try{const context=await api('context?id='+op);if(detail?.id!==op||tab!=='match'||!drawer.open)return;await copy(context.prompt+'\n本次只处理以下请求：'+matchInstruction);}catch(e){toast((e as Error).message);}});
+}
 function emptyDocument(label:string,p:string){
  const jd=p==='job.md';
  const hint=jd?'粘贴招聘原文或提供来源链接，让 Agent 补充到这里。':'让 Agent 结合已有岗位资料整理，完成后会显示在这里。';
- const instruction=jd?'请补充这个岗位的 JD 原文并保存到 job.md；先核对已有来源和资料，读不到时请我提供正文。不要把旧概况、待确认事项或推测写成招聘原文。':p==='analysis/company.md'?'请使用 career-company Skill 做公司分析并保存到 analysis/company.md；企查查未配置时说明并使用可用联网搜索，标注来源和限制。':p==='analysis/match.md'?'请使用 career-match Skill 分析 JD 与当前关联简历，保存到 analysis/match.md 并记录输入版本。若未关联，先推荐已有版本并询问是否绑定，不自动选择或生成当前版匹配结论。':`请整理${label}，保存到该岗位的 ${p}；标注资料来源和待核实内容。`;
- view.innerHTML=`<div class="empty-document">${icon('file-earmark-text')}<h3>${jd?'尚未保存 JD 原文':'还没有'+esc(label)}</h3><p>${hint}</p><button id="create-document" class="button primary">${icon('copy')}${jd?'复制补充指令':'复制整理指令'}</button></div>`;
+ const instruction=jd?'请补充这个岗位的 JD 原文并保存到 job.md；先核对已有来源和资料，读不到时请我提供正文。不要把旧概况、待确认事项或推测写成招聘原文。':p==='analysis/company.md'?'请使用 career-company Skill 做公司分析并保存到 analysis/company.md；企查查未配置时说明并使用可用联网搜索，标注来源和限制。':p==='analysis/match.md'?matchInstruction:`请整理${label}，保存到该岗位的 ${p}；标注资料来源和待核实内容。`;
+ view.innerHTML=`<div class="empty-document">${icon('file-earmark-text')}<h3>${jd?'尚未保存职位描述':'还没有'+esc(label)}</h3><p>${hint}</p><button id="create-document" class="button primary">${icon('copy')}${jd?'复制补充指令':'复制整理指令'}</button></div>`;
  $('#create-document').onclick=async()=>{try{const context=await api('context?id='+detail!.id);await copy(context.prompt+'\n本次只处理以下请求：'+instruction);}catch(e){toast((e as Error).message);}};
 }
 let outlineOpen=window.innerWidth>1100,wideReader=window.innerWidth>1100;
@@ -239,17 +258,20 @@ function setDocumentTools(p='',doc?:DocumentResult){
  $('#mode-source').onclick=()=>{savePosition();sourceMode=true;docVersion='';void loadDocument();};
 }
 async function loadDocument(quiet=false){
- if(!detail||!drawer.open||tab==='resume')return;const selected=session.documents.find(d=>d.id===tab),p=tab==='files'?fileSelection:tab==='interviews'?interviewPath():selected!.path,id=detail.id;if(!p)return;if(quiet&&!/\.md$/i.test(p))return;const request=++loadId;
+ if(!detail||!drawer.open||tab==='resume'||tab==='outreach')return;const selected=session.documents.find(d=>d.id===tab),p=tab==='files'?fileSelection:tab==='interviews'?interviewPath():selected!.path,id=detail.id;if(!p)return;if(quiet&&!/\.md$/i.test(p))return;const request=++loadId;
  const key=id+'/'+tab+'/'+p;if(key!==currentKey){savePosition();currentKey=key;setDocumentTools();}activePath=p;
- if(!detail.files.some(f=>f.path===`opportunities/${id}/${p}`)){if(quiet&&docVersion==='missing:'+p)return;disposeMedia();setDocumentTools();docVersion='missing:'+p;if(tab==='interviews'){emptyInterviewDocument();}else emptyDocument(selected?.label??'这份资料',p);return;}
+ const summary=tab==='match'?await api<MatchSummary>('match-summary?id='+id).catch(()=>({exists:false,state:'unverified' as const,warnings:['暂时无法读取总体评分，请稍后重试']})):null;if(request!==loadId||!drawer.open)return;
+ const summaryVersion=summary?JSON.stringify(summary):'';
+ if(!detail.files.some(f=>f.path===`opportunities/${id}/${p}`)){if(quiet&&docVersion==='missing:'+p+summaryVersion)return;disposeMedia();setDocumentTools();docVersion='missing:'+p+summaryVersion;if(tab==='interviews'){emptyInterviewDocument();}else emptyDocument(selected?.label??'这份资料',p);if(summary){const scroll=document.createElement('div');scroll.className='reader-scroll match-missing';scroll.append(...view.childNodes);view.append(scroll);scroll.insertAdjacentHTML('afterbegin',matchMarkup(summary));bindMatch();}return;}
  try{
  if(/\.md$/i.test(p)){
    const doc=await api<DocumentResult>('file?'+new URLSearchParams({id,path:p}));if(request!==loadId||!drawer.open)return;
-   if(quiet&&docVersion===doc.sha256)return;savePosition();disposeMedia();docVersion=doc.sha256;setDocumentTools(p,doc);
+   if(quiet&&docVersion===doc.sha256+summaryVersion)return;savePosition();disposeMedia();docVersion=doc.sha256+summaryVersion;setDocumentTools(p,doc);
    if(tab==='interviews'&&!sourceMode&&!doc.content.trim()){emptyInterviewDocument();return;}
    if(tab==='overview'&&!sourceMode&&!doc.content.trim()){emptyDocument('JD',p);return;}
    const content=doc.content.trim()?doc.html:'<p class="loading">这份文档还没有正文。</p>';
-   view.innerHTML=`<div class="reader-layout"><div class="reader-scroll">${sourceMode?`<pre class="source-code">${esc(doc.source)}</pre>`:`<article class="markdown-body">${content}</article>`}</div>${!sourceMode&&doc.toc.length>1?`<nav id="document-outline" class="document-toc" aria-label="本文目录" ${outlineOpen?'':'hidden'}><p>本文目录</p>${doc.toc.map(h=>`<a href="#${esc(h.id)}" class="${h.level>2?'subheading':''}">${esc(h.label)}</a>`).join('')}</nav>`:''}</div>`;
+   view.innerHTML=`<div class="reader-layout"><div class="reader-scroll">${sourceMode?`<pre class="source-code">${esc(doc.source)}</pre>`:`${summary?matchMarkup(summary):''}<article class="markdown-body">${content}</article>`}</div>${!sourceMode&&doc.toc.length>1?`<nav id="document-outline" class="document-toc" aria-label="本文目录" ${outlineOpen?'':'hidden'}><p>本文目录</p>${doc.toc.map(h=>`<a href="#${esc(h.id)}" class="${h.level>2?'subheading':''}">${esc(h.label)}</a>`).join('')}</nav>`:''}</div>`;
+   if(summary&&!sourceMode)bindMatch();
    view.querySelectorAll<HTMLAnchorElement>('a[data-document]').forEach(a=>a.onclick=e=>{e.preventDefault();savePosition();fileSelection=a.dataset.document!;void selectTab('files');});
    view.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach(a=>a.onclick=e=>{e.preventDefault();const anchor=decodeURIComponent(a.getAttribute('href')!.slice(1));Array.from(view.querySelectorAll<HTMLElement>('.markdown-body [id]')).find(h=>h.id===anchor)?.scrollIntoView({block:'start'});view.querySelectorAll('.document-toc .active').forEach(e=>e.classList.remove('active'));if(a.closest('.document-toc'))a.classList.add('active');});view.querySelector('.document-toc')?.classList.toggle('open-outline',outlineOpen);restorePosition();
  }else if(quiet){return;}
@@ -324,15 +346,47 @@ window.addEventListener('focus',()=>{if(session&&!$<HTMLDialogElement>('#action-
 export {};
 
 async function resumeApi(route:string,data?:unknown){const r=await fetch('/api/library/'+route,{method:data?'POST':'GET',headers:data?{'Content-Type':'application/json','X-Career-Token':session.token}:{},body:data?JSON.stringify(data):undefined});const value=await r.json();if(!r.ok)throw new Error(value.error??'简历操作失败');return value;}
-async function renderResumes(){if(!detail)return;const op=detail.id;setDocumentTools();view.innerHTML='<p class="loading">正在读取简历…</p>';try{
- const list=await resumeApi('list');if(tab!=='resume'||detail?.id!==op)return;
+let resumeViewVersion='';
+async function renderResumes(quiet=false){if(!detail)return;const op=detail.id,request=++loadId;setDocumentTools();if(!quiet){resumeViewVersion='';view.innerHTML='<p class="loading">正在读取简历…</p>';}try{
+ const list=await resumeApi('list');if(tab!=='resume'||detail?.id!==op||request!==loadId)return;
+ const version=JSON.stringify([op,list.entries,detail.card.sha256]);if(quiet&&resumeViewVersion===version)return;resumeViewVersion=version;
+ const previousScroll=quiet?view.querySelector('.job-resume-panel')?.scrollTop??0:0;
  const chosen=list.entries.find((r:any)=>r.id===detail!.card.meta.resume?.id),history=detail.card.meta.submissions??[];
  view.innerHTML=`<div class="job-resume-panel"><div class="job-resume-heading"><h3>本岗位使用的简历</h3><button id="choose-resume" class="button">${chosen?'更换简历':'选择简历'}</button></div>${chosen?`<article class="chosen-resume"><span class="resume-symbol">▤</span><div><h3>${esc(chosen.title)}</h3><p>${esc(chosen.name)} · ${esc(chosen.headline)}</p><p class="edit-hint">关联 ${chosen.jobs.length} 个岗位 · 更新于 ${esc(chosen.updated_at.slice(0,10))}</p></div></article><div class="resume-actions"><a class="button" href="${chosen.href}">查看简历</a>${chosen.editable?`<a class="button" href="/resumes/${chosen.id}/edit">编辑内容</a>`:''}<button id="tailor-copy" class="button">另存岗位专用版</button><button id="unlink-resume" class="text-button">取消关联</button></div><button id="record-submission" class="button primary">记录实际投递</button>`:`<div class="resume-unlinked"><h3>为这个机会选一份简历</h3><p>可以关联现有简历，也可以请 Agent 基于岗位要求整理专用版本。</p><a class="button" href="/">前往简历库</a></div>`}<section class="submission-history"><h3>投递记录</h3>${history.length?history.slice().reverse().map((s:any)=>`<div class="submission-row"><div><strong>${esc(s.resume_title)}</strong><p>${esc(s.submitted_at.replace('T',' ').slice(0,16))} · ${esc(s.channel)}</p></div><a class="text-button" href="/api/library/submission?opportunity=${op}&id=${s.id}" download>下载当时快照</a></div>`).join(''):'<p class="edit-hint">还没有投递记录</p>'}</section></div>`;
+ view.querySelector('.job-resume-panel')!.scrollTop=previousScroll;
  $('#choose-resume').onclick=()=>chooseResume(list.entries,chosen?.id,op);
  $('#unlink-resume')?.addEventListener('click',async()=>{try{await resumeApi('assign',{opportunity_id:op,resume_id:null,sha256:detail!.card.sha256});await refresh(true);toast('已取消关联，历史记录仍保留');}catch(e){toast((e as Error).message);}});
  $('#tailor-copy')?.addEventListener('click',()=>action('另存岗位专用版','新简历独立保存，其他岗位继续使用原简历。',`${detail!.card.meta.company} · ${chosen.title}`,'创建并关联',async title=>{const r=await resumeApi('create',{title,from:chosen.id});try{await resumeApi('assign',{opportunity_id:op,resume_id:r.id,sha256:detail!.card.sha256});}catch(e){throw new Error('新简历已创建，关联失败；可在简历库找到它。'+(e as Error).message);}location.href=`/resumes/${r.id}/edit`;}));
  $('#record-submission')?.addEventListener('click',()=>void openSubmission(chosen,op));
- }catch(e){if(tab==='resume')view.innerHTML=`<div class="empty-document"><h3>暂时无法读取简历</h3><p>${esc((e as Error).message)}</p></div>`;}}
+ }catch(e){if(tab==='resume'&&detail?.id===op&&request===loadId&&!quiet)view.innerHTML=`<div class="empty-document"><h3>暂时无法读取简历</h3><p>${esc((e as Error).message)}</p></div>`;}}
+let outreachViewVersion='';
+async function renderOutreach(quiet=false){
+ if(!detail)return;const op=detail.id,request=++loadId;setDocumentTools();
+ if(!quiet){outreachViewVersion='';view.innerHTML='<p class="loading">正在读取打招呼稿…</p>';}
+ try{
+  const draft=await api<Outreach>('outreach?id='+op);if(request!==loadId||tab!=='outreach'||detail?.id!==op||!drawer.open)return;
+  const version=JSON.stringify([op,draft,detail.card.meta.resume]);if(quiet&&version===outreachViewVersion)return;outreachViewVersion=version;
+  const scroll=quiet?view.querySelector('.outreach-page')?.scrollTop??0:0;
+  view.innerHTML=`<div class="outreach-page">${outreachMarkup(draft)}<p class="edit-hint outreach-resume-hint">${detail.card.meta.resume?'根据本岗位关联的简历准备。':'还未关联简历，可以先选择投递版本。'}<button id="outreach-resume" class="text-button">查看关联简历 →</button></p></div>`;
+  bindOutreach(draft,op);$('#outreach-resume').onclick=()=>void selectTab('resume');view.querySelector('.outreach-page')!.scrollTop=scroll;
+ }catch(e){if(request!==loadId||tab!=='outreach'||detail?.id!==op)return;outreachViewVersion='';view.innerHTML=`<div class="empty-document"><h3>暂时无法读取打招呼稿</h3><p>${esc((e as Error).message)}</p><button id="retry-outreach" class="button">重新读取</button></div>`;$('#retry-outreach').onclick=()=>void renderOutreach();}
+}
+function outreachMarkup(draft:Outreach){
+ const warning=draft.warnings.join('；');
+ return `<section class="outreach-panel" aria-labelledby="outreach-title"><header class="job-resume-heading"><h3 id="outreach-title">给招聘方打招呼</h3><button id="outreach-generate" class="button">${draft.exists?'让 Agent 更新':'让 Agent 生成'}</button></header><p class="edit-hint">结合这个岗位和投递简历，准备给招聘方的开场消息。</p>${warning?`<p class="outreach-warning" role="status">${esc(warning)}</p>`:''}${draft.meta?`<p class="outreach-meta">${esc(draft.meta.channel)} · ${esc(draft.meta.generated_at.slice(0,10))} · 草稿${draft.state==='current'?' · 输入版本一致':''}</p>`:''}${draft.variants.map((v,i)=>`<article class="outreach-variant"><div class="outreach-variant-heading"><h4>${esc(v.label)}</h4><button class="text-button" data-copy-outreach="${i}" aria-label="复制${esc(v.label)}">${icon('copy')}复制正文</button></div><p class="outreach-message">${esc(v.text)}</p></article>`).join('')}${!draft.exists&&!warning?'<p class="outreach-empty">还没有打招呼稿。复制指令给工作区 Agent，完成后会显示在这里。</p>':''}${draft.exists?'<button id="outreach-document" class="text-button">查看完整稿件与依据 →</button>':''}</section>`;
+}
+function bindOutreach(draft:Outreach,op:string){
+ $('#outreach-generate').onclick=async()=>{try{
+  const context=await api('context?id='+op);if(tab!=='outreach'||detail?.id!==op||!drawer.open)return;
+  const instruction=context.prompt+'\n本次只准备给招聘方的首次打招呼草稿，请使用「招聘开场白」技能（career-outreach）。读取当前 JD 和准备投递的简历；没有关联且我未指定版本时，先推荐并让我选择，不擅自绑定。已有沟通时先核对上下文。按 Skill 的 storage 格式将推荐稿、简短版、选材依据和真实输入摘要保存到 analysis/outreach.md；修改前读取旧稿和摘要，保留我的手改。若需修改简历先征求我同意。仅准备草稿，不发送消息，不改变投递阶段。';
+  action(draft.exists?'更新打招呼稿':'生成打招呼稿','复制给工作区 Agent。保存后返回这里即可查看和复制正文。',instruction,'复制指令',async text=>{await writeClipboard(text);toast('已复制，发送给工作区 Agent 即可');},true);
+ }catch(e){toast((e as Error).message);}};
+ $('#outreach-document')?.addEventListener('click',()=>{fileSelection=draft.path;void selectTab('files');});
+ view.querySelectorAll<HTMLButtonElement>('[data-copy-outreach]').forEach(button=>button.onclick=async()=>{
+  const variant=draft.variants[Number(button.dataset.copyOutreach)];if(!variant)return;
+  try{await writeClipboard(variant.text);toast('正文已复制');}catch{action('复制打招呼正文','请选择并复制下面的消息。',variant.text,'关闭',async()=>{},true);}
+ });
+}
 function chooseResume(entries:any[],current:string|undefined,op:string){const dialog=$<HTMLDialogElement>('#resume-choice');let selected=current;const sha=detail!.card.sha256;$('#resume-choice-error').textContent='';$<HTMLInputElement>('#resume-choice-search').value='';
  function render(){const q=$<HTMLInputElement>('#resume-choice-search').value.toLowerCase();$('#resume-choice-list').innerHTML=entries.filter(r=>r.title.toLowerCase().includes(q)).map(r=>`<button class="resume-choice-row ${selected===r.id?'selected':''}" data-resume="${r.id}" aria-pressed="${selected===r.id}"><span>▤</span><div><strong>${esc(r.title)}</strong><small>${esc(r.headline)} · ${r.jobs.length} 个关联岗位</small></div>${selected===r.id?'✓':''}</button>`).join('')||'<p>没有可用简历。先去简历库生成一份。</p>';$('#resume-choice-list').querySelectorAll<HTMLElement>('[data-resume]').forEach(b=>b.onclick=()=>{selected=b.dataset.resume;render();});}
  $('#resume-choice-search').oninput=render;$('#resume-choice-cancel').onclick=()=>dialog.close();$('#resume-choice-apply').onclick=async()=>{if(!selected){$('#resume-choice-error').textContent='请选择一份简历';return;}try{await resumeApi('assign',{opportunity_id:op,resume_id:selected,sha256:sha});dialog.close();await refresh(true);toast('已关联简历');}catch(e){$('#resume-choice-error').textContent=(e as Error).message;}};render();dialog.showModal();}

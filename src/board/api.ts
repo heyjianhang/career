@@ -9,8 +9,10 @@ import {renderMarkdown} from './markdown.js';
 import {boardHtml} from './page.js';
 import {preferences,savePreferences} from './preferences.js';
 import {workspaceCommand} from '../workspace/command.js';
+import {readOutreach} from '../opportunities/outreach.js';
+import {readMatchSummary} from '../opportunities/match.js';
 
-export const primaryDocuments=[{id:'overview',label:'JD',path:'job.md'},{id:'company',label:'公司分析',path:'analysis/company.md'},{id:'match',label:'岗位匹配',path:'analysis/match.md'}];
+export const primaryDocuments=[{id:'overview',label:'职位描述',path:'job.md'},{id:'company',label:'公司分析',path:'analysis/company.md'},{id:'match',label:'岗位匹配',path:'analysis/match.md'}];
 const mime:Record<string,string>={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif'};
 export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:URL,workspace:string,origin:string,token:string):Promise<boolean> {
   const route=url.pathname;
@@ -32,6 +34,8 @@ export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:UR
     if(req.method==='GET'&&route==='/api/board/overview'){send(200,await store.overview(workspace));return true;}
     const id=url.searchParams.get('id')??'';
     if(req.method==='GET'&&route==='/api/board/detail'){send(200,await store.show(workspace,id));return true;}
+    if(req.method==='GET'&&route==='/api/board/outreach'){send(200,await readOutreach(workspace,id));return true;}
+    if(req.method==='GET'&&route==='/api/board/match-summary'){send(200,await readMatchSummary(workspace,id));return true;}
     if(req.method==='GET'&&route==='/api/board/context'){
       const context=await store.context(workspace,id);
       send(200,{...context,prompt:`请在工作区 ${JSON.stringify(workspace)} 继续跟进岗位 ${id}。进入该目录，先读取 AGENTS.md，再执行 ${await workspaceCommand(workspace)} opportunity context --id ${id} --json，按返回的资料与已有决定继续。读取 career-board Skill，按用户本轮范围继续：JD 原文保存在 job.md，公司分析使用 career-company，匹配使用 career-match 并核对当前关联简历。未绑定时推荐已有版本并询问是否关联；不自动投递。`});return true;

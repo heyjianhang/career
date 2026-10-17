@@ -27,9 +27,10 @@
 | 能力 | npm 0.2.0 | 桌面 0.3.0-alpha.13 | 当前开发源码 |
 | --- | --- | --- | --- |
 | 经历整理、母版、14 款样式、HTML/PDF、平台填写稿 | 已提供 | 已提供 | 已实现 |
-| 用户 Skills | 5 个 | 12 个 | 12 个 |
+| 用户 Skills | 5 个 | 12 个 | 13 个 |
 | 岗位看板、公司与岗位分析、面试记录与准备 | 未包含 | 已提供 | 已实现 |
 | 简历卡片库、网页编辑、岗位关联与投递快照 | 未包含 | 已提供 | 已实现 |
+| 根据 JD 与简历准备打招呼稿、查看和复制正文 | 未包含 | 未包含 | 已实现，使用外部 Agent |
 | 个人资料阅读、多工作区与桌面启动器 | 未包含 | 已提供 | 已实现 |
 | 本地 Git 与私人 GitHub 同步 | 手动保存、快进拉取与推送 | 安全合并、恢复与可选自动同步 | 同桌面版 |
 | 企查查查询 | 未包含 | 自备 API Key，本机加密保存 | 桌面集成与环境变量 CLI |
@@ -92,6 +93,7 @@ Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 
 | [jd-research](.agents/skills/jd-research/SKILL.md) | 分析 JD 共性，结合真实经历制定求职与补足计划，提出简历修改建议（仅当前源码，尚未发布） |
 | [career-company](.agents/skills/career-company/SKILL.md) | 独立研究公司业务、团队与经营信息，支持企查查与公开来源（当前源码） |
 | [career-match](.agents/skills/career-match/SKILL.md) | 依据具体简历版本与 JD 做有证据的岗位匹配分析（当前源码） |
+| [招聘开场白（career-outreach）](.agents/skills/career-outreach/SKILL.md) | 根据 JD 与投递简历写给 HR 的开场消息，留存版本依据并在岗位中查看、复制（当前源码） |
 | [resume-tailor](.agents/skills/resume-tailor/SKILL.md) | 按用途选材，生成内容包和平台稿，调用 CLI 交付页面与文件 |
 
 ```mermaid

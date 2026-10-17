@@ -33,6 +33,7 @@
 - 收录 JD、串联岗位分析及简历关联、协作待办或面试跟进：[career-board](.agents/skills/career-board/SKILL.md)。先去重建卡、保存 job.md，再按范围调用下面两个独立 Skill；未绑定简历先推荐现有版本并询问，有 subagent 时按编排协议分工。
 - 公司业务、团队、工作方式与机会价值研究：[career-company](.agents/skills/career-company/SKILL.md)。企查查已配置时按需查询，未配置则说明并使用可用联网搜索；Key 不进入工作区。
 - 某份简历与 JD 的匹配、差距及修改建议：[career-match](.agents/skills/career-match/SKILL.md)。分析指定版本的实际正文，记录版本依据，不能把全部母版经历冒充本版已有内容。
+- 给 HR 打招呼、写求职开场消息或准备投递材料：[career-outreach](.agents/skills/career-outreach/SKILL.md)。在 JD 与投递简历确定后，挑相关事实生成推荐稿和简短版，保存 analysis/outreach.md；只收藏岗位时不展开，生成或复制不代表已发送。
 
 ## 保存与续接
 
