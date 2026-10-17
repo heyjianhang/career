@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, readFile, rm, stat} from 'node:fs/promises';
 import {pbkdf2Sync} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import {handlePortal, sha256} from '../portal/server.mjs';
@@ -223,4 +224,25 @@ test('local store and credentials survive restart and files are not public asset
 test('storage failure cannot remove the static fallback downloads', async () => {
   const c = client({kv: {get() { throw new Error('internal-secret'); }}});
   const result = await c.call('downloads'); assert.deepEqual(result.data.manifest, baseline); assert.equal(result.data.tracking, false); assert.doesNotMatch(JSON.stringify(result), /internal-secret/);
+});
+
+// Some cloud hosts replace global crypto with an incomplete WebCrypto shim.
+test('Node cloud authentication is independent of the host global crypto shim', () => {
+  execFileSync(process.execPath, ['--input-type=module', '-e', `
+    import assert from 'node:assert/strict';
+    Object.defineProperty(globalThis, 'crypto', {configurable: true, value: {subtle: {}}});
+    const {hashPassword, verifyPassword} = await import('./portal/password.mjs');
+    const {handlePortal, sha256} = await import('./portal/server.mjs');
+    const key = 'synthetic-cloud-password';
+    const stored = await hashPassword(key);
+    assert.equal(await verifyPassword(key, stored), true);
+    assert.equal(await verifyPassword('synthetic-wrong-password', stored), false);
+    assert.equal((await sha256('test')).length, 64);
+    const response = await handlePortal(new Request('https://test.example/api/admin/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json', Origin: 'https://test.example'},
+      body: JSON.stringify({key}),
+    }), {kv: {async get() {return null;}}, env: {PORTAL_ADMIN_KEY_HASH: stored, PORTAL_SESSION_SECRET: 's'.repeat(43)}});
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('set-cookie'), /HttpOnly; SameSite=Strict/);
+  `], {cwd: new URL('..', import.meta.url), stdio: 'pipe'});
 });

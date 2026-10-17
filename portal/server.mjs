@@ -1,3 +1,4 @@
+import {webcrypto as crypto} from 'node:crypto';
 import {platforms, validateManifest, verifyRelease} from './releases.mjs';
 import {validCredentialHash, verifyPassword} from './password.mjs';
 

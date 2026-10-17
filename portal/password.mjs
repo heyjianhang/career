@@ -1,3 +1,4 @@
+import {webcrypto as crypto} from 'node:crypto';
 const encoder = new TextEncoder();
 const hex = value => [...new Uint8Array(value)].map(n => n.toString(16).padStart(2, '0')).join('');
 const equal = (a, b) => { let diff = a.length ^ b.length; for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ (b.charCodeAt(i) || 0); return diff === 0; };
