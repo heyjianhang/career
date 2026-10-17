@@ -10,6 +10,17 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  const waitFor=async source=>{const end=Date.now()+20000;while(Date.now()<end){if(await js(source))return;await new Promise(r=>setTimeout(r,50));}throw new Error('UI timeout: '+source);};
  const capture=async name=>fs.writeFile(path.join(app.getPath('userData'),name+'.png'),(await win.webContents.capturePage()).toPNG());
  await waitFor(`!document.querySelector('main').hasAttribute('aria-busy')`);
+ // Update settings are available before opening a workspace; smoke stays offline.
+ const updateState=await js('window.careerDesktop.updatesState()');
+ assert.equal(updateState.currentVersion,app.getVersion());assert.equal(updateState.latest,null);
+ await js(`document.getElementById('open-updates').click()`);
+ await waitFor(`document.querySelector('[data-update-action="automatic"]')`);
+ assert.equal(await js(`document.querySelector('#desktop-updates').open`),true);
+ await js(`document.querySelector('[data-update-action="automatic"]').click()`);
+ await waitFor(`!document.querySelector('[data-update-action="automatic"]').disabled`);
+ assert.equal((await js('window.careerDesktop.updatesState()')).automatic,false);
+ await capture('updates-welcome');
+ await js(`document.querySelector('.updates-close').click()`);
  assert.equal(await js(`document.getElementById('create').hidden&&document.getElementById('ready').hidden&&document.getElementById('recent-section').hidden`),true);
  assert.equal(tray.isDestroyed(),false);
  if(process.platform==='win32'){assert.equal(require('electron').Menu.getApplicationMenu(),null);assert.equal(win.isMenuBarVisible(),false);}
@@ -54,6 +65,20 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  await js(`document.getElementById('toggle-sidebar').click()`);await win.loadURL(win.webContents.getURL());
  await waitFor(`document.getElementById('toggle-sidebar')?.getAttribute('aria-expanded')==='false'`);
  await js(`document.getElementById('toggle-sidebar').click()`);
+ await js(`document.getElementById('open-settings').click()`);
+ await waitFor(`document.querySelector('[data-section="updates"]')&&!document.querySelector('[data-section="workspace"]').disabled`);
+ await js(`document.querySelector('[data-section="updates"]').click()`);
+ await waitFor(`document.querySelector('#updates-content .updates-version')`);
+ assert.equal(await js(`document.querySelector('#updates-content .updates-version').textContent`),'v'+app.getVersion());
+ // Exercise the real renderer notification transport with an inert release fixture.
+ // No remote lookup, claimed update, or installer is created by this display check.
+ win.webContents.send('career:updates',{...await js('window.careerDesktop.updatesState()'),latest:{version:'0.4.0',tag:'desktop-v0.4.0',name:'synthetic',notes:'新增更新入口\n<img src=x onerror="window.updateInjected=true">',size:150000000}});
+ await waitFor(`document.getElementById('open-settings').classList.contains('has-update')&&document.querySelector('[data-update-action="download"]')`);
+ assert.equal(await js(`!!window.updateInjected||!!document.querySelector('.updates-notes img')`),false);
+ await capture('updates-available');
+ win.webContents.send('career:updates',await js('window.careerDesktop.updatesState()'));
+ await waitFor(`!document.getElementById('open-settings').classList.contains('has-update')`);
+ await js(`document.getElementById('settings-close').click()`);
  // QCC: real packaged IPC and OS encryption with a synthetic key. No account/network calls.
  await js(`document.getElementById('open-settings').click()`);
  await waitFor(`document.querySelector('[data-section="integrations"]')&&!document.querySelector('[data-section="integrations"]').disabled`);
@@ -91,5 +116,5 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,st
  assert.equal(await js(`document.getElementById('create').hidden`),true);
  await fs.writeFile(path.join(app.getPath('userData'),'welcome.png'),(await win.webContents.capturePage()).toPNG());
  assert.equal((await state()).recent.length,2);
- return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','eight Skills and empty initial resume/job libraries without demonstration files','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['update settings on welcome and workbench, preference persistence, badge and inert release notes over native IPC','repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','eight Skills and empty initial resume/job libraries without demonstration files','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF','recent workspaces']};
 };

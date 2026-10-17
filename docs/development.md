@@ -121,3 +121,7 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 桌面壳在 desktop，构建脚本在 scripts/desktop；复用 src 文件层和 localhost 服务。`npm run desktop:dev` 启动，`npm run desktop:test` 用合成目录验证。构建矩阵、安装包输出、签名和版本规则见[桌面开发与构建](desktop.md)。新增桌面功能需要检查真正打包后的应用，不能仅验证开发 Electron；构建资源在 .cache 与 release 下，不提交这些产物。
 
 云同步变更另外运行 `npm run test:sync`。tests/sync.test.mjs 用临时 bare 远端覆盖双设备更新／合并、冲突保留、离线保存、异常远端、恢复和自动同步时机；sync-browser 用模拟依赖状态检查界面、设置落盘与窄屏，不操作真实私人仓库。
+
+## 桌面更新入口
+
+更新服务在 desktop/updates.cjs；共享界面在 src/presentation/updates.ts 和 updates.css。构建时 copy-presentation-assets.mjs 将界面拼入各工作台共用 shell.js／styles.css；启动页通过受限 career-app 协议加载同一份界面。修改后先 npm run build，运行 tests/desktop-updates.test.mjs，再从本机打包应用执行 desktop:test。测试使用合成 Release 和独立 userData，不修改个人更新偏好。当前仅检查版本并打开官方安装包链接；发布流程或自动安装改造需另行验收。

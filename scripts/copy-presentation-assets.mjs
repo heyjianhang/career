@@ -1,6 +1,10 @@
-import {mkdir, copyFile, chmod, cp} from 'node:fs/promises';
+import {mkdir, copyFile, chmod, cp, readFile, writeFile} from 'node:fs/promises';
 await mkdir('dist/presentation', {recursive: true});
-await copyFile('src/presentation/styles.css', 'dist/presentation/styles.css');
+// Each workbench embeds shell.js and shared styles. tsc recreates shell.js before
+// this step, so the desktop update UI is bundled exactly once; welcome imports it.
+await copyFile('src/presentation/updates.css','dist/presentation/updates.css');
+await writeFile('dist/presentation/styles.css',(await readFile('src/presentation/styles.css','utf8'))+'\n'+await readFile('src/presentation/updates.css','utf8'));
+await writeFile('dist/presentation/shell.js',(await readFile('dist/presentation/updates.js','utf8'))+'\n'+await readFile('dist/presentation/shell.js','utf8'));
 await copyFile('src/presentation/SHELL-ICONS-LICENSE', 'dist/presentation/SHELL-ICONS-LICENSE');
 await chmod('dist/cli.js', 0o755);
 await cp('src/presentation/templates', 'dist/presentation/templates', {recursive:true, filter:source=>!source.endsWith('.ts')});

@@ -89,7 +89,7 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 默认生成未签名预览包。当前 alpha.1 经维护者确认以未签名预览版发布，下载说明明确标注；正式版发布前应完成签名、公证及安装验收：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据。未经验证与单独公开的 Actions 产物只用于测试；公开预览版以发布记录为准。
 
-桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。此版本没有自动更新服务或开机启动；开发源码已接入企查查，招聘平台 CLI 尚未内置。后续软件升级先采用下载安装包覆盖升级，资料继续保存在原文件夹。
+桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。已公开的 alpha.1 没有应用内更新检查。当前开发源码增加版本检查和安装包下载入口，尚未发布；不含自动安装、重启升级或开机启动。开发源码已接入企查查，招聘平台 CLI 尚未内置。软件升级采用下载安装包覆盖升级，资料继续保存在原文件夹。
 
 ## 转存已验证的安装包
 
@@ -113,3 +113,19 @@ API Key 通过 Electron safeStorage 加密，密文保存于本机 userData/inte
 测试使用合成凭据和模拟服务响应；npm test 覆盖流式／JSON、认证、额度、限流、超时、协议异常、凭据加密与失败换 Key 保留旧连接。npm run test:company 验证设置页保存／失败换 Key／移除与 320–1180px 布局；desktop:test 验证真实 Electron safeStorage、设置页面和随包 CLI；不会使用开发者的真实账号或工作区。
 
 Windows 构建在当前锁定的 electron-builder 26.15.3 中默认使用 BCJ 压缩过滤器，避免 ARM64 过滤器与 NSIS 解码器不兼容；可通过 ELECTRON_BUILDER_7Z_FILTER 显式覆盖。来源：[上游问题 #9983](https://github.com/electron-userland/electron-builder/issues/9983)。
+
+## 关于与更新（当前开发源码）
+
+[实施与验收记录](plans/desktop-updates.md)。
+
+工作台左下角「设置 → 关于与更新」与启动页「关于与更新」共用一个界面，显示桌面版本、系统／架构、上次检查、更新说明与下载入口。有新版本时设置按钮显示圆点，点击直接进入更新页；同一新版本自动轻提示只显示一次，「稍后」关闭提示但保留圆点。编辑未保存、输入中或对话框打开时延后轻提示。浏览器预览及离线导出不显示桌面更新入口。
+
+默认启动 15 秒后检查，上次成功检查不足 6 小时则跳过；运行期间每 6 小时检查。自动检查可关闭，手动检查仍可使用。预览构建默认接收预览版，正式构建默认仅正式版，可在此切换。关闭预览版后仅选择更新的正式版，不降级到更早版本。
+
+desktop/updates.cjs 使用 GitHub 官方 API 匿名读取本仓库最近 100 个公开 Release，过滤 desktop-v 标签、草稿、渠道和版本，精确匹配当前系统／架构的已上传 DMG／EXE；没有该架构安装包的版本不显示为可下载更新。请求设置超时和大小上限；失败不会把已知更新清除，也不声称已是最新版。更新说明按纯文本显示，不执行远程 HTML。连接沿用 Electron 网络设置，不发送工作区内容、账号或 API Key。
+
+自动检查、预览渠道、缓存及已提示版本保存在本机 Electron userData/updates.json，不进入求职工作区、Git 或安装资源。IPC 只接受主窗口，并由主进程选择官方固定仓库的下载链接；页面不能提供任意下载地址。
+
+「下载安装包」在系统浏览器打开对应架构的公开安装包链接，不显示虚假的下载进度，不自动执行或重启。下载后由用户退出应用并运行安装包覆盖升级。当前尚未实现签名／公证、更新元数据及自动安装链路；此前安装包需手动升级到包含此功能的新版本，才会出现上述入口。
+
+离线回归：node --test tests/desktop-updates.test.mjs 覆盖版本、四架构、渠道、失败／并发、持久化和通知；desktop:test 在合成工作区验证真实包的启动页、工作台、更新设置保存与原生事件传递，不下载或安装外部软件。

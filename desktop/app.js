@@ -1,3 +1,4 @@
+import './updates.js';
 const api=window.careerDesktop,$=id=>document.getElementById(id);
 let state,current,busy=false,restoring=false;
 const error=message=>{$('error').textContent=message;$('error').hidden=!message;};
@@ -32,7 +33,7 @@ $('open').onclick=()=>void action(async()=>{const selected=await api.chooseDirec
 $('copy').onclick=()=>void action(async()=>{await api.copyPrompt(current.path);$('copy').textContent='已复制';$('status').textContent='在 Agent 软件的新对话中粘贴即可。';});
 $('reveal').onclick=()=>void action(()=>api.reveal(current.path));$('enter').onclick=()=>void action(()=>api.navigate(current.url));
 $('back').onclick=()=>void action(async()=>{await refresh();screen('start');});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!busy&&!$('create').hidden)screen('start');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!busy&&!$('create').hidden)screen('start');});
 void action(refresh);
 
 async function checkSyncEnvironment(){
@@ -47,3 +48,7 @@ async function checkSyncEnvironment(){
   });}
  }catch(e){box.textContent=e.message;}
 }
+
+const openUpdates=()=>window.careerUpdatesUI?.openStandalone();
+$('open-updates').onclick=openUpdates;
+window.careerUpdatesUI?.connect($('open-updates'),openUpdates);

@@ -9,7 +9,7 @@ protocol.registerSchemesAsPrivileged([{scheme:'career-app',privileges:{standard:
 if(process.env.CAREER_DESKTOP_USER_DATA)app.setPath('userData',path.resolve(process.env.CAREER_DESKTOP_USER_DATA));
 const smokeIndex=process.argv.indexOf('--career-smoke');
 const smokeOutput=smokeIndex>=0?process.argv[smokeIndex+1]:null;
-let win,tray,manager,core,quitting=false,working=false,shutdown,company;
+let win,tray,manager,core,quitting=false,working=false,shutdown,company,updates;
 const assets=path.join(__dirname,'assets');
 const coreRoot=path.join(__dirname,'runtime/node_modules/@heyjianhang/career');
 const load=relative=>import(pathToFileURL(path.join(coreRoot,'dist',relative)));
@@ -84,6 +84,11 @@ function nativeControls(){
 }
 function setupIPC(){
  handle('state',state);
+ handle('updatesState',()=>updates.state());
+ handle('updatesCheck',()=>updates.check());
+ handle('updatesPreferences',value=>updates.preferences(value));
+ handle('updatesClaimNotice',tag=>updates.claimNotice(tag));
+ handle('updatesOpenDownload',tag=>updates.openDownload(tag));
  handle('syncEnvironment',()=>core.syncEnvironment.syncEnvironment());
  handle('syncLogin',()=>core.syncEnvironment.startLogin());
  handle('syncLoginStatus',()=>core.syncEnvironment.loginStatus());
@@ -114,17 +119,19 @@ async function createWindow(){
  await win.loadURL(welcome);if(!smokeOutput)win.show();
 }
 async function start(){
+ updates=await require('./updates.cjs').createUpdateService({directory:app.getPath('userData'),currentVersion:app.getVersion(),platform:process.platform,arch:process.arch,fetchImpl:(url,options)=>net.fetch(url,options),openExternal:url=>shell.openExternal(url),onChange:value=>{if(win&&!win.isDestroyed()&&trusted(win.webContents.getURL()))win.webContents.send('career:updates',value);}});
  company=await require('./company.cjs').createCompanyService({app,safeStorage,coreRoot});
  core={syncEnvironment:await load('workspace/sync-environment.js'),setup:await load('workspace/setup.js'),local:await load('workspace/local.js'),io:await load('presentation/io.js'),collection:await load('presentation/collection.js'),server:await load('presentation/server.js')};
  manager=new core.local.WorkspaceManager(path.join(app.getPath('userData'),'workspaces.json'));manager.prepare=prepare;
  (await load('presentation/pdf.js')).setPdfRenderer(printHtml);
  protocol.handle('career-app',request=>{
   const url=new URL(request.url);const files={'/index.html':'index.html','/app.js':'app.js','/style.css':'style.css','/icon.svg':'icon.svg'};
+  if(url.host==='desktop'&&['/updates.js','/updates.css'].includes(url.pathname))return net.fetch(pathToFileURL(path.join(coreRoot,'dist/presentation',url.pathname.slice(1))).toString());
   const file=url.host==='desktop'?files[url.pathname]:null;
   if(!file)return new Response('Not found',{status:404});
   return net.fetch(pathToFileURL(path.join(__dirname,file)).toString());
  });
- setupIPC();await createWindow();
+ setupIPC();await createWindow();if(!smokeOutput)updates.start();
  if(smokeOutput){
   try{const report=await require('./smoke.cjs').run({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,state});await fs.writeFile(smokeOutput,JSON.stringify(report,null,2));app.quit();}
   catch(e){await fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack}));app.exit(1);}
@@ -137,7 +144,7 @@ else {
  if(process.platform==='win32')app.setAppUserModelId('top.heyjianhang.career');
  app.on('second-instance',showWindow);app.on('activate',showWindow);
  app.whenReady().then(start).catch(e=>{console.error(e);if(smokeOutput)void fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack})).finally(()=>app.exit(1));else{dialog.showErrorBox('career 启动失败',e.message);app.quit();}});
- const stop=()=>{shutdown??=(async()=>{try{core?.syncEnvironment.stopLogin();await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
+ const stop=()=>{shutdown??=(async()=>{try{updates?.close();core?.syncEnvironment.stopLogin();await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
  app.on('window-all-closed',stop);
  // Close the window first so its unsaved-edit guard can cancel. Drain services while
  // Electron's normal event loop is still running, before entering the quit sequence.
