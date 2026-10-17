@@ -462,7 +462,7 @@ export async function readDocument(w: string, op: string, p: string) {
 export async function context(w: string, op: string) {
   const detail = await show(w, op);
   const unresolved = detail.tasks.filter(t => !['done', 'cancelled'].includes(t.meta.status));
-  const primary = ['job.md', 'notes.md', 'analysis/match.md', 'analysis/company.md'];
+  const primary = ['job.md', 'notes.md', 'analysis/match.md', 'analysis/company.md', 'analysis/outreach.md'];
   const next_reads = [{
     path: 'AGENTS.md',
     purpose: '工作区规则'

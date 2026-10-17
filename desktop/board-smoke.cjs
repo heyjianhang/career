@@ -1,0 +1,31 @@
+// Verify newly shipped board flows against synthetic files in the packaged app.
+const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+exports.run=async({win,workspace,url,coreRoot,capture})=>{
+ const load=p=>import(pathToFileURL(path.join(coreRoot,'dist',p)));
+ const jobs=await load('opportunities/store.js'),resumes=await load('resumes/store.js'),{encode}=await load('opportunities/files.js');
+ const js=s=>win.webContents.executeJavaScript(s);
+ const wait=async s=>{const end=Date.now()+20000;while(Date.now()<end){if(await js(s))return;await new Promise(r=>setTimeout(r,50));}throw new Error('Board smoke timeout: '+s);};
+ const r=await resumes.readResume(workspace,(await resumes.library(workspace)).entries[0].id);
+ const op=await jobs.add(workspace,{company:'面板验收公司（虚构）',title:'应用工程师（合成）'});
+ await resumes.selectResume(workspace,op.id,r.package.id,op.sha256);
+ const write=async(p,body)=>{const candidate=path.join(workspace,'smoke-analysis.md');await fs.writeFile(candidate,body);const old=await jobs.readDocument(workspace,op.id,p).catch(e=>{if(e.code!=='NOT_FOUND')throw e;return null;});return jobs.writeDocument(workspace,op.id,p,candidate,old?.sha256);};
+ const jd=await write('job.md','# 职位描述\n负责业务系统接口集成。');
+ const versions={opportunity_id:op.id,resume_id:r.package.id,resume_sha256:r.sha256,jd_sha256:jd.sha256};
+ await write('analysis/match.md',encode({...versions,schema:'career-match/v1',assessed_at:new Date().toISOString(),summary:'这是用于安装验收的合成分析。',criteria:[{id:'业务接口集成',weight:100,score:3,evidence:['合成简历／描述'],reason:'仅用于验证评分展示。'}],hard_conditions:[]},'# 详细分析\n打包后的原文正常展示。'));
+ const message='您好，我有相关业务集成经验，想进一步了解这个岗位。';
+ await write('analysis/outreach.md',encode({...versions,schema:'career-outreach/v1',generated_at:new Date().toISOString(),channel:'其他'},'# 招聘开场白\n\n## 推荐稿\n\n'+message+'\n\n## 简短版\n\n您好，想了解这个岗位。\n'));
+ await win.loadURL(new URL('/board',url).href);await wait('document.querySelector('+JSON.stringify('[data-opportunity="'+op.id+'"]')+')');
+ await js('document.querySelector('+JSON.stringify('[data-opportunity="'+op.id+'"]')+').click()');
+ await wait("document.querySelector('#opportunity-drawer')?.open");
+ assert.equal(await js("document.querySelector('#tab-overview').textContent"),'职位描述');
+ await js("document.querySelector('#tab-match').click()");await wait("document.querySelector('.match-score>strong')?.textContent==='75'");
+ assert.equal(await js("document.querySelector('#job-rating [aria-pressed=true]')"),null);await capture('match-summary');
+ await js("document.querySelector('#tab-outreach').click()");await wait("document.querySelector('[data-copy-outreach]')");
+ await js("document.querySelector('[data-copy-outreach]').click()");
+ await wait("document.body.textContent.includes('正文已复制')");assert.equal(await require('electron').clipboard.readText(),message);await capture('outreach');
+ await js("document.querySelector('#tab-resume').click()");await wait("document.querySelector('.chosen-resume')");assert.equal(await js("document.querySelector('.outreach-panel')"),null);
+ await write('job.md','# 职位描述\n增加系统评测要求。');await js("document.querySelector('#tab-match').click()");await wait("document.querySelector('#match-title')?.textContent==='上次分析结果'");
+};

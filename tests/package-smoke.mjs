@@ -24,10 +24,10 @@ const jsonCommand=async(cli,cwd,args)=>{
 try{
  const [packed]=JSON.parse(await npm(['pack','--json','--pack-destination',dir]));
  const names=packed.files.map(f=>f.path);
- for(const file of ['dist/workspace/sync.js','dist/workspace/sync-api.js','dist/workspace/sync-environment.js','dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
+ for(const file of ['dist/workspace/sync.js','dist/workspace/sync-api.js','dist/workspace/sync-environment.js','dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/match.v1.schema.json','schemas/outreach.v1.schema.json','dist/opportunities/match.js','dist/opportunities/outreach.js','resources/workspace/.agents/skills/career-match/references/storage.md','resources/workspace/.agents/skills/career-outreach/SKILL.md','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
  assert.ok(names.includes('resources/workspace/gitattributes.template'),'packaging must preserve cross-platform line-ending rules');
- const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','boss-zhipin-scraper','jd-research'];
+ const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','boss-zhipin-scraper','jd-research'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
   const included=[...new Set(names.filter(name=>name.startsWith(prefix)).map(name=>name.slice(prefix.length).split('/')[0]))].sort();
   assert.deepEqual(included,[...userSkills].sort(),'Only user Skills belong in the npm package');
@@ -111,8 +111,10 @@ try{
    preview.once('exit',code=>{clearTimeout(timer);reject(new Error('Preview exited '+code+': '+stderr));});
   });
   assert.equal(ready.status,'success');const base=new URL(ready.data.url);
-  assert.match(await (await fetch(base)).text(),/data-tab="overview">JD/);
+  assert.match(await (await fetch(base)).text(),/data-tab="overview">职位描述/);
   assert.equal((await (await fetch(new URL('/api/board/overview',base))).json()).total,1);
+  assert.equal((await(await fetch(new URL('/api/board/match-summary?id='+op.id,base))).json()).state,'missing');
+  assert.equal((await(await fetch(new URL('/api/board/outreach?id='+op.id,base))).json()).exists,false);
   assert.match(await(await fetch(new URL('/',base))).text(),/我的简历/);
   const profilePage=await(await fetch(new URL('/profile',base))).text();assert.match(profilePage,/我的资料/);assert.match(profilePage,/materials-layout/);
   const profileIndex=await(await fetch(new URL('/api/profile/index',base))).json();assert.ok(profileIndex.groups.some(g=>g.id==='goals'));assert.ok(profileIndex.files.some(f=>f.path==='resume/facts/profile.md'));

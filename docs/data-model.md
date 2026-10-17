@@ -17,6 +17,10 @@
 
 岗位记录位于个人目录 `opportunities/`，使用独立的 [岗位契约](opportunities.md)。每个稳定 ID 对应一个卡片目录，关联原有简历版本；不改变本文件的简历 v2 或冻结格式。workspace check 与本地 Git 保存同时校验岗位记录和关联。
 
+单岗位的总体匹配数据与详细正文共存于 `analysis/match.md`，元数据遵循 [career-match/v1](../schemas/match.v1.schema.json)。元数据包含所用 JD／简历摘要、逐项证据与权重、必要条件和总体结论；网页按共享锚点评价计算总分与证据覆盖，不写回个人星级。旧纯文字报告仍可阅读，输入变化时标明历史结果。详细约定见 [匹配结果保存方法](../.agents/skills/career-match/references/storage.md)。
+
+首次联系招聘方的派生草稿保存在 `opportunities/<岗位ID>/analysis/outreach.md`，使用 [career-outreach/v1 元数据](../schemas/outreach.v1.schema.json)。它引用所用简历 ID、简历与 JD 的 SHA-256，不复制或反写事实层。岗位「打招呼」页只提取约定标题下的消息正文；更换绑定、输入变更或读取失败时提示核对，保留原稿。生成和复制不改变投递阶段；用户报告已发送的文本另行留存，具体约定见 [打招呼稿保存方法](../.agents/skills/career-outreach/references/storage.md)。
+
 ## 展示内容包
 
 新成品使用 `career-resume-package/v1`，Agent 与网页修改同一个 content，平台稿由固定规则生成；见 [统一简历包](resume-packages.md)。事实库和母版继续独立维护，不从 HTML 反解析。

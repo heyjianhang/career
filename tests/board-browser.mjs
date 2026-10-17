@@ -48,11 +48,11 @@ try {
   const first=await board.add(emptyWorkspace,{company:'新机会（虚构）',title:'产品经理',body:'# 旧岗位概况\n\n待确认团队与下一步。'});await page.locator('#refresh-board').click();await page.locator(`[data-stage="inbox"] [data-opportunity="${first.id}"]`).waitFor();
   assert.equal(await page.locator('.kanban-column').count(),6);assert.equal(await page.locator('.column-heading [data-add-stage]').count(),6);assert.equal(await page.locator('[data-drop-stage="inbox"] .column-count').innerText(),'1');assert.equal(await page.locator('#empty-board-action').count(),0);
   // Legacy notes stay available, but never masquerade as the missing JD.
-  await page.locator(`[data-opportunity="${first.id}"]`).click();await page.getByRole('heading',{name:'尚未保存 JD 原文'}).waitFor();
+  await page.locator(`[data-opportunity="${first.id}"]`).click();await page.getByRole('heading',{name:'尚未保存职位描述'}).waitFor();
   assert.equal(await page.locator('#document-view').innerText().then(t=>t.includes('待确认团队')),false);
   await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('不要把旧概况'));
   await page.locator('#tab-files').click();await page.locator('[data-file="card.md"]').click();await page.locator('.markdown-body').filter({hasText:'待确认团队'}).waitFor();
-  await page.locator('#tab-match').click();await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('若未关联'));
+  await page.locator('#tab-match').click();await page.locator('#update-match').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('若未关联'));
   assert.ok((await page.evaluate(()=>navigator.clipboard.readText())).includes('career-match'));
   await page.locator('#tab-company').click();await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('企查查未配置'));
   await page.locator('#close-drawer').click();
@@ -138,12 +138,12 @@ try {
  if(originalStage!=='preparing'){await card().dragTo(target(originalStage));await inStage(originalStage).waitFor();}
  await page.setViewportSize({width:1440,height:1000});await open();
  await page.locator('.markdown-body').filter({hasText:'工作职责'}).waitFor();
- assert.deepEqual(await page.locator('#job-tabs [role=tab]').allTextContents(),['JD','公司分析','岗位匹配','面试','资料','简历']);
+ assert.deepEqual(await page.locator('#job-tabs [role=tab]').allTextContents(),['职位描述','公司分析','岗位匹配','面试','资料','简历','打招呼']);
  assert.equal(await page.locator('.markdown-body').innerText().then(t=>t.includes('当前进展')),false);
  await page.locator('#mode-source').click();await page.locator('.source-code').waitFor();
  assert.equal(await page.locator('.source-code').textContent(),await readFile(path.join(workspace,'opportunities',id,'job.md'),'utf8'));
- await page.locator('#tab-overview').focus();await page.keyboard.press('End');assert.equal(await page.locator('#tab-resume').getAttribute('aria-selected'),'true');
- await page.keyboard.press('ArrowLeft');assert.equal(await page.locator('#tab-files').getAttribute('aria-selected'),'true');
+ await page.locator('#tab-overview').focus();await page.keyboard.press('End');assert.equal(await page.locator('#tab-outreach').getAttribute('aria-selected'),'true');
+ await page.keyboard.press('ArrowLeft');assert.equal(await page.locator('#tab-resume').getAttribute('aria-selected'),'true');
  await page.keyboard.press('Home');await page.locator('.markdown-body').filter({hasText:'工作职责'}).waitFor();
  assert.equal(await page.locator('.kanban-column').count(),6);assert.equal(await page.getByRole('heading',{name:'沟通中',exact:true}).count(),0);
  await page.locator('#tab-company').click();await page.locator('.markdown-body').filter({hasText:'业务与产品'}).waitFor();

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Career outreach document metadata",
+  "type": "object",
+  "required": ["schema", "opportunity_id", "resume_id", "resume_sha256", "jd_sha256", "generated_at", "channel"],
+  "properties": {
+    "schema": {"const": "career-outreach/v1"},
+    "opportunity_id": {"type": "string", "pattern": "^opp-[a-z0-9-]{1,80}$"},
+    "resume_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$"},
+    "resume_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "jd_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "generated_at": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"},
+    "channel": {"type": "string", "minLength": 1, "maxLength": 80}
+  },
+  "additionalProperties": true
+}
