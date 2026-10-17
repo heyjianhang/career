@@ -59,6 +59,12 @@ node scripts/build-site.mjs
 
 ## 生产部署记录
 
+2026-10-17 23:38 自定义管理密码支持已部署，生产部署 `dp6shahkchfq`，源码 `abdcb88bc43062ba88246bf26c342a95577e4085`，构建用时 24 秒。
+
+- 维护者已更新两个生产凭据变量，逐项核对与本机准备配置一致；服务端保存带盐密码摘要，当前本机配置不保存自定义密码明文。原有生成式密钥仍兼容。
+- 142 项隔离基础测试、19 项门户测试、320–1440px 浏览器登录／管理回归、文档与静态构建通过；[三平台 CI](https://github.com/heyjianhang/career/actions/runs/39045329244) 全部通过。
+- KV 服务仍为“审批中”，尚不能完成云端登录验收。首页下载正常，管理 API 继续返回 503；不把凭据已部署等同于后台已经可用。
+
 2026-10-17 首页与管理后台代码已部署：[career.heyjianhang.top](https://career.heyjianhang.top/)，后台入口 [/admin/](https://career.heyjianhang.top/admin/)。
 
 - 生产部署 `dpj7al6z4oj6`，构建用时 22 秒，源码 `f24a46f25318c7120af358420e417bcdde02af0a`；控制台显示成功，Edge Functions 编译成功。仍需手动从 main 新建部署，本次推送没有自动触发。
