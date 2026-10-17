@@ -59,6 +59,15 @@ node scripts/build-site.mjs
 
 ## 生产部署记录
 
+2026-10-17 首页与管理后台代码已部署：[career.heyjianhang.top](https://career.heyjianhang.top/)，后台入口 [/admin/](https://career.heyjianhang.top/admin/)。
+
+- 生产部署 `dpj7al6z4oj6`，构建用时 22 秒，源码 `f24a46f25318c7120af358420e417bcdde02af0a`；控制台显示成功，Edge Functions 编译成功。仍需手动从 main 新建部署，本次推送没有自动触发。
+- 自定义域名首页与本次干净候选构建逐字节一致；后台资源返回 200，带 noindex 和 CSP；`/api/downloads` 返回 200 与 alpha.1 四架构快照。错误来源写入返回 403，服务端源码与凭据路径返回 404。
+- 四个安装包匿名范围下载均返回 206 与正确文件大小；本次只验证可下载性，没有重新安装／全量计算哈希。GitHub 匿名元数据接口当前限流，真实后台发布链路仍须在存储开通后复验。
+- 已设置生产环境的 `PORTAL_ADMIN_KEY_HASH`、`PORTAL_SESSION_SECRET`、`PORTAL_ORIGIN`；登录凭据只保留在本机 `.cache/portal-production/admin-key.json`，不提交、不上传静态目录。
+- KV 服务申请仍在审批中，尚未绑定 `CAREER_PORTAL`。首页保持可下载，统计关闭，管理 API 明确返回 503。审核后继续绑定并完成云端验收，不应将本次部署等同于后台已完全可用。
+- 隔离候选的 140 项基础测试（含 17 项门户测试）、320–1440px 浏览器检查、文档检查和公开文件白名单构建通过；远程 CI 见[本次检查](https://github.com/heyjianhang/career/actions/runs/39044334232)。
+
 2026-10-15 桌面下载门户已上线：[career.heyjianhang.top](https://career.heyjianhang.top/)。
 
 - 生产部署 `dplukz44o1uq`，从 main 的 `13a3c223965bea2217de4abc2613b9438b5ed6f6` 手动发起，22 秒构建部署成功；仍使用全球可用区（不含中国大陆）。
@@ -80,7 +89,7 @@ node scripts/build-site.mjs
 
 同一份 `build/site/` 可部署到其他静态站服务，首页与快照下载可正常使用。统计和后台需要部署兼容 API；仅上传静态文件不会自动获得管理服务。当前针对腾讯准备适配，未为其他服务创建部署或收费资源。
 
-## 管理后台（2026-10-17，本地实现）
+## 管理后台（2026-10-17，已部署，存储待开通）
 
 入口为 `/admin/`，普通官网导航不展示管理入口。包含近 7／30 天访问、独立访客估算、每日趋势、下载点击、架构／版本／来源分布，以及版本草稿编辑和首页版本切换。首次打开没有数据时显示真实空状态。
 
@@ -121,7 +130,7 @@ npm run check:docs
 
 API 测试覆盖鉴权、会话过期、CSRF、重复事件、并发写入、分页、时区、草稿持久化、公开安装包验证失败保护、版本快照和静态回退。浏览器使用独立临时存储与明确的合成 GitHub 响应，不查询／发布真实新版本；覆盖 320–1440px、登录、保存、失败后重试、首页切换、统计关闭和无脚本下载。截图留在 `.cache/portal-review`，不对外发布。
 
-本轮未创建云端存储、配置生产密钥、推送或部署。云端路由、账号配额、KV 绑定和真实 Release 联通性须在上述一次性配置后验收，不能用本地通过代替线上完成。
+首页、后台静态资源与 Edge Function 已部署；服务端管理配置已限定生产环境。腾讯账号 KV 服务尚未开通，已提交用途申请，控制台显示“审批中”，所以暂未创建／绑定命名空间。公网 `/api/downloads` 返回静态快照与 `tracking:false`，管理接口返回明确的 503 配置提示；没有制造统计数据。审核通过后按上方流程创建并绑定存储，再验证登录、统计、版本保存及发布，当前不能声称管理功能已完成云端验收。
 
 依据腾讯官方 [Edge Functions](https://pages.edgeone.ai/document/edge-functions)、[KV API 与一致性说明](https://pages.edgeone.ai/document/kv-storage)、[Web Crypto API](https://edgeone.ai/document/52693)（2026-10-17 核对）。KV 适配遵循 key 仅字母／数字／下划线、每页最多 256 个键、`complete/cursor/keys[].key` 返回格式。
 
