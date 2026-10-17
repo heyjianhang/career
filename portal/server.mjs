@@ -17,17 +17,24 @@ const get = async (kv, key) => { const value = await kv.get(key); return value ?
 const put = (kv, key, value) => kv.put(key, JSON.stringify(value));
 async function body(request) {
   if (!/^(application\/json|text\/plain)(;|$)/i.test(request.headers.get('content-type') || '')) fail('不支持的请求格式', 415);
-  const reader = request.body?.getReader(); if (!reader) fail('请求内容为空');
+  const input = request.body; if (!input) fail('请求内容为空');
   const chunks = []; let size = 0;
-  try { for (;;) {
-    const {value, done} = await reader.read(); if (done) break;
-    // EdgeOne may yield ArrayBuffer chunks; Node yields Uint8Array. Count bytes in both.
+  const append = value => {
     const chunk = typeof value === 'string' ? encoder.encode(value)
       : ArrayBuffer.isView(value) ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
       : new Uint8Array(value);
     size += chunk.byteLength; if (size > 24000) fail('请求内容过大', 413); chunks.push(chunk);
-  } }
-  finally { await reader.cancel(); }
+  };
+  // Support both WHATWG streams and Node readable bodies used by cloud hosts.
+  if (typeof input.getReader === 'function') {
+    const reader = input.getReader();
+    try { for (;;) { const {value, done} = await reader.read(); if (done) break; append(value); } }
+    finally { await reader.cancel?.(); }
+  } else if (typeof input[Symbol.asyncIterator] === 'function') {
+    for await (const chunk of input) append(chunk);
+  } else if (typeof input === 'string' || ArrayBuffer.isView(input) || input instanceof ArrayBuffer) {
+    append(input);
+  } else fail('不支持的请求内容', 400);
   const bytes = new Uint8Array(size); let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   try { const value = JSON.parse(new TextDecoder().decode(bytes)); if (!value || typeof value !== 'object' || Array.isArray(value)) fail('请求格式不正确'); return value; }

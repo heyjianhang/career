@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {Readable} from 'node:stream';
 import assert from 'node:assert/strict';
 import {mkdtemp, readFile, rm, stat} from 'node:fs/promises';
 import {pbkdf2Sync} from 'node:crypto';
@@ -245,4 +246,30 @@ test('Node cloud authentication is independent of the host global crypto shim', 
     assert.equal(response.status, 200);
     assert.match(response.headers.get('set-cookie'), /HttpOnly; SameSite=Strict/);
   `], {cwd: new URL('..', import.meta.url), stdio: 'pipe'});
+});
+
+test('cloud diagnostics identify the failing phase without logging request secrets', async () => {
+  const diagnostics = [];
+  const request = {url: origin + '/api/admin/login', method: 'POST',
+    headers: new Headers({'Content-Type': 'application/json', Origin: origin}),
+    body: {getReader() {throw Object.assign(new TypeError('private-password-and-token'), {code: 'ERR_TEST'});}},
+  };
+  const response = await handlePortal(request, {kv: memory(), env, baseline, onError: value => diagnostics.push(value)});
+  assert.equal(response.status, 503);
+  assert.deepEqual(diagnostics, [{phase: 'login-body', name: 'TypeError', code: 'ERR_TEST'}]);
+  assert.doesNotMatch(await response.text(), /private-password|token/);
+});
+
+test('Node readable cloud bodies support login, preserve UTF-8 and enforce byte limits', async () => {
+  const invoke = async body => handlePortal({url: origin + '/api/admin/login', method: 'POST',
+    headers: new Headers({'Content-Type': 'application/json', Origin: origin}), body,
+  }, {kv: memory(), env, baseline});
+  const bytes = Buffer.from(JSON.stringify({key: adminKey, label: '中文'}));
+  for (const body of [Readable.from([bytes.subarray(0, bytes.length - 3), bytes.subarray(bytes.length - 3)]), bytes, bytes.toString()]) {
+    const response = await invoke(body);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('set-cookie'), /career_admin=/);
+  }
+  const oversized = await invoke(Readable.from([Buffer.from(JSON.stringify({key: '中'.repeat(9000)}))]));
+  assert.equal(oversized.status, 413);
 });
