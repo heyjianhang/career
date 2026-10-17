@@ -91,6 +91,18 @@ test('Blob failures preserve downloads, block false login success and redact SDK
   assert.match(missingStorage.data.error, /存储尚未连接/);
 });
 
+test('edge ArrayBuffer, sliced typed arrays and string request chunks parse with byte limits', async () => {
+  const bytes = new TextEncoder().encode(JSON.stringify({key: adminKey}));
+  const padded = new Uint8Array(bytes.length + 10); padded.set(bytes, 5);
+  for (const chunks of [[bytes.buffer.slice(0, 17), bytes.buffer.slice(17)], [padded.subarray(5, -5)], [JSON.stringify({key: adminKey})]]) {
+    const request = new Request(origin + '/api/admin/login', {method: 'POST', headers: {Origin: origin, 'Content-Type': 'application/json'}, duplex: 'half', body: new ReadableStream({start(controller) { for (const value of chunks) controller.enqueue(value); controller.close(); }})});
+    assert.equal((await handlePortal(request, {kv: memory(), env, baseline, now})).status, 200);
+  }
+  const huge = new TextEncoder().encode(JSON.stringify({key: '中'.repeat(9000)}));
+  const request = new Request(origin + '/api/admin/login', {method: 'POST', headers: {Origin: origin, 'Content-Type': 'application/json'}, duplex: 'half', body: new ReadableStream({start(controller) { controller.enqueue(huge.buffer); controller.close(); }})});
+  assert.equal((await handlePortal(request, {kv: memory(), env, baseline, now})).status, 413);
+});
+
 test('custom passwords use salted PBKDF2 and preserve legacy generated keys', async () => {
   const password = 'Test-only#42';
   const stored = await hashPassword(password);

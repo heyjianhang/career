@@ -18,7 +18,14 @@ async function body(request) {
   if (!/^(application\/json|text\/plain)(;|$)/i.test(request.headers.get('content-type') || '')) fail('不支持的请求格式', 415);
   const reader = request.body?.getReader(); if (!reader) fail('请求内容为空');
   const chunks = []; let size = 0;
-  try { for (;;) { const {value, done} = await reader.read(); if (done) break; size += value.length; if (size > 24000) fail('请求内容过大', 413); chunks.push(value); } }
+  try { for (;;) {
+    const {value, done} = await reader.read(); if (done) break;
+    // EdgeOne may yield ArrayBuffer chunks; Node yields Uint8Array. Count bytes in both.
+    const chunk = typeof value === 'string' ? encoder.encode(value)
+      : ArrayBuffer.isView(value) ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+      : new Uint8Array(value);
+    size += chunk.byteLength; if (size > 24000) fail('请求内容过大', 413); chunks.push(chunk);
+  } }
   finally { await reader.cancel(); }
   const bytes = new Uint8Array(size); let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }

@@ -117,7 +117,7 @@ function openPublish(release) {
 $('#acceptance').addEventListener('change', () => { $('#publish-confirm').disabled = !$('#acceptance').checked; });
 $('#publish-confirm').addEventListener('click', async event => {
   $('#publish-error').textContent = '';
-  try { await busy(event.target, async () => { await api('publish', {id: publishing.id, revision: publishing.revision, currentRevision: current.revision, accepted: true}); $('#publish-dialog').close(); await loadReleases(); notice('首页下载版本已更新。边缘节点同步最多可能需要约一分钟。'); }, '正在验证公开安装包…'); }
+  try { await busy(event.target, async () => { await api('publish', {id: publishing.id, revision: publishing.revision, currentRevision: current.revision, accepted: true}); $('#publish-dialog').close(); await loadReleases(); notice('首页下载版本已更新，重新打开官网即可查看。'); }, '正在验证公开安装包…'); }
   catch (error) { $('#publish-error').textContent = error.message; }
 });
 enter().catch(error => { showLogin(); if (!/请先登录/.test(error.message)) $('#login-error').textContent = error.message; });
