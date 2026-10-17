@@ -1,6 +1,6 @@
 # career Desktop 0.3.0-alpha.14
 
-状态：候选版本，待三平台 CI、四架构安装包验收与公开下载验证。当前公开下载仍为 alpha.13。
+2026-10-18 已公开为未签名预览版。四架构打包应用原生验收、远端附件与匿名完整下载 SHA-256 校验均通过。门户运行时下载入口已切换到 alpha.14。
 
 ## 本次更新
 
@@ -18,4 +18,23 @@
 
 ## 验证记录
 
-本地已通过 211 项基础测试、匹配／打招呼专项浏览器检查、看板及路线图回归、Skill 格式与安装资源引用、实际 tgz 安装和重试。新增桌面安装验收覆盖打包后的评分、独立页签、正文复制和输入变化提醒。发布后补充准确源码 SHA、CI、构建来源、四架构校验值及门户回执。
+本地已通过 211 项基础测试、匹配／打招呼专项浏览器检查、看板及路线图回归、Skill 格式与安装资源引用、实际 tgz 安装和重试。新增桌面安装验收覆盖打包后的评分、独立页签、正文复制和输入变化提醒。安装器交互与系统拦截提示未在本轮逐台手动复验；模型和企查查使用合成服务，真实供应商 Key／额度不在本次验收范围。
+
+## 来源与公开验证
+
+- 合并 PR：[#4](https://github.com/heyjianhang/career/pull/4)。安装包源码及标签均为 `7ce4b1e147715d3acabfc6b2a37cc0ae7c740efc`。
+- [候选三平台 CI](https://github.com/heyjianhang/career/actions/runs/39057475206)与 [main 三平台 CI](https://github.com/heyjianhang/career/actions/runs/39058230768)通过。
+- [四架构构建及原生验收](https://github.com/heyjianhang/career/actions/runs/39058242506)：每架构实际启动刚打包的应用，通过 211 项基础测试及桌面 smoke，独立冷启动通过；新工作区为空，十三个用户 Skills、内置 CLI、简历／PDF、模型设置／JD 导入、企查查桥接、更新入口、评分与打招呼均检查。
+- [转存和远端 SHA-256](https://github.com/heyjianhang/career/actions/runs/39059024839)、[四个匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39059168498)均通过。
+- [GitHub Release](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.14)，公开时间 2026-10-18 02:40:54（北京时间）。附件含四个安装包及 SHA256SUMS.txt。
+
+| 安装包 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| `career-0.3.0-alpha.14-mac-arm64.dmg` | 184144085 | `ce3dc3e91fb5f13cd2e30e92c7aa54cd551686b21a71e7ae8816c4efdafa497f` |
+| `career-0.3.0-alpha.14-mac-x64.dmg` | 188724346 | `92f60c1685eb7e5c7055795408f4d2895dd40e5623a732111ebc37567d800e36` |
+| `career-0.3.0-alpha.14-win-x64.exe` | 169128501 | `396636abd7e11338890188c7420f9a3cb550cf8c695f0e62079bf3a1ac1aa2a0` |
+| `career-0.3.0-alpha.14-win-arm64.exe` | 162942714 | `1b046327b5b866ba0dad2c4ef4aff43c339502947497618ee1f8dcf1028ab481` |
+
+## 门户
+
+2026-10-18 02:44:47（北京时间），管理 CLI 发布成功，公开入口回查 `publicFeedConfirmed:true`。草稿 `811774f075804632954c19256a94dd62`，当前 revision `1801bf02f21540868b76b011a0972844`。本机 CLI 的额外匿名预检查遇到限流，CI 四个匿名完整下载已通过；云端发布时独立校验四个公开附件并成功切换。静态回退清单已更新，待合并部署。

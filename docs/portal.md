@@ -35,7 +35,7 @@ node scripts/build-site.mjs
 3. 将真实版本、标签与 URL 写入 downloads.json，运行 `node --test tests/portal.test.mjs`、`npm run build:site` 和 `npm run check:docs`。
 4. 在本机预览检查启用的下载链接、未发布架构、窄屏及备用复制入口；按授权提交／部署，再核对线上链接。
 
-`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前已公开 desktop-v0.3.0-alpha.13，四种架构的匿名完整下载和 SHA-256 均已验证；[发布记录](releases/desktop-0.3.0-alpha.13.md)包含安装包来源和验收边界。门户本次部署状态见下方生产记录。
+`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前已公开 desktop-v0.3.0-alpha.14，四种架构的匿名完整下载和 SHA-256 均已验证；[发布记录](releases/desktop-0.3.0-alpha.14.md)包含安装包来源和验收边界。门户本次部署状态见下方生产记录。
 
 ## 腾讯 EdgeOne Pages / Makers
 
@@ -58,6 +58,8 @@ node scripts/build-site.mjs
 绑定仓库后，生产分支更新可以触发重新构建。公开 npm 包的发布仍为独立步骤；发布前核对门户命令指定版本已在 registry 可安装。只部署静态产物即可展示 portal，不需要 npm token。
 
 ## 生产部署记录
+
+2026-10-18 02:44:47，管理 CLI 成功发布 alpha.14，公开入口回查 `publicFeedConfirmed:true`，当前 revision 为 `1801bf02f21540868b76b011a0972844`。本机 CLI 的匿名预检查曾遇到 GitHub 限流；四架构 [CI 匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39059168498)与云端发布时的独立校验均通过。静态回退清单已同步，生产部署待完成。
 
 2026-10-18 01:21，使用管理 CLI 保存 alpha.13 草稿并切换门户版本。服务端独立验证四个公开附件后返回成功，公开入口回查 publicFeedConfirmed:true；当前 revision 为 `b0758180c2d8411cb510c17046c14adc`。本机的额外匿名 GitHub 查询曾限流；[CI 匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39053230622)与服务端发布验证均通过。静态回退清单已同步。生产部署 `dps8ogxhdgui` 成功，源码 `67f1b79e83e2014976bcbd663ca4f9acb44c1e87`，构建用时 125 秒。线上 HTML 与本地 build/site/index.html 逐字节一致，首页和后台均显示 alpha.13，四个架构菜单链接正确。
 
@@ -126,7 +128,7 @@ node scripts/build-site.mjs
 - 完成各架构安装验收后，点击「设为首页版本」。确认后服务端查询公开 Release 元数据，并对每个安装包做匿名范围请求；失败、限流、草稿、缺文件或草稿版本变化时保留当前入口。
 - 成功后保存发布快照和前后版本记录，再更新首页指向。可选旧版本再次验证和发布，回退下载入口；修改已发布版本的草稿不影响其快照。
 - 这是单维护者后台。Blob 读取与列表显式使用强一致模式，写入后立即读取最新值；但它不提供数据库级并发事务或条件写锁。草稿修订检查可防常规陈旧覆盖，不要同时在多个会话发布。
-- 后台发布只影响门户运行时入口；不替用户构建、签名、上传 GitHub Release、更新 npm 或应用内检查源。发布后仍应维护 downloads.json 作为无脚本与故障回退快照，再按正常流程提交部署。当前静态快照为 alpha.13，后续更新仍需同步维护。
+- 后台发布只影响门户运行时入口；不替用户构建、签名、上传 GitHub Release、更新 npm 或应用内检查源。发布后仍应维护 downloads.json 作为无脚本与故障回退快照，再按正常流程提交部署。当前源码静态快照为 alpha.14，后续更新仍需同步维护。
 
 ### 管理 CLI（维护者与 Agent）
 
