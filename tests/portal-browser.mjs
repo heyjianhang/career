@@ -4,8 +4,11 @@ import path from 'node:path';
 import os from 'node:os';
 import {chromium} from 'playwright';
 import {startPortalPreview} from '../scripts/preview-site.mjs';
+import {setLocalPassword} from '../portal/local.mjs';
 
 const directory = await mkdtemp(path.join(os.tmpdir(), 'career-portal-browser-'));
+const key = 'Test-only#42';
+await setLocalPassword(directory, key);
 const output = new URL('../.cache/portal-review/', import.meta.url); await mkdir(output, {recursive: true});
 let failVerification = true;
 const version = '0.3.0-alpha.99';
@@ -15,7 +18,6 @@ const preview = await startPortalPreview({directory, fetcher: async url => {
   if (url.startsWith('https://api.github.com/')) return Response.json({tag_name: `desktop-v${version}`, published_at: '2026-10-17', draft: false, prerelease: true, assets: [{browser_download_url: asset, size: 10, state: 'uploaded'}]});
   return new Response('x', {status: 206, headers: {'Content-Type': 'application/octet-stream'}});
 }});
-const {key} = JSON.parse(await readFile(preview.keyFile, 'utf8'));
 const browser = await chromium.launch({headless: true});
 const context = await browser.newContext(); const page = await context.newPage(); const errors = []; page.on('pageerror', error => errors.push(error.message));
 async function screenshot(name) { await page.screenshot({path: new URL(name, output).pathname, fullPage: true}); }

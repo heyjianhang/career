@@ -1,4 +1,5 @@
 import {platforms, validateManifest, verifyRelease} from './releases.mjs';
+import {validCredentialHash, verifyPassword} from './password.mjs';
 
 const encoder = new TextEncoder();
 const id = () => crypto.randomUUID().replaceAll('-', '');
@@ -28,7 +29,7 @@ async function sign(secret, value) {
   const key = await crypto.subtle.importKey('raw', encoder.encode(secret), {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);
   return hex(await crypto.subtle.sign('HMAC', key, encoder.encode(value)));
 }
-function configured(env) { return /^[a-f0-9]{64}$/.test(env.PORTAL_ADMIN_KEY_HASH || '') && (env.PORTAL_SESSION_SECRET || '').length >= 43; }
+function configured(env) { return validCredentialHash(env.PORTAL_ADMIN_KEY_HASH) && (env.PORTAL_SESSION_SECRET || '').length >= 43; }
 function cookie(request) { return request.headers.get('cookie')?.split(';').map(s => s.trim()).find(s => s.startsWith('career_admin='))?.slice(13) || ''; }
 function cookieHeader(value, request, age = 28800) { return `career_admin=${value}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=${age}${new URL(request.url).protocol === 'https:' ? '; Secure' : ''}`; }
 async function session(request, env, now) {
@@ -102,7 +103,7 @@ export async function handlePortal(request, options) {
     if (!configured(env) || !kv) return json({error: '管理服务尚未配置。需要绑定存储并设置管理密钥。', configured: false}, 503);
     if (route === '/api/admin/login' && method === 'POST') {
       const value = await body(request);
-      if (typeof value.key !== 'string' || value.key.length < 43 || value.key.length > 128 || !equal(await sha256(value.key), env.PORTAL_ADMIN_KEY_HASH)) fail('管理密钥不正确', 401);
+      if (!await verifyPassword(value.key, env.PORTAL_ADMIN_KEY_HASH)) fail('管理密钥不正确', 401);
       const payload = `${id()}.${now + 28800000}`;
       const token = `${payload}.${await sign(env.PORTAL_SESSION_SECRET, payload)}`;
       return json({ok: true}, 200, {'Set-Cookie': cookieHeader(token, request)});

@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, readFile, rm} from 'node:fs/promises';
+import {mkdtemp, readFile, rm, stat} from 'node:fs/promises';
+import {pbkdf2Sync} from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import {handlePortal, sha256} from '../portal/server.mjs';
-import {localStore, localCredentials} from '../portal/local.mjs';
+import {localStore, localCredentials, setLocalPassword} from '../portal/local.mjs';
+import {hashPassword, verifyPassword, validCredentialHash} from '../portal/password.mjs';
 import {validateManifest, verifyRelease} from '../portal/releases.mjs';
 
 const baseline = JSON.parse(await readFile(new URL('../site/downloads.json', import.meta.url), 'utf8'));
@@ -33,6 +35,42 @@ function client(options = {}) {
 }
 const view = (event = '1'.repeat(32), visitor = 'a'.repeat(32)) => ({type: 'view', event, visitor, source: 'github'});
 const draft = () => ({manifest: baseline, notes: '合成验收说明'});
+
+test('custom passwords use salted PBKDF2 and preserve legacy generated keys', async () => {
+  const password = 'Test-only#42';
+  const stored = await hashPassword(password);
+  const [, , salt, hash] = stored.split(':');
+  assert.equal(hash, pbkdf2Sync(password, Buffer.from(salt, 'hex'), 600000, 32, 'sha256').toString('hex'));
+  assert.notEqual(await hashPassword(password), stored);
+  assert.equal(await verifyPassword(password, stored), true);
+  assert.equal(await verifyPassword('test-only#42', stored), false);
+  assert.equal(await verifyPassword(password, await sha256(password)), false);
+  assert.equal(await verifyPassword(adminKey, env.PORTAL_ADMIN_KEY_HASH), true);
+  assert.equal(validCredentialHash(stored.replace(':600000:', ':1:')), false);
+  assert.equal(await verifyPassword('x'.repeat(129), stored), false);
+  await assert.rejects(hashPassword('short'));
+  const c = client({env: {...env, PORTAL_ADMIN_KEY_HASH: stored}});
+  assert.equal((await c.call('admin/login', {key: password})).status, 200);
+  assert.equal((await c.call('admin/login', {key: 'test-only#42'})).status, 401);
+  assert.equal((await c.call('admin/login', {key: password}, {options: {kv: null}})).status, 503);
+});
+
+test('password rotation persists no plaintext and invalidates previous sessions', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'career-password-'));
+  try {
+    const previous = await localCredentials(directory);
+    const current = await setLocalPassword(directory, 'Test-only#42');
+    assert.notEqual(current.PORTAL_SESSION_SECRET, previous.PORTAL_SESSION_SECRET);
+    assert.deepEqual(await localCredentials(directory), current);
+    assert.equal('key' in current, false);
+    const filename = path.join(directory, 'admin-key.json');
+    assert.doesNotMatch(await readFile(filename, 'utf8'), /Test-only#42/);
+    if (process.platform !== 'win32') assert.equal((await stat(filename)).mode & 0o777, 0o600);
+    const c = client(); await c.login();
+    assert.equal((await c.call('admin/session', undefined, {options: {env: {...env, ...current}}})).status, 401);
+    assert.equal((await c.call('admin/login', {key: previous.key}, {options: {env: {...env, ...current}}})).status, 401);
+  } finally { await rm(directory, {recursive: true, force: true}); }
+});
 
 test('portal public manifest works without backend and never leaks credentials', async () => {
   const c = client(); const result = await c.call('downloads', undefined, {options: {kv: null}});

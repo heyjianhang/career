@@ -2,6 +2,7 @@ import {readFile, writeFile, mkdir, rename, readdir, rm} from 'node:fs/promises'
 import path from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {sha256} from './server.mjs';
+import {hashPassword} from './password.mjs';
 
 // Uses the same API as EdgeOne KV; local preview data never enters the public build.
 export async function localStore(directory) {
@@ -25,5 +26,15 @@ export async function localCredentials(directory) {
   const key = randomBytes(32).toString('base64url');
   const result = {key, PORTAL_ADMIN_KEY_HASH: await sha256(key), PORTAL_SESSION_SECRET: randomBytes(32).toString('base64url')};
   await writeFile(filename, JSON.stringify(result, null, 2), {mode: 0o600, flag: 'wx'});
+  return result;
+}
+// Custom passwords are never persisted. Rotate the independent session secret too.
+export async function setLocalPassword(directory, password) {
+  const result = {PORTAL_ADMIN_KEY_HASH: await hashPassword(password), PORTAL_SESSION_SECRET: randomBytes(32).toString('base64url')};
+  await mkdir(directory, {recursive: true, mode: 0o700});
+  const filename = path.join(directory, 'admin-key.json');
+  const temp = `${filename}.${randomBytes(8).toString('hex')}.tmp`;
+  await writeFile(temp, JSON.stringify(result, null, 2), {mode: 0o600, flag: 'wx'});
+  await rename(temp, filename);
   return result;
 }

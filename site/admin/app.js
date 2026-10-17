@@ -24,7 +24,7 @@ async function enter() {
 }
 $('#login-form').addEventListener('submit', async event => {
   event.preventDefault(); $('#login-error').textContent = '';
-  try { await busy(event.submitter, async () => { await api('login', {key: $('#admin-key').value.trim()}); $('#admin-key').value = ''; await enter(); }, '正在登录…'); }
+  try { await busy(event.submitter, async () => { await api('login', {key: $('#admin-key').value}); $('#admin-key').value = ''; await enter(); }, '正在登录…'); }
   catch (error) { $('#login-error').textContent = error.message; }
 });
 $('#logout').addEventListener('click', async () => { try { await api('logout', {}); showLogin(); } catch (error) { notice(error.message, true); } });

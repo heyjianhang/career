@@ -96,12 +96,12 @@ node scripts/build-site.mjs
 ### 云端一次性配置
 
 1. 在现有 EdgeOne 项目绑定 KV 命名空间，变量名为 `CAREER_PORTAL`；生产与预览环境分开命名空间，避免测试事件进入生产统计。
-2. 本机运行 `npm run portal:config`，生成 `.cache/portal-production/admin-key.json`（权限 0600，重复运行不轮换）。将 `PORTAL_ADMIN_KEY_HASH` 和 `PORTAL_SESSION_SECRET` 两个字段作为服务端环境变量设置；`key` 是本人的登录密钥，不能放在前端或 URL 中。需要更换凭据时先备份该文件，再移走并重新生成、更新云端变量。
+2. 本机运行 `npm run portal:config`，生成 `.cache/portal-production/admin-key.json`（权限 0600，重复运行不轮换）。将 `PORTAL_ADMIN_KEY_HASH` 和 `PORTAL_SESSION_SECRET` 两个字段作为服务端环境变量设置；`key` 是本人的登录密钥，不能放在前端或 URL 中。自定义密码可通过标准输入运行 `npm run portal:config -- --password-stdin`（12–128 个字符，不要把密码写入命令行参数或脚本）。该选项重新生成带随机盐的密码摘要并轮换会话密钥；本机仅保存两个服务端字段，不保存自定义密码。更新两个云端变量后重新部署，旧会话即失效。
 3. 生产环境设置 `PORTAL_ORIGIN=https://career.heyjianhang.top`。预览环境使用自己的域名或不设置，由请求 URL 确定同源检查。全程 HTTPS。
 4. 经授权提交和部署根目录的 `edge-functions`、`portal`、`site`、构建脚本与 edgeone.json。Git 构建应同时生成静态资源和 `/api/*` 函数；仅上传 build/site 不会部署后台。生产凭据文件和本地数据不部署。
 5. 验收无登录访问后台 API 返回 401、错误来源写入返回 403；登录后空统计可加载。真实访问一次首页、点击一次安装包，在后台核对数据与架构。退出并重启后核对会话和版本持久化；匿名读取 `/api/downloads` 不含密钥。完成一次真实公开 Release 的验证和切换后，才标记云端验收通过。
 
-服务端实现位于 [portal/server.mjs](../portal/server.mjs)，平台适配位于 [edge-functions/api/[[path]].js](../edge-functions/api/[[path]].js)。管理登录使用高熵随机密钥的 SHA-256 摘要，8 小时 HttpOnly／SameSite Cookie 会话、HMAC 签名、同源及 CSRF 校验；轮换会话密钥可撤销旧会话。不提供注册、多管理员或普通短密码登录。高流量部署还应使用托管平台的请求限速，公开统计并非防刷计费依据。
+服务端实现位于 [portal/server.mjs](../portal/server.mjs)，平台适配位于 [edge-functions/api/[[path]].js](../edge-functions/api/[[path]].js)。管理登录支持自定义密码（随机 128 位盐、PBKDF2-SHA256 600,000 次迭代），兼容已有高熵随机密钥的 SHA-256 摘要。使用 8 小时 HttpOnly／SameSite Cookie 会话、HMAC 签名、同源及 CSRF 校验；轮换会话密钥可撤销旧会话。不提供注册或多管理员；低于 12 个字符的密码不接受，普通密码不能沿用直接 SHA-256 摘要。高流量部署还应使用托管平台的请求限速，公开统计并非防刷计费依据。
 
 ### 版本操作
 
