@@ -39,7 +39,7 @@ node scripts/build-site.mjs
 
 ## 腾讯 EdgeOne Pages / Makers
 
-腾讯的部分入口已将 Pages 命名为 Makers。首页可独立静态托管；管理后台使用同项目的 Edge Functions 与 Blob 对象存储，部署配置详见下节。无需维护常驻服务器。
+腾讯的部分入口已将 Pages 命名为 Makers。首页可独立静态托管；管理后台使用同项目的 Node Cloud Functions 与 Blob 对象存储，部署配置详见下节。无需维护常驻服务器。
 
 在腾讯云控制台导入 `heyjianhang/career` 的 main 分支，仓库根目录选择 `/`，框架选择其他／静态站。根目录 [edgeone.json](../edgeone.json) 配置：
 
@@ -104,10 +104,10 @@ node scripts/build-site.mjs
 1. 使用现有项目的 Blob 对象存储，无需等待 KV 审批、手动绑定命名空间或另填存储 Key。官方 SDK 首次写入自动创建命名空间；生产使用 `career-portal-production`，预览使用 `career-portal-preview`。仅在生产范围配置下述正式 `PORTAL_ORIGIN` 与管理凭据，避免预览写入生产数据。部署安装命令从独立 `portal/package-lock.json` 安装固定版本 SDK，不安装简历 CLI 依赖。
 2. 本机运行 `npm run portal:config`，生成 `.cache/portal-production/admin-key.json`（权限 0600，重复运行不轮换）。将 `PORTAL_ADMIN_KEY_HASH` 和 `PORTAL_SESSION_SECRET` 两个字段作为服务端环境变量设置；`key` 是本人的登录密钥，不能放在前端或 URL 中。自定义密码可通过标准输入运行 `npm run portal:config -- --password-stdin`（12–128 个字符，不要把密码写入命令行参数或脚本）。该选项重新生成带随机盐的密码摘要并轮换会话密钥；本机仅保存两个服务端字段，不保存自定义密码。更新两个云端变量后重新部署，旧会话即失效。
 3. 生产环境设置 `PORTAL_ORIGIN=https://career.heyjianhang.top`。预览环境使用自己的域名或不设置，由请求 URL 确定同源检查。全程 HTTPS。
-4. 经授权提交和部署根目录的 `edge-functions`、`portal`、`site`、构建脚本与 edgeone.json。Git 构建应同时生成静态资源和 `/api/*` 函数；仅上传 build/site 不会部署后台。生产凭据文件和本地数据不部署。
+4. 经授权提交和部署根目录的 `cloud-functions`、`portal`、`site`、构建脚本与 edgeone.json。Git 构建应同时生成静态资源和 `/api/*` 函数；仅上传 build/site 不会部署后台。生产凭据文件和本地数据不部署。
 5. 验收无登录访问后台 API 返回 401、错误来源写入返回 403；登录后空统计可加载。真实访问一次首页、点击一次安装包，在后台核对数据与架构。退出并重启后核对会话和版本持久化；匿名读取 `/api/downloads` 不含密钥。完成一次真实公开 Release 的验证和切换后，才标记云端验收通过。
 
-服务端实现位于 [portal/server.mjs](../portal/server.mjs)，对象存储适配位于 [portal/blob.mjs](../portal/blob.mjs)，平台入口位于 [edge-functions/api/[[path]].js](../edge-functions/api/[[path]].js)。SDK 仅在函数服务端使用，沿用平台部署身份；不向浏览器发放存储凭据。管理登录支持自定义密码（随机 128 位盐、PBKDF2-SHA256 600,000 次迭代），兼容已有高熵随机密钥的 SHA-256 摘要。使用 8 小时 HttpOnly／SameSite Cookie 会话、HMAC 签名、同源及 CSRF 校验；轮换会话密钥可撤销旧会话。不提供注册或多管理员；低于 12 个字符的密码不接受，普通密码不能沿用直接 SHA-256 摘要。高流量部署还应使用托管平台的请求限速，公开统计并非防刷计费依据。
+服务端实现位于 [portal/server.mjs](../portal/server.mjs)，对象存储适配位于 [portal/blob.mjs](../portal/blob.mjs)，平台入口位于 [cloud-functions/api/[[path]].js](../cloud-functions/api/[[path]].js)。SDK 仅在函数服务端使用，沿用平台部署身份；不向浏览器发放存储凭据。后端使用标准 Node 云函数执行密码派生，避免边缘运行时密码校验兼容问题；保留 PBKDF2 600,000 次校验与已有密码摘要。管理登录支持自定义密码（随机 128 位盐、PBKDF2-SHA256 600,000 次迭代），兼容已有高熵随机密钥的 SHA-256 摘要。使用 8 小时 HttpOnly／SameSite Cookie 会话、HMAC 签名、同源及 CSRF 校验；轮换会话密钥可撤销旧会话。不提供注册或多管理员；低于 12 个字符的密码不接受，普通密码不能沿用直接 SHA-256 摘要。高流量部署还应使用托管平台的请求限速，公开统计并非防刷计费依据。
 
 ### 版本操作
 
@@ -136,9 +136,9 @@ npm run check:docs
 
 API 测试覆盖鉴权、会话过期、CSRF、重复事件、并发写入、分页、时区、草稿持久化、公开安装包验证失败保护、版本快照和静态回退。浏览器使用独立临时存储与明确的合成 GitHub 响应，不查询／发布真实新版本；覆盖 320–1440px、登录、保存、失败后重试、首页切换、统计关闭和无脚本下载。截图留在 `.cache/portal-review`，不对外发布。
 
-原有 KV 方案因账号审批未完成而阻塞；现改用项目 Blob。云端真实验收与部署回执记录在上方生产部署记录中，未取得回执前不把本地测试视为上线成功。存储不可用时公开下载仍返回静态快照和 `tracking:false`，管理登录不产生假成功；密码缺失与存储故障分别提示。SDK 原始错误可能带有签名请求信息，因此只返回脱敏的业务错误。
+原有 KV 方案因账号审批未完成而阻塞；现改用项目 Blob 和 Node 云函数。云端真实验收与部署回执记录在上方生产部署记录中，未取得回执前不把本地测试视为上线成功。存储不可用时公开下载仍返回静态快照和 `tracking:false`，管理登录不产生假成功；密码缺失与存储故障分别提示。SDK 原始错误可能带有签名请求信息，因此只返回脱敏的业务错误。
 
-依据腾讯官方 [Blob 文档](https://pages.edgeone.ai/zh/document/blob-storage)、[Edge Functions](https://pages.edgeone.ai/document/edge-functions)、[Web Crypto API](https://edgeone.ai/document/52693)（2026-10-17 核对）。固定 SDK `@edgeone/pages-blob@0.0.18` 的类型和实现支持 `limit`；适配使用每页 256 条、关闭自动全量翻页，保留 `cursor` 并映射 `blobs[].key`，避免统计超过读取预算。SDK 依赖与锁文件位于 portal，门户私有包不发布 npm。
+依据腾讯官方 [Blob 文档](https://pages.edgeone.ai/zh/document/blob-storage)、[Node 云函数](https://pages.edgeone.ai/zh/document/node-functions)、[Web Crypto API](https://edgeone.ai/document/52693)（2026-10-17 核对）。固定 SDK `@edgeone/pages-blob@0.0.18` 的类型和实现支持 `limit`；适配使用每页 256 条、关闭自动全量翻页，保留 `cursor` 并映射 `blobs[].key`，避免统计超过读取预算。SDK 依赖与锁文件位于 portal，门户私有包不发布 npm。
 
 ## 验收与来源
 
