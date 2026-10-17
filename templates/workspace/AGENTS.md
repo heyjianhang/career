@@ -16,6 +16,8 @@
 
 经历刚能写成一句简历，不代表已深入整理。逐项维护时先问清本人分工、具体推进过程和实际交付，保留详细事实，再提炼母版。按实际内容判断进展；文件存在或结构校验通过都不能代替内容判断。用户主动跳过或先要草稿时跟随其范围，保留缺口与断点。
 
+首次完整简历：先盘点经历与目标，按 [jd-research 的简历前调研](.agents/skills/jd-research/references/pre-resume.md) 分批研究目标岗位，再带着真实需求深入经历；正式提炼前复核研究与事实映射，交付第一份可用简历。已有研究先复用；只记录经历、导出旧成果或明确快速草稿不强制研究。采集原文、样本、缺口行动及简历关联按 [跟踪方法](.agents/skills/jd-research/references/tracking.md) 留存。对用户使用普通语言，每轮接住回答、说明已保存内容，再问一处关键缺口。
+
 ## 按任务使用
 
 - 安装、初始化、依赖或受管入口故障：[career-setup](.agents/skills/career-setup/SKILL.md)。
@@ -26,7 +28,11 @@
 - 首次形成或更新母版：[resume-master](.agents/skills/resume-master/SKILL.md)。事实与团队／个人贡献分清，不能编造收益。
 - 生成或打开简历、平台稿、HTML／PDF：[resume-tailor](.agents/skills/resume-tailor/SKILL.md)。用户要求整套交付时完成到可访问页面。
 
-- 收集岗位、查看求职进度、岗位分析、协作待办或接手某个机会：[career-board](.agents/skills/career-board/SKILL.md)。先 board overview，再 opportunity context，按需读取岗位文件。查询公司背景时按该 Skill 的企查查参考使用 company 命令；Key 由本机配置提供，不写入工作区。
+- 搜索 BOSS 岗位、批量读取 JD 或比较新增机会：[boss-zhipin-scraper](.agents/skills/boss-zhipin-scraper/SKILL.md)。Skill 和采集脚本已随包安装，首次使用时才准备 Python 依赖和独立浏览器登录；结果按该 Skill 的入库说明交给 career-board。只整理用户提供的 JD 时直接使用 career-board。
+- 研究 JD 共性、比较求职方向、规划能力补足，或根据岗位要求找出简历表达遗漏：[jd-research](.agents/skills/jd-research/SKILL.md)。可只做方向规划或只做简历建议；复用已有岗位与经历，再按需要进入看板或简历定制。
+- 收录 JD、串联岗位分析及简历关联、协作待办或面试跟进：[career-board](.agents/skills/career-board/SKILL.md)。先去重建卡、保存 job.md，再按范围调用下面两个独立 Skill；未绑定简历先推荐现有版本并询问，有 subagent 时按编排协议分工。
+- 公司业务、团队、工作方式与机会价值研究：[career-company](.agents/skills/career-company/SKILL.md)。企查查已配置时按需查询，未配置则说明并使用可用联网搜索；Key 不进入工作区。
+- 某份简历与 JD 的匹配、差距及修改建议：[career-match](.agents/skills/career-match/SKILL.md)。分析指定版本的实际正文，记录版本依据，不能把全部母版经历冒充本版已有内容。
 
 ## 保存与续接
 

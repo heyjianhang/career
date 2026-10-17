@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>career · 岗位收藏</title><link rel="stylesheet" href="styles.css"><script type="module" src="popup.js"></script></head>
+<body>
+  <header><a class="brand" href="https://career.heyjianhang.top/" target="_blank" rel="noopener noreferrer">career<span>.</span></a><span class="subtitle">岗位收藏</span><button id="expand" class="icon" title="展开采集记录" aria-label="展开采集记录">↗</button></header>
+  <nav aria-label="采集页面"><button id="current-tab" aria-current="page">当前岗位</button><button id="history-tab">采集记录 <span id="count">0</span></button></nav>
+  <p id="status" role="status" aria-live="polite"></p>
+  <main>
+    <section id="current-panel">
+      <div class="section-heading"><span id="record-state">核对后收藏</span><button id="recapture" class="text-button">重新采集</button></div>
+      <div id="warnings" class="notice" hidden></div>
+      <div id="duplicate" class="notice" hidden><p>这条岗位已经收藏。</p><div class="inline-actions"><button id="view-existing">查看已有记录</button><button id="replace-existing">用本次内容更新</button></div></div>
+      <form id="clip-form">
+        <label>职位<input name="title" maxlength="500" required placeholder="职位名称"></label>
+        <label>公司<input name="company" maxlength="500" required placeholder="实际招聘公司"></label>
+        <div class="two-cols"><label>地点<input name="location" maxlength="500" placeholder="未提供"></label><label>薪资<input name="salary" maxlength="500" placeholder="按页面原文填写"></label></div>
+        <details id="more-fields"><summary>来源与更多信息 <span id="platform-label"></span></summary><div class="two-cols"><label>来源平台<select name="platform"></select></label><label>工作经验<input name="experience" maxlength="500" placeholder="未提供"></label><label>学历<input name="education" maxlength="500" placeholder="未提供"></label></div><label>岗位链接<input name="url" type="url" maxlength="4000" required></label><a id="source-link" target="_blank" rel="noopener noreferrer">打开招聘页面 ↗</a><p id="capture-time" class="muted"></p></details>
+        <label>岗位原文<textarea name="description" rows="9" maxlength="100000" required placeholder="打开岗位详情后采集，或将原文粘贴到这里。"></textarea></label>
+        <details id="company-details"><summary>福利与公司介绍</summary><label>福利<textarea name="benefits" rows="2" maxlength="5000"></textarea></label><label>招聘页公司介绍<textarea name="company_intro" rows="5" maxlength="30000"></textarea></label></details>
+        <details id="original-details" hidden><summary>首次采集原文</summary><pre id="original"></pre></details>
+      </form>
+      <footer><button id="save" class="secondary">收藏岗位</button><button id="copy" class="primary">复制给 Agent</button><button id="download" class="icon" aria-label="下载 Markdown" title="下载 Markdown">↓</button></footer>
+    </section>
+    <section id="history-panel" hidden>
+      <div class="filters"><input id="search" type="search" placeholder="搜索职位、公司" aria-label="搜索采集记录"><select id="platform-filter" aria-label="按平台筛选"><option value="">全部平台</option></select></div>
+      <div id="records"></div>
+      <p id="history-empty" class="empty">还没有采集记录。<br>打开一个岗位，点击扩展开始收藏。</p>
+      <button id="export-all" class="text-button" hidden>导出全部记录（Markdown）</button>
+      <p class="storage-note">保存在当前浏览器 · 复制后交给 Agent 登记到看板</p>
+    </section>
+  </main>
+</body></html>

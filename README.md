@@ -6,7 +6,7 @@
 
 从经历整理和简历生成出发，逐步连接岗位分析、求职进展跟踪与复盘。资料保存在你自己的目录，协作可以接着上次继续。
 
-[开始使用](#开始使用把这段发给-agent) · [当前能力](#现在可以做什么) · [路线图](docs/roadmap.md) · [参与开发](CONTRIBUTING.md) · [文档](docs/README.md)
+[开始使用](#开始使用把这段发给-agent) · [版本与能力](#版本与能力) · [路线图](docs/roadmap.md) · [参与开发](CONTRIBUTING.md) · [文档](docs/README.md)
 
 ## 从简历开始，贯穿一次求职
 
@@ -14,11 +14,30 @@
 | --- | --- | --- |
 | 整理经历 | 从旧材料与对话提取事实，保留来源与待补问题 | 已实现 |
 | 准备简历 | 维护母版、选择内容与排版，生成简历和平台填写稿 | 已实现 |
-| 分析机会 | 收集岗位，结合目标与经历比较要求、证据和缺口 | CLI 开发版 |
-| 跟踪求职 | 关联岗位、所用简历、申请阶段、沟通记录与下一步 | CLI 与看板开发版 |
+| 分析机会 | 收集岗位，结合目标与经历比较要求、证据和缺口 | 桌面预览版已提供 |
+| 跟踪求职 | 关联岗位、所用简历、申请阶段、沟通记录与下一步 | 桌面预览版已提供 |
 | 回顾调整 | 根据真实记录观察进展，复盘筛选和表达 | 规划中 |
 
-开发源码已提供[岗位工作区、协作 CLI 与看板](docs/opportunities.md)，以及[简历卡片库、统一内容包与网页编辑](docs/resume-packages.md)，尚未随 npm 0.2.0 发布。岗位、申请和分析沿用同一套个人资料。具体边界与交付顺序见[产品路线图](docs/roadmap.md)。
+[岗位工作区、协作 CLI 与看板](docs/opportunities.md)，以及[简历卡片库、统一内容包与网页编辑](docs/resume-packages.md)已随桌面预览版交付，npm 0.2.0 尚不包含。岗位、申请和分析沿用同一套个人资料。后续方向见[产品路线图](docs/roadmap.md)。
+
+## 版本与能力
+
+桌面版和 npm 包独立发布。下面区分已经交付的版本与当前源码；从源码构建的包即使仍标为 0.2.0，也不等于 npm 上的 0.2.0 产物。
+
+| 能力 | npm 0.2.0 | 桌面 0.3.0-alpha.1 | 当前开发源码 |
+| --- | --- | --- | --- |
+| 经历整理、母版、14 款样式、HTML/PDF、平台填写稿 | 已提供 | 已提供 | 已实现 |
+| 用户 Skills | 5 个 | 8 个 | 12 个 |
+| 岗位看板、公司与岗位分析、面试记录与准备 | 未包含 | 已提供 | 已实现 |
+| 简历卡片库、网页编辑、岗位关联与投递快照 | 未包含 | 已提供 | 已实现 |
+| 个人资料阅读、多工作区与桌面启动器 | 未包含 | 已提供 | 已实现 |
+| 本地 Git 与私人 GitHub 同步 | 手动保存、快进拉取与推送 | 安全合并、恢复与可选自动同步 | 同桌面版 |
+| 企查查查询 | 未包含 | 自备 API Key，本机加密保存 | 桌面集成与环境变量 CLI |
+| BOSS 搜索与采集 Skill | 未包含 | 未包含 | 随包提供，首次使用按需准备 Python 与浏览器登录 |
+| JD 需求研究与求职规划 Skill | 未包含 | 未包含 | 分析岗位共性、能力补足和简历表达，可独立使用 |
+| 浏览器岗位收藏扩展 | 未包含 | 未随包分发 | 独立扩展 0.1.0，需手动加载 |
+
+交付依据见 [npm 发布记录](docs/releases/0.2.0.md)和[桌面发布记录](docs/releases/desktop-0.3.0-alpha.1.md)。桌面版仍为未签名预览版；真实 GitHub 登录／上传全流程与扩展日常浏览器验收的边界见对应文档。招聘平台自动填表、自动投递、Word 导出和求职复盘指标仍未提供。
 
 ## 现在可以做什么
 
@@ -41,11 +60,13 @@
 
 </details>
 
-CLI 负责确定性的工具操作，写作与判断由用户选择的 Agent 完成。目前不包含招聘平台自动填表、自动投递或 Word 导出；求职看板仅在开发源码中提供。
+CLI 负责确定性的工具操作，写作与判断由用户选择的 Agent 完成。各安装入口提供的功能见上方版本表。
 
 ## 开始使用：把这段发给 Agent
 
-把下面这一句发给你的 Agent：
+需要看板、简历编辑和资料阅读，可先安装下方的[桌面预览版](#桌面版预览版)，创建工作区后复制软件中的指令交给 Agent。
+
+使用 npm 0.2.0 的经历与简历流程，把下面这一句发给你的 Agent：
 
 ```text
 请读取 https://raw.githubusercontent.com/heyjianhang/career/main/install.md，按指引帮我安装并初始化 career。
@@ -62,10 +83,14 @@ Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 
 | [career-setup](.agents/skills/career-setup/SKILL.md) | 检查环境、初始化工作区，按已有状态衔接后续任务 |
 | [career-git](.agents/skills/career-git/SKILL.md) | 引导账号与私人仓库准备、首次提交、日常保存、同步和换机恢复 |
 | [career-intake](.agents/skills/career-intake/SKILL.md) | 盘点资料、维护阶段与范围，收集基本资料、教育与能力，路由深入整理 |
-| [career-employment](.agents/skills/career-employment/SKILL.md) | 深入任职阶段、职责权限、协作与工作事件，建立可复用任职资产（开发版） |
-| [career-project](.agents/skills/career-project/SKILL.md) | 深入项目背景、本人角色、关键决策、实施与复盘，留下详细资产（开发版） |
+| [career-employment](.agents/skills/career-employment/SKILL.md) | 深入任职阶段、职责权限、协作与工作事件，建立可复用任职资产（桌面版／源码） |
+| [career-project](.agents/skills/career-project/SKILL.md) | 深入项目背景、本人角色、关键决策、实施与复盘，留下详细资产（桌面版／源码） |
 | [resume-master](.agents/skills/resume-master/SKILL.md) | 把事实整理成可读母版，保留个人贡献、来源与待补项 |
-| [career-board](.agents/skills/career-board/SKILL.md) | 收集机会、查看全局、维护任务与资料，跨会话接手岗位（开发版） |
+| [career-board](.agents/skills/career-board/SKILL.md) | 收集机会、查看全局、维护任务与资料，跨会话接手岗位（桌面版／源码） |
+| [boss-zhipin-scraper](.agents/skills/boss-zhipin-scraper/SKILL.md) | 搜索 BOSS 岗位、读取 JD、标记新增机会，衔接看板收录（仅当前源码，尚未发布） |
+| [jd-research](.agents/skills/jd-research/SKILL.md) | 分析 JD 共性，结合真实经历制定求职与补足计划，提出简历修改建议（仅当前源码，尚未发布） |
+| [career-company](.agents/skills/career-company/SKILL.md) | 独立研究公司业务、团队与经营信息，支持企查查与公开来源（当前源码） |
+| [career-match](.agents/skills/career-match/SKILL.md) | 依据具体简历版本与 JD 做有证据的岗位匹配分析（当前源码） |
 | [resume-tailor](.agents/skills/resume-tailor/SKILL.md) | 按用途选材，生成内容包和平台稿，调用 CLI 交付页面与文件 |
 
 ```mermaid
@@ -78,7 +103,7 @@ flowchart LR
     H --> F[HTML / PDF]
 ```
 
-Skills 随 npm 包安装到个人目录。支持项目级 Skills 的客户端可以发现它们；其他 Agent 可从 `AGENTS.md` 按链接读取。自动发现方式取决于客户端，运行命令需要终端能力。
+Skills 由桌面版或 npm 包安装到个人目录；npm 0.2.0 不包含 career-employment、career-project、career-board 、boss-zhipin-scraper 和 jd-research；已发布桌面 alpha.1 也不包含后两个 Skill。BOSS Skill 的 Python 依赖按需安装，使用方式见[安装说明](docs/installation.md#boss-岗位采集当前开发源码)。支持项目级 Skills 的客户端可以发现它们；其他 Agent 可从 `AGENTS.md` 按链接读取。自动发现方式取决于客户端，运行命令需要终端能力。
 
 ## 资料在哪里
 
@@ -96,7 +121,7 @@ career-workspace/
 
 这个开源仓库存放工具源码与通用方法，个人目录保存用户资料。启用远程同步时，资料传到用户自己的私人仓库；生成文件、依赖和缓存默认不进入 Git。是否将材料发送给模型由所使用的 Agent 客户端及其设置决定。
 
-GitHub 同步可跳过，之后仍可启用。启用后每次开始核对远端资料，重要节点询问上传；已有本轮或持续授权时直接同步。遇到未保存修改或历史分叉时保留内容并停止同步。工具版本由锁文件固定，不随资料拉取自动升级。
+GitHub 同步可跳过，之后仍可启用。npm 0.2.0 使用手动保存、快进拉取与推送，遇到未保存修改或历史分叉会停止。桌面预览版与当前源码支持先保存再安全合并，冲突时保留双方版本；自动同步需在本机显式开启，默认关闭。上传遵循用户授权，工具不随资料拉取自动升级。
 
 ## 桌面版（预览版）
 

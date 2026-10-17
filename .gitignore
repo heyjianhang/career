@@ -35,3 +35,8 @@ Desktop.ini
 
 # Hosting CLI local metadata / credentials
 .edgeone/
+
+# Optional Python Skill runtime/cache
+__pycache__/
+*.py[cod]
+.venv/

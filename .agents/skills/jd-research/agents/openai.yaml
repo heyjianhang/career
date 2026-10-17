@@ -1,0 +1,4 @@
+interface:
+  display_name: "JD 需求与求职规划"
+  short_description: "分析岗位共性与经历证据，规划求职方向和能力补足，并优化简历表达"
+  default_prompt: "用 $jd-research 分析这些岗位，结合我的经历提出求职方向、能力补足计划和简历修改建议。"

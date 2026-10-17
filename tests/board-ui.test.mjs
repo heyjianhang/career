@@ -13,7 +13,8 @@ async function fixture(t){const dir=await mkdtemp(path.join(await realpath(os.tm
 
 test('board and resume share one server; an empty board is useful without a resume',async t=>{
  const f=await fixture(t);const home=await (await f.request('/')).text();assert.match(home,/还没有生成简历/);assert.match(home,/href="\/board"/);
- const page=await f.request('/board');assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/object-src 'none'/);const html=await page.text();for(const text of ['岗位概况','公司分析','岗位匹配','资料','file-tree'])assert.ok(html.includes(text));
+ const page=await f.request('/board');assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/object-src 'none'/);const html=await page.text();for(const text of ['data-tab="overview">JD','公司分析','岗位匹配','资料','file-tree'])assert.ok(html.includes(text));
+ assert.deepEqual(f.session.documents.map(({label,path})=>({label,path})),[{label:'JD',path:'job.md'},{label:'公司分析',path:'analysis/company.md'},{label:'岗位匹配',path:'analysis/match.md'}]);
  assert.equal((await (await f.request('/api/board/overview')).json()).total,0);assert.equal(Object.keys(f.session.platforms).length,7);
  for(const asset of ['pdf.mjs','pdf.worker.mjs','standard_fonts/LiberationSans-Regular.ttf'])assert.equal((await f.request('/board-assets/pdf/'+asset)).status,200);
  assert.equal((await f.request('/board-assets/pdf/%2e%2e%2fapi.js')).status,400);

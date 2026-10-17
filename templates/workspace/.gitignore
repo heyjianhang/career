@@ -9,3 +9,8 @@ build/
 *.log
 *.tmp
 *.lock
+
+# Optional Python Skill runtime/cache
+__pycache__/
+*.py[cod]
+.venv/

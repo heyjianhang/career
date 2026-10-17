@@ -33,3 +33,18 @@
 尚未公开发布，现有 alpha.1 安装包不会自动获得此入口。需发布包含本功能的新安装包，旧用户手动覆盖升级一次。此次只打包本机 ARM64 app 用于验收，没有重制 DMG／EXE、签名／公证或更改版本号；Windows／Intel Mac 仍需原生回归。
 
 后续如要自动下载与重启升级，应另行打通签名、公证、更新元数据和完整升级验收。GitHub 匿名 API 有共享出口配额限制；若正式分发中频繁出现限流，发布流程需同步维护公开静态更新清单，不能把访问凭据嵌入安装包。
+
+
+## 2026-10-17：限流恢复与官网清单回退（alpha.10）
+
+真实匿名 API 返回 HTTP 403、x-ratelimit-remaining: 0；同网络下 main/site/downloads.json 可公开读取，当前为 alpha.1。它是门户维护的下载清单，不能当作完整 Release 历史。未向用户索要 GitHub token，也不在安装包中放凭据。
+
+- 成功检查结果保留五分钟，重复点击及切换渠道直接复用；到期后通过 ETag 条件请求重新核对。匿名 304 仅用于缓存验证，不承诺免配额。
+- 限流遵守 Retry-After 与 X-RateLimit-Reset，保存等待时间，重启继续遵守；普通 403 与真实限流区分。网络失败指数退避，自动检查按最近尝试／成功时间保持六小时间隔。
+- API 失败时读取固定官方仓库的 site/downloads.json，严格校验版本、标签与四架构下载 URL。保留完整检查时间及更高版本缓存；清单回退单独显示版本和核对时间，不声称“已是最新版”。未知文件大小不显示伪造数值。
+- 等待期间禁用检查按钮并显示可重试时间，到期恢复；已有公开版本的下载按钮仍可用。清单本身也不可用时，保留明确标注时间的旧信息。
+- 不改变门户发版协议：公开下载验证后才能更新 site/downloads.json；本地打包、草稿与尚未公开的安装包不会写入该清单。
+
+专项测试 15 项通过，覆盖缓存、ETag／304、限流头、重启、渠道切换、普通 403、官方 URL、回退与指数退避；完整 Node 测试 153 项通过。桌面最终产物与界面验收见 [alpha.10 安装包记录](../releases/desktop-0.3.0-alpha.10.md)。
+
+参考：[GitHub 限流说明](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)、[条件请求与重试](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api)。

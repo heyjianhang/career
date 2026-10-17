@@ -14,13 +14,15 @@ description: 安装、初始化或修复 career 个人工作区，完成客户�
 桌面创建的工作区已准备 CLI 和 Skills。若有 `.local/desktop-runtime.json`，按 AGENTS.md 使用绑定本目录的 `.local/career`（macOS）或 `.local/career.cmd`（Windows）代替上述 npm 前缀，先检查状态再继续，不重新安装 npm 包。入口失效时让用户在软件中重新打开这个工作区；Git/gh 仅在所选同步流程确实需要时准备。
 
 1. 读 `career.json`，运行 `doctor` 和 `workspace status`。依赖缺失或版本不匹配先按锁文件恢复；安装返回 `agent.conflicts` 时保留自定义文件并对照合并，不重复覆盖。
-2. `onboarding.sync` 缺失或为 undecided：仅询问尚未确定的选择——“资料先只保存在本机，还是同步到你自己的 GitHub 私人仓库？”已有回答直接沿用。
+2. `onboarding.sync` 缺失或为 undecided：用普通语言说明“资料可以先保存在这台电脑，随时继续；如果希望换电脑接着用，也可以设置私人云备份。建议先从本机开始，之后再开备份。”只确认尚未确定的保存选择，已有回答直接沿用；用户正在提供经历时先保存，不用同步配置打断。不替用户擅自开启上传。
 3. 选择仅本机：执行 `sync local` 并继续；不要求注册 GitHub。需要本地版本保存时由 [career-git](../career-git/SKILL.md) 准备 Git。
 4. 选择远程同步：读取 [career-git](../career-git/SKILL.md)，按其首次连接流程逐步引导。Git 尚未跟踪当前目录时也由它完成本地初始化、提交身份与首次提交；不要让用户自己拼 Git 命令。
 5. 已为 connected：按 career-git 先核对远端，再读取最新上下文；已为 local：直接续接，除非用户主动要求启用同步。
 6. 读 `context/INDEX.md`、`context/progress.md`、`context/state.md`、`resume/maintenance.md`，执行用户当前请求。有旧材料先按 [career-intake](../career-intake/SKILL.md) 提取；无材料从一段经历开始。只打开或导出已有成果，直接按 [resume-tailor](../resume-tailor/SKILL.md) 处理，不重走访谈。
 
 首次同步因网络、账号或仓库信息暂未完成时，记录正在等待的事项；用户暂缓同步便继续本地协作，下次按记录续接，不重新要求完整入门流程。
+
+用户不懂 Agent、工作区或 Git 时，按 [首次准备](references/onboarding.md) 一步一处地引导，解释这一步会得到什么；不要把命令列表当作用户操作说明。文件保存在本机、已有版本记录、已上传私人备份分别报告。
 
 ## 完成标准
 

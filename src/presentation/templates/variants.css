@@ -1,6 +1,17 @@
-.resume-paper[data-template="mono-line"] .design-header{padding-bottom:5mm;border-bottom:1px solid #aaa;position:relative}
+.resume-paper[data-template="mono-line"]{line-height:1.55}
+.resume-paper[data-template="mono-line"] .design-header{padding-bottom:3mm;margin-bottom:4mm;border-bottom:1px solid #aaa;position:relative}
+.resume-paper[data-template="mono-line"] .design-identity h1{margin-bottom:3mm}
 .resume-paper[data-template="mono-line"] .design-header:after{content:"";position:absolute;left:0;bottom:-1px;width:28mm;border-bottom:2px solid #333}
+.resume-paper[data-template="mono-line"] .design-section{margin-top:4mm}
+.resume-paper[data-template="mono-line"] .design-item{margin-bottom:2.5mm}
+.resume-paper[data-template="mono-line"] .design-item:last-child{margin-bottom:0}
 .resume-paper[data-template="mono-line"] .design-item-heading{color:#333}
+.resume-paper[data-template="mono-line"] .design-item-heading h3{line-height:1.55}
+.resume-paper[data-template="mono-line"] .design-section ul{margin-top:1mm}
+.resume-paper[data-template="mono-line"] .design-section li{margin:.5mm 0}
+.resume-paper[data-template="mono-line"] .design-fact{margin-bottom:1mm}
+.resume-paper[data-template="mono-line"] .design-fact h3,.resume-paper[data-template="mono-line"] .design-fact p{line-height:1.55}
+.resume-paper[data-template="mono-line"] .design-heading:after{content:"";height:1px;background:#d9d9d9;flex:1;margin-left:1mm}
 .resume-paper[data-template="blue-tab"] .resume-photo{border:1mm solid #eee}
 .resume-paper[data-template="teal-dot"] .design-header{border-bottom:2px solid var(--design-accent);padding-bottom:5mm}
 .resume-paper[data-template="teal-dot"] .design-identity h1{color:var(--design-accent)}

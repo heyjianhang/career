@@ -1,0 +1,14 @@
+{
+  "source": "https://github.com/eatmoreduck/boss-zhipin-scraper",
+  "upstream_version": "2.3.1",
+  "snapshot_date": "2026-10-17",
+  "revision": null,
+  "note": "Snapshot of the installed skill; upstream Git commit was not available. Scripts, city data, requirements and license are unmodified. Career maintains its own SKILL.md and references.",
+  "files": {
+    "scripts/boss_cdp_raw.py": "532d6a35f2fdcf9ff0e659a3b2a055fc2a921530227c9d1b374ecaec78d96b39",
+    "scripts/job_summary.py": "05b58929760e049dbf1213cc3c665c0b9e7e65de9cbd05cfd4ed713286a87bac",
+    "data/city_codes.json": "ea3cc88f9520244e2659df77b1496312f2c713e3c1126ad1a81566490fcfdd5f",
+    "requirements.txt": "24795b92bb3b6c788cf6375477807f77c765c4d3c517899b663decbc13094e83",
+    "LICENSE": "f48cc447f5cc8a2f76770567defc0e1f9a61e2f234a8fa5c417e451fa382d0e6"
+  }
+}

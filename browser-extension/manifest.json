@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "career · 岗位收藏",
+  "version": "0.1.0",
+  "description": "收藏当前岗位原文，按平台管理采集记录，复制给你的 Agent。",
+  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "收藏到 career", "default_popup": "popup.html" },
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "128": "icons/128.png" },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" }
+}

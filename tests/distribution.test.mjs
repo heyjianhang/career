@@ -25,6 +25,8 @@ test('setup gives complete next reads, local dependency pin and non-destructive 
  const packageData=JSON.parse(await readFile(path.join(workspace,'package.json')));assert.equal(packageData.private,true);assert.equal(packageData.dependencies[currentPackage.name],currentPackage.version);
  const readme=await readFile(path.join(workspace,'AGENTS.md'),'utf8');assert.match(readme,/大节点|重要更新/);assert.match(readme,/sync overview/);assert.match(readme,/sync update/);
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);
+ assert.equal(await readFile(path.join(workspace,'.gitattributes'),'utf8'),await readFile(new URL('../templates/workspace/.gitattributes',import.meta.url),'utf8'));
+ assert.equal(await stat(path.join(workspace,'gitattributes.template')).catch(()=>null),null);
  await writeFile(path.join(workspace,'context/state.md'),'# 我的进度\n不丢失');await localOnly(workspace);
  const retry=await setup(workspace,false);assert.equal(retry.next_action,'read_context');assert.equal(retry.handoff,null);assert.deepEqual(retry.questions,[]);assert.equal(retry.agent.conflicts.length,0);assert.equal(JSON.parse(await readFile(path.join(workspace,'career.json'))).onboarding.sync,'local');assert.match(await readFile(path.join(workspace,'context/state.md'),'utf8'),/不丢失/);
  for(const file of retry.next_reads)assert.ok((await stat(file)).isFile());
@@ -69,6 +71,18 @@ test('invalid facts, an existing operation lock, and tracked unmanaged files sto
  await git(workspace,'restore','resume/facts/profile.md');await writeFile(path.join(workspace,'foreign.txt'),'keep');await git(workspace,'add','foreign.txt');await assert.rejects(saveHistory(workspace,'范围检查'),fails('UNMANAGED_TRACKED_FILES'));
 });
 
+test('history checkpoints preserve JD evidence and plans without including unrelated research',async t=>{
+ const {workspace}=await fixture(t);await init(workspace);const base='research/jd/demo';await mkdir(path.join(workspace,base,'sources'),{recursive:true});
+ const contents={'report.md':'# 岗位研究\n引用样本 jd-001 与真实经历。','samples.md':'# 样本\njd-001，合成岗位，正文可追溯。','plan.md':'# 行动\n待访谈，尚未完成。','sources/jd-001.md':'# 合成原文\n负责客户服务。'};
+ for(const [file,body] of Object.entries(contents))await writeFile(path.join(workspace,base,file),body);
+ await writeFile(path.join(workspace,'research/unrelated.md'),'not managed');await writeFile(path.join(workspace,base,'.env'),'SECRET=fixture');
+ assert.equal((await saveHistory(workspace,'保存研究证据')).saved,true);
+ const tracked=(await git(workspace,'ls-files')).split('\n');
+ for(const [file,body] of Object.entries(contents)){assert.ok(tracked.includes(base+'/'+file));assert.equal(await git(workspace,'show','HEAD:'+base+'/'+file),body);}
+ assert.ok(!tracked.includes('research/unrelated.md'));assert.ok(!tracked.includes(base+'/.env'));
+ assert.equal((await saveHistory(workspace,'不重复保存')).saved,false);
+});
+
 test('private target validation rejects public, read-only and credential-bearing URLs',()=>{
  assert.equal(githubRepo('https://github.com/me/data.git'),'me/data');assert.equal(githubRepo('git@github.com:me/data.git'),'me/data');assert.equal(githubRepo('me/data'),'me/data');
  for(const url of ['https://token@github.com/me/data','file:///tmp/repo','--exec/x','https://evil.invalid/me/data'])assert.throws(()=>githubRepo(url));
@@ -79,8 +93,10 @@ test('two-device Git flow handles fast-forward, dirty files and divergence witho
  const {workspace,dir}=await fixture(t);await init(workspace);const remote=path.join(dir,'remote.git');await git(dir,'init','--bare','--initial-branch=main',remote);await git(workspace,'remote','add','origin',remote);await git(workspace,'push','-u','origin','main');
  // Transport fixture uses a local bare repository; production always verifies GitHub privacy.
  const verified=async()=> 'fixture/private';const other=path.join(dir,'other');await git(dir,'clone',remote,other);await initHistory(other,'Career Other','other@example.invalid');
+ await mkdir(path.join(other,'research/jd/demo'),{recursive:true});await writeFile(path.join(other,'research/jd/demo/plan.md'),'# 补足计划\n仍待访谈');
  await writeFile(path.join(other,'context/state.md'),'# 另一台设备');await saveHistory(other,'远端更新');await git(other,'push','origin','main');
  const pulled=await pull(workspace,verified);assert.equal(pulled.updated,true);assert.equal(await readFile(path.join(workspace,'context/state.md'),'utf8'),'# 另一台设备');
+ assert.equal(await readFile(path.join(workspace,'research/jd/demo/plan.md'),'utf8'),'# 补足计划\n仍待访谈');
  await writeFile(path.join(workspace,'context/goals.md'),'# 本机目标');await assert.rejects(pull(workspace,verified),fails('LOCAL_CHANGES'));await saveHistory(workspace,'本地更新');
  await writeFile(path.join(other,'context/state.md'),'# 第二次远端更新');await saveHistory(other,'第二次远端更新');await git(other,'push','origin','main');
  const head=await git(workspace,'rev-parse','HEAD');await assert.rejects(pull(workspace,verified),fails('SYNC_DIVERGED'));await assert.rejects(push(workspace,verified),fails('SYNC_DIVERGED'));assert.equal(await git(workspace,'rev-parse','HEAD'),head);assert.equal(await readFile(path.join(workspace,'context/goals.md'),'utf8'),'# 本机目标');

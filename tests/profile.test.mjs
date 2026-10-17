@@ -30,3 +30,19 @@ test('reader escapes markup, preserves unknown fields in source, and handles emp
  const d=await readMaterial(f.workspace,'resume/facts/profile.md');assert.ok(!d.html.includes('<script>'));assert.ok(!d.html.includes('src="https://'));assert.ok(!d.html.includes('空标题'));assert.match(d.source,/custom_field: original/);assert.equal(d.fields[0].value,'<img src=x onerror=alert(1)>');
  await writeFile(path.join(f.workspace,'resume/facts/profile.md'),'---\nname: A\nname: B\n---\n# 未解析');const malformed=await readMaterial(f.workspace,'resume/facts/profile.md');assert.ok(malformed.warning);assert.match(malformed.source,/name: B/);
 });
+
+test('JD research reports and sources share the materials reader with a bounded scope',async t=>{
+ const f=await fixture(t),base='research/jd/demo';await mkdir(path.join(f.workspace,base,'sources'),{recursive:true});
+ await writeFile(path.join(f.workspace,base,'report.md'),'# 方向研究\n\n[JD 原文](sources/jd-001.md)\n\n[补足计划](plan.md)');
+ await writeFile(path.join(f.workspace,base,'plan.md'),'# 补足计划\n\n待核对本人贡献，不代表已经掌握。');
+ await writeFile(path.join(f.workspace,base,'sources/jd-001.md'),'# 合成岗位原文\n\n负责客户服务。');
+ await writeFile(path.join(f.workspace,'research/private.md'),'unrelated');
+ await writeFile(path.join(f.workspace,base,'.env'),'SECRET=fixture');
+ await symlink(path.join(f.workspace,'research/private.md'),path.join(f.workspace,base,'linked.md'));
+ const data=await inventory(f.workspace);assert.equal(data.files.filter(x=>x.group==='research').length,3);
+ assert.ok(data.groups.some(x=>x.id==='research'&&x.label==='岗位调研'));
+ const report=await readMaterial(f.workspace,base+'/report.md');assert.match(report.html,/data-document="research\/jd\/demo\/sources\/jd-001.md"/);
+ const source=await f.request('/api/profile/file?'+new URLSearchParams({path:base+'/sources/jd-001.md',download:'1'}));assert.equal(source.status,200);assert.match(await source.text(),/负责客户服务/);
+ await writeFile(path.join(f.workspace,base,'plan.md'),'# 补足计划\n\n已核对，引用事实记录。');assert.notEqual((await inventory(f.workspace)).revision,data.revision);
+ for(const file of ['research/private.md',base+'/.env',base+'/linked.md'])assert.equal((await f.request('/api/profile/file?'+new URLSearchParams({path:file}))).status,400,file);
+});

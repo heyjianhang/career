@@ -32,7 +32,7 @@ export async function installAgent(workspace:string){
     let old:{files:Record<string,string>}={files:{}};try{old=await json(manifest);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
     const installed:string[]=[],preserved:string[]=[],conflicts:string[]=[],digests={...old.files};
     for(const resource of await files(source)){
-      const relative=resource==='gitignore.template'?'.gitignore':resource;
+      const relative=resource==='gitignore.template'?'.gitignore':resource==='gitattributes.template'?'.gitattributes':resource;
       const target=path.join(workspace,relative),bytes=await readFile(path.join(source,resource));await noSymlinks(target);
       let current:Buffer|undefined;try{current=await readFile(target);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
       if(current&&hash(current)!==hash(bytes)&&hash(current)!==old.files[relative]){conflicts.push(relative);continue;}
@@ -59,7 +59,7 @@ export async function setup(workspace:string,install=true,packageSource?:string)
   const state=await config(workspace),nextAction=agent.conflicts.length?'resolve_agent_files':onboardingAction(state);
   // Installation clients hand off first; next_action remains the task for the workspace conversation.
   const handoff=install&&!agent.conflicts.length?{workspace,entrypoint:path.join(workspace,'AGENTS.md'),
-    action:'open_workspace',prompt:'请读取当前工作区的 AGENTS.md，按已有进度引导我开始使用 career。',
+    action:'open_workspace',prompt:'请读取当前工作区的 AGENTS.md，按已有进度继续；首次使用请引导我整理经历、研究适合的岗位要求，再生成第一份可编辑简历。一步一步来，边聊边保存，不编造经历；如果我已指定任务，以我的任务为准。',
     steps:['在 Agent 软件中打开此目录或添加为现有项目。','在该工作区中新建对话，发送 prompt。'],
     workspace_next_action:nextAction}:null;
   return {workspace,initialized,agent,tool,dependencies:install?'installed':'skipped',next_reads:agent.next_reads,next_action:nextAction,questions:nextAction==='choose_sync'?['是否把资料同步到自己的 GitHub 私人仓库？也可以先仅保存在本机。']:[],handoff};

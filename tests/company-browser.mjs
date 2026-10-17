@@ -41,8 +41,12 @@ try{
  }
  await modal.getByRole('button',{name:'外观',exact:true}).click();await modal.getByRole('button',{name:'外部服务',exact:true}).click();await modal.getByText('已配置',{exact:true}).waitFor();
  await modal.getByRole('button',{name:'移除连接',exact:true}).click();await modal.getByText('已移除本机连接。',{exact:true}).waitFor();assert.equal(await modal.getByText('未连接',{exact:true}).count(),1);
+ // The native close event is queued: immediately reopening must not invalidate the new request.
+ await page.evaluate(()=>{document.getElementById('settings-close').click();document.getElementById('open-settings').click();});
+ await modal.locator('#create-workspace').waitFor({timeout:5000});
+ await modal.getByRole('button',{name:'外部服务',exact:true}).click();await modal.locator('#company-key').waitFor();
  await page.keyboard.press('Escape');assert.equal(await modal.isVisible(),false);
  // A normal browser never receives a credential-saving form or asks for npm installation.
  const browserOnly=await browser.newPage();await browserOnly.goto(server.url+'/board');await browserOnly.locator('#open-settings').click();await browserOnly.locator('#create-workspace').waitFor();await browserOnly.getByRole('button',{name:'外部服务',exact:true}).click();await browserOnly.getByText(/QCC_API_KEY/).waitFor();assert.equal(await browserOnly.locator('#company-key').count(),0);await browserOnly.close();
- assert.deepEqual(errors,[]);console.log('QCC settings: save, replace failure, check, remove, navigation, password clearing, browser fallback and 320–1180px passed.');
+ assert.deepEqual(errors,[]);console.log('QCC settings: save, replace failure, check, remove, navigation, immediate reopen, password clearing, browser fallback and 320–1180px passed.');
 }finally{await browser.close();await server.close();await rm(base,{recursive:true,force:true});}

@@ -125,6 +125,10 @@ function switchView(id:string) {
   document.querySelectorAll<HTMLElement>('.view').forEach(v=>v.hidden=v.id!=='view-'+id);
   document.querySelectorAll<HTMLElement>('[data-view]').forEach(b=>{b.classList.toggle('active',b===button);if(b===button)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   $('#page-title').textContent=button.dataset.viewTitle!;$('#page-title').hidden=id==='resume';$('.document-scroll').scrollTop=0;
+  $('#page-heading').hidden=id==='resume';
+  const copyHint=$('#copy-hint');
+  copyHint.hidden=id==='resume'||!document.querySelector(`#view-${id} .copy-field`);
+  copyHint.querySelector('span')!.textContent=copyHint.hidden?'':`点击字段内容即可复制，再粘贴到 ${button.dataset.copyTarget} 对应栏目。`;
   const preview=$('#resume-preview');
   if(id==='resume'&&(preview.dataset.theme!==selectedTheme||!['ready','loading'].includes(preview.dataset.pagination??'')))showResume('#resume-preview',selectedTheme);
   else if(id!=='resume'&&preview.dataset.pagination==='loading')releasePreview(preview);$('#export-pdf').hidden=id!=='resume';$('#open-gallery').hidden=id!=='resume';
@@ -136,7 +140,12 @@ document.querySelectorAll<HTMLButtonElement>('.copy-field').forEach(button=>butt
   const selection=window.getSelection();
   // Selecting an excerpt with the mouse must not replace it with a full-field copy.
   if(selection?.toString()&&selection.anchorNode&&button.contains(selection.anchorNode))return;
-  try {await navigator.clipboard.writeText(button.dataset.copyValue??value.textContent??'');toast('已复制'+button.querySelector('.field-label')!.textContent);}
+  try {
+    const text=button.dataset.copyValue??value.textContent??'';
+    const desktop=(window as unknown as {careerDesktop?:{copyText?:(text:string)=>Promise<unknown>}}).careerDesktop;
+    if(desktop?.copyText)await desktop.copyText(text);else await navigator.clipboard.writeText(text);
+    toast('已复制'+button.querySelector('.field-label')!.textContent);
+  }
   catch {const range=document.createRange();range.selectNodeContents(value);selection?.removeAllRanges();selection?.addRange(range);toast('已选中正文，请按 Ctrl / ⌘ + C 复制');}
 }));
 async function post(route:string,body:unknown) {
@@ -179,6 +188,8 @@ $('#save-html').addEventListener('click',()=>{
   clone.querySelector<HTMLElement>('#gallery-default')!.hidden=true;
   clone.querySelectorAll('#resume-preview,#gallery-resume').forEach(v=>{v.replaceChildren();v.removeAttribute('style');v.removeAttribute('data-pagination');});
   clone.querySelector<HTMLElement>('#page-title')!.hidden=true;
+  clone.querySelector<HTMLElement>('#page-heading')!.hidden=true;
+  clone.querySelector<HTMLElement>('#copy-hint')!.hidden=true;
   clone.querySelector('#library-note')!.textContent='当前页面只包含这一份简历。使用 CLI 从工作区生成集合后，可在这里切换其他简历。';
   download(new Blob(['<!doctype html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'}),'career-resume.html');toast('HTML 已导出');
 });

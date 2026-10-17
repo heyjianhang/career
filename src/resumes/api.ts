@@ -41,7 +41,7 @@ if(location.protocol==='http:'){
 </script>`;
      rendered=rendered.slice(0,rendered.lastIndexOf('</body>'))+extra+'</body></html>';page(rendered);return true;
     }
-    if(route==='/api/library/session'){send(200,{token,themes:templateMetadata,defaultTheme:await readPreference(workspace),prompt:`请在工作区 ${JSON.stringify(workspace)} 读取 AGENTS.md，帮助我整理资料、维护简历母版，再用统一简历包生成第一份简历。`});return true;}
+    if(route==='/api/library/session'){send(200,{token,themes:templateMetadata,defaultTheme:await readPreference(workspace),prompt:`请在工作区 ${JSON.stringify(workspace)} 读取 AGENTS.md，按已有进度引导我盘点材料、研究适合的岗位要求、深入整理经历，再生成第一份可编辑简历。边聊边保存，每次问一处关键问题；已有研究先复用，未核实的经历不编造。`});return true;}
     if(route==='/api/library/thumbnail'){
      const r=await store.readResume(workspace,id),checked=await check(r.file,workspace);
      const rendered=await html(checked,await readPreference(workspace,r.id),true);

@@ -19,6 +19,7 @@
 - `content.sections`：有序章节。每项有稳定 id、kind、title、subtitle、start、end、current、company、qualification、description、responsibilities、achievements、links。
 - kind 为 employment／project／education／other。title 是公司／项目／学校／自定义标题；subtitle 是职位／项目角色／专业／补充说明。学历写 qualification。职责与成果每行一条，描述按段落写。未知日期为空，current 只在确认为至今时为 true。
 - `content.common.sections`：技能、语言、证书等通用字段，`{id,title,fields:[{label,value,url?}]}`；统一供用户复制，且自动加入附件。不要把同一组资料再复制到 other 章节。求职期望属于求职目标，不伪造平台字段。
+- 可选的技能、荣誉、绩效等没有内容时，省略该分组或保留空 items／fields 即可；渲染会隐藏空分组、空条目和仅标签无值的通用字段，源草稿保留。不填“无”“暂无”“待补充”凑版面：它们会作为真实文字显示。有效的标题、日期、正文或链接不会因为其他字段留空而被删除。
 - 项目链接放条目 links。没有链接使用空数组，不放占位网址；CLI 验证格式，不代表联网验证过访问性。
 - `content.profile.photo` 为可选 `{path,sha256,alt,position?}`；path 相对工作区，照片为不超过 5 MiB 的 PNG/JPEG。提醒用户可提供一次，已有选择继续沿用，不用示例人像替代。
 - `source` 保存实际来源 ID、路径和摘要。新版包可从空白草稿开始；有来源时如实登记。来源变更返回 SOURCE_CHANGED，不自动覆盖已编辑内容，也不能只更新摘要消除提示。

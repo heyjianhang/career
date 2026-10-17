@@ -10,6 +10,8 @@
 
 桌面入口是侧栏「云同步」：检查环境 → 登录 GitHub → 填写空私人仓库地址 → 连接 → 同步。Git 缺失不阻塞简历和看板；Windows 与 macOS 均提供官方安装入口和重新检测。系统安装器由用户完成，Agent 可执行已授权的准备工作。
 
+这条路线只作 Agent 导航，不一次性全发给用户。首次可说：“这会在你自己的 GitHub 账号下保存一份私人备份，方便换电脑继续；还没准备账号也没关系，我们一步步来。”每次只给当前需要点击／填写的操作，完成后检查真实状态再进入下一项。用户暂不备份就回到简历任务，不要求先安装 Git。
+
 ## 准备账号与登录
 
 1. doctor 缺 Git 或 gh 时，按当前系统从 [Git](https://git-scm.com/downloads) 或 [GitHub CLI](https://cli.github.com/) 官方来源准备，复用已有环境。用户无需抄安装命令，Agent 执行可执行部分。
@@ -60,7 +62,7 @@ npm run career -- sync run --json
 npm run career -- sync status --refresh --json
 ```
 
-连接不等于上传。连接会写入 career.json，因此首次提交放在连接之后，让本地配置和资料一起保存。检查实际修改与 .gitignore，包含资料和可选照片，排除 node_modules、build、.local、.cache 和凭据；用户要求仅本地的材料先安排排除。新建空仓库后无需用户建立 main，首次上传推送本地 main。
+连接不等于上传。连接会写入 career.json，因此首次提交放在连接之后，让本地配置和资料一起保存。检查实际修改与 .gitignore，包含资料、可选照片及 research/jd 下的岗位样本／原文／分析／计划，排除 node_modules、build、.local、.cache 和凭据；用户要求仅本地的材料先安排排除。新建空仓库后无需用户建立 main，首次上传推送本地 main。
 
 `history save` 的 `saved:false` 表示没有新变化，不是上传完成；已有提交可继续按授权上传。`sync run` 返回 `synced:true` 后才能报告首次同步成功。最终给出实际个人目录、仓库链接和保存结果，然后按 AGENTS.md 继续经历与简历任务。
 
