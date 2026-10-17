@@ -100,10 +100,12 @@ export async function handlePortal(request, options) {
       return json({recorded: true});
     }
     if (!route.startsWith('/api/admin/')) return json({error: '接口不存在'}, 404);
-    if (!configured(env) || !kv) return json({error: '管理服务尚未配置。需要绑定存储并设置管理密钥。', configured: false}, 503);
+    if (!configured(env)) return json({error: '管理密码尚未配置，请检查服务端密码摘要和会话密钥。', configured: false}, 503);
+    if (!kv) return json({error: '门户存储尚未连接，请检查 Blob 存储部署。', configured: false}, 503);
     if (route === '/api/admin/login' && method === 'POST') {
       const value = await body(request);
       if (!await verifyPassword(value.key, env.PORTAL_ADMIN_KEY_HASH)) fail('管理密钥不正确', 401);
+      await get(kv, 'active_release'); // Do not report login success when storage is unavailable.
       const payload = `${id()}.${now + 28800000}`;
       const token = `${payload}.${await sign(env.PORTAL_SESSION_SECRET, payload)}`;
       return json({ok: true}, 200, {'Set-Cookie': cookieHeader(token, request)});

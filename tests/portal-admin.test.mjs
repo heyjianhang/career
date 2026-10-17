@@ -8,6 +8,7 @@ import {handlePortal, sha256} from '../portal/server.mjs';
 import {localStore, localCredentials, setLocalPassword} from '../portal/local.mjs';
 import {hashPassword, verifyPassword, validCredentialHash} from '../portal/password.mjs';
 import {validateManifest, verifyRelease} from '../portal/releases.mjs';
+import {blobNamespace, blobStore} from '../portal/blob.mjs';
 
 const baseline = JSON.parse(await readFile(new URL('../site/downloads.json', import.meta.url), 'utf8'));
 const origin = 'https://career.example';
@@ -35,6 +36,60 @@ function client(options = {}) {
 }
 const view = (event = '1'.repeat(32), visitor = 'a'.repeat(32)) => ({type: 'view', event, visitor, source: 'github'});
 const draft = () => ({manifest: baseline, notes: '合成验收说明'});
+
+function mockBlob() {
+  const map = new Map();
+  return {map,
+    async get(key, options) { assert.equal(options.consistency, 'strong'); return map.get(key) ?? null; },
+    async set(key, value, options) { assert.equal(options.cacheControl, 'no-store'); map.set(key, value); },
+    async list({prefix, limit, cursor, paginate, consistency}) {
+      assert.equal(consistency, 'strong'); assert.equal(paginate, false); assert.equal(limit, 256);
+      const keys = [...map.keys()].filter(k => k.startsWith(prefix) && (!cursor || k > cursor)).sort();
+      return {blobs: keys.slice(0, limit).map(key => ({key, etag: 'test'})), directories: [], ...(keys.length > limit ? {cursor: keys[limit - 1]} : {})};
+    },
+  };
+}
+
+test('Blob keeps preview and production separate without requesting another credential', () => {
+  assert.equal(blobNamespace({}), 'career-portal-preview');
+  assert.equal(blobNamespace({PORTAL_ORIGIN: 'https://preview.example'}), 'career-portal-preview');
+  assert.equal(blobNamespace({PORTAL_ORIGIN: 'https://career.heyjianhang.top'}), 'career-portal-production');
+});
+test('Blob events, drafts and publication survive new server instances', async () => {
+  const store = mockBlob(); const c = client({kv: blobStore(store)});
+  await Promise.all(Array.from({length: 300}, (_, i) => c.call('events', view(i.toString(16).padStart(32, '0')))));
+  await c.call('events', view('0'.repeat(32)));
+  await c.login(); const saved = (await c.call('admin/releases', draft())).data;
+  const reopened = client({kv: blobStore(store)}); await reopened.login();
+  assert.equal((await reopened.call('admin/stats')).data.views, 300);
+  assert.equal((await reopened.call('admin/stats')).data.complete, true);
+  assert.equal((await reopened.call('admin/releases')).data.releases[0].id, saved.id);
+  assert.equal((await reopened.call('admin/publish', {id: saved.id, revision: saved.revision, currentRevision: 'baseline', accepted: true})).status, 200);
+  assert.equal((await c.call('downloads')).data.id, saved.id);
+  assert.equal([...store.map.keys()].filter(k => k.startsWith('publication_')).length, 1);
+});
+test('Blob pagination respects the daily read budget', async () => {
+  const store = mockBlob(); const c = client({kv: blobStore(store)});
+  for (let i = 0; i < 1025; i++) await c.call('events', view(i.toString(16).padStart(32, '0')));
+  await c.login(); const result = (await c.call('admin/stats')).data;
+  assert.equal(result.views, 1024); assert.equal(result.complete, false);
+});
+test('Blob failures preserve downloads, block false login success and redact SDK internals', async () => {
+  const unavailable = () => { throw Object.assign(new Error('signed-url-and-private-token'), {code: 'CREDENTIAL_ERROR'}); };
+  const c = client({kv: blobStore({get: unavailable, set: unavailable, list: unavailable})});
+  const downloads = await c.call('downloads');
+  assert.deepEqual(downloads.data.manifest, baseline); assert.equal(downloads.data.tracking, false);
+  for (const [route, value] of [['admin/login', {key: adminKey}], ['events', view()]]) {
+    const result = await c.call(route, value);
+    assert.equal(result.status, 503); assert.match(result.data.error, /存储暂时无法连接/);
+    assert.doesNotMatch(JSON.stringify(result.data), /private-token|signed-url/);
+    assert.equal(result.response.headers.get('set-cookie'), null);
+  }
+  const missingPassword = await c.call('admin/session', undefined, {options: {env: {}}});
+  assert.match(missingPassword.data.error, /密码尚未配置/);
+  const missingStorage = await c.call('admin/session', undefined, {options: {kv: null}});
+  assert.match(missingStorage.data.error, /存储尚未连接/);
+});
 
 test('custom passwords use salted PBKDF2 and preserve legacy generated keys', async () => {
   const password = 'Test-only#42';
