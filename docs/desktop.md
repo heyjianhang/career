@@ -1,13 +1,13 @@
 # career 桌面版
 
-桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。`0.3.0-alpha.13` 已作为未签名预览版公开，支持 macOS 与 Windows 的 ARM64／x64；下载、校验值与验收边界见[发布记录](releases/desktop-0.3.0-alpha.13.md)。公开 npm 仍为 0.2.0。
+桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。`0.3.0-alpha.14` 已作为未签名预览版公开，支持 macOS 与 Windows 的 ARM64／x64；下载、校验值与验收边界见[发布记录](releases/desktop-0.3.0-alpha.14.md)。公开 npm 仍为 0.2.0。
 
-此版本包含模型与 JD 文字／图片导入、JD 研究和十二个用户 Skills、简历前调研与资料跟踪、新用户引导，以及新版百炼模型设置；保留更新限流恢复、简历空章节隐藏与此前桌面改进。AI 能力见[设计与验证](plans/ai-models-jd-import.md)。
+此版本包含模型与 JD 文字／图片导入、JD 研究和十三个用户 Skills、简历前调研与资料跟踪、新用户引导，以及新版百炼模型设置；保留更新限流恢复、简历空章节隐藏与此前桌面改进。新增总体匹配评分和独立「打招呼」页，支持按关联简历准备开场白。AI 能力见[设计与验证](plans/ai-models-jd-import.md)。
 
 ## 使用流程
 
 1. 安装并启动 career，创建工作区：填写显示名称、选择保存位置。软件会在该位置新建同名普通文件夹；也可以打开已有 career 工作区。
-2. 新工作区没有预置简历、岗位或演示文件；只具备空的资料结构、引导文档及工具。当前桌面版生成的工作区具备 AGENTS.md、十二个用户 Skills、资料结构和 CLI 入口。点击「复制给 Agent」，在 Agent 软件中打开该文件夹并新建对话。
+2. 新工作区没有预置简历、岗位或演示文件；只具备空的资料结构、引导文档及工具。当前桌面版生成的工作区具备 AGENTS.md、十三个用户 Skills、资料结构和 CLI 入口。点击「复制给 Agent」，在 Agent 软件中打开该文件夹并新建对话。
 3. Agent 读取指引、检查状态，继续选择本地保存／私人仓库同步，然后收集经历或接着已有进度。无需重新安装 Node、npm 或 career 包。
 4. 当前源码启动时默认进入上次使用的工作区，即使有多个工作区也无需再次选择。首次使用、上次目录不可用或打开失败时显示启动页；设置里可以切换工作区、重命名显示名称，再次复制 Agent 指令，工作区菜单也可主动回到启动页。此启动行为已包含在 alpha.13。
 
@@ -52,7 +52,7 @@ npm run desktop:dev
 
 `npm run desktop:icons` 从同一「c.」字标重建 PNG、ICNS、ICO 与菜单栏模板图标；用实际字形边界计算整体中心，避免字体基线导致偏下。已生成资源随源码保存，正常构建直接使用这些文件，无需目标机器安装品牌字体。品牌字形调整建议在 macOS 上生成并检查后提交资源。
 
-原生图标按平台保留透明边距，避免底板接近满幅而显得比相邻应用大：macOS 的底板为 1024 画布中的 832，每边留 96；Windows 为 896，每边留 64。字标、圆点和圆角同步等比缩放。Mac 的 ICNS 与运行时 Dock PNG 使用相同比例；Windows 的程序、安装器、快捷方式和窗口使用多尺寸 ICO，关于面板使用同版 PNG。ICO 另外包含 30／36／60／72／80／96 像素，以覆盖中间显示缩放比例，尺寸依据 [Microsoft 图标构建说明](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)。网页 favicon 与 Mac 单色菜单栏图标保持各自的小尺寸留白。这些比例调整尚未更新到公开安装包。
+原生图标按平台保留透明边距，避免底板接近满幅而显得比相邻应用大：macOS 的底板为 1024 画布中的 832，每边留 96；Windows 为 896，每边留 64。字标、圆点和圆角同步等比缩放。Mac 的 ICNS 与运行时 Dock PNG 使用相同比例；Windows 的程序、安装器、快捷方式和窗口使用多尺寸 ICO，关于面板使用同版 PNG。ICO 另外包含 30／36／60／72／80／96 像素，以覆盖中间显示缩放比例，尺寸依据 [Microsoft 图标构建说明](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)。网页 favicon 与 Mac 单色菜单栏图标保持各自的小尺寸留白。这些图标比例已包含在当前公开安装包。
 
 ## 构建安装包
 
@@ -93,7 +93,7 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 默认生成未签名预览包。当前 alpha.1 经维护者确认以未签名预览版发布，下载说明明确标注；正式版发布前应完成签名、公证及安装验收：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据。未经验证与单独公开的 Actions 产物只用于测试；公开预览版以发布记录为准。
 
-桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。已公开的 alpha.1 没有应用内更新检查。当前开发源码增加版本检查和安装包下载入口，尚未发布；不含自动安装、重启升级或开机启动。开发源码已接入企查查，BOSS 采集通过随包 Skill 按需准备。软件升级采用下载安装包覆盖升级，资料继续保存在原文件夹。
+桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。已公开的 alpha.1 没有应用内更新检查。当前公开桌面版已包含版本检查和安装包下载入口；不含自动安装、重启升级或开机启动。开发源码已接入企查查，BOSS 采集通过随包 Skill 按需准备。软件升级采用下载安装包覆盖升级，资料继续保存在原文件夹。
 
 ## 转存已验证的安装包
 
