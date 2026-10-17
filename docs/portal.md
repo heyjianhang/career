@@ -59,7 +59,7 @@ node scripts/build-site.mjs
 
 ## 生产部署记录
 
-2026-10-18 01:21，使用管理 CLI 保存 alpha.13 草稿并切换门户版本。服务端独立验证四个公开附件后返回成功，公开入口回查 publicFeedConfirmed:true；当前 revision 为 `b0758180c2d8411cb510c17046c14adc`。本机的额外匿名 GitHub 查询曾限流；[CI 匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39053230622)与服务端发布验证均通过。静态回退清单已同步，等待这次部署回执。
+2026-10-18 01:21，使用管理 CLI 保存 alpha.13 草稿并切换门户版本。服务端独立验证四个公开附件后返回成功，公开入口回查 publicFeedConfirmed:true；当前 revision 为 `b0758180c2d8411cb510c17046c14adc`。本机的额外匿名 GitHub 查询曾限流；[CI 匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39053230622)与服务端发布验证均通过。静态回退清单已同步。生产部署 `dps8ogxhdgui` 成功，源码 `67f1b79e83e2014976bcbd663ca4f9acb44c1e87`，构建用时 125 秒。线上 HTML 与本地 build/site/index.html 逐字节一致，首页和后台均显示 alpha.13，四个架构菜单链接正确。
 
 2026-10-18 00:17 门户后台已通过真实云端验收，生产部署 `dpv68cdrtuyh`，源码 `b2810022bd30bf33ade9ed9649a00f6f3a446ebc`，构建用时 49 秒。此前 KV 审批阻塞已通过项目 Blob 存储解决。
 

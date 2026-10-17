@@ -1,6 +1,6 @@
 # career Desktop 0.3.0-alpha.13
 
-发布日期：2026-10-18（北京时间）。[GitHub 预发布](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.13)已公开，四架构验收与匿名完整下载校验均通过；门户运行时下载入口已切换，静态部署回执待补。
+发布日期：2026-10-18（北京时间）。[GitHub 预发布](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.13)已公开，四架构验收与匿名完整下载校验均通过；[门户](https://career.heyjianhang.top/)运行时与静态下载入口均已更新。
 
 ## 本次更新
 
@@ -28,7 +28,7 @@
 - 本机 Mac ARM64 的打包应用与独立冷启动验收通过；模型／JD、看板、个人资料、简历库浏览器回归，以及 14 款模板的空章节 HTML／PDF 检查通过。
 - [四架构原生构建与应用验收](https://github.com/heyjianhang/career/actions/runs/39052133701)全部通过：macOS ARM64／x64、Windows ARM64／x64 均运行刚打包的应用，验证空资料库、十二个 Skills、内置 CLI／企查查、加密模型配置／JD 导入、简历 PDF、更新检查及独立冷启动。四份报告均为 alpha.13、ok:true。[上传校验](https://github.com/heyjianhang/career/actions/runs/39053064855)与[四架构匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39053230622)通过，文件均返回 HTTP 200 且哈希／字节数一致。
 
-门户 CLI 发布成功并回查公开入口，revision 为 `b0758180c2d8411cb510c17046c14adc`；发布时间 2026-10-18 01:21。静态部署回执待补。
+门户 CLI 发布成功并回查公开入口，revision 为 `b0758180c2d8411cb510c17046c14adc`；发布时间 2026-10-18 01:21。生产部署 `dps8ogxhdgui` 成功，源码 `67f1b79e83e2014976bcbd663ca4f9acb44c1e87`，构建用时 125 秒。线上 HTML 与本地 build/site/index.html 逐字节一致，首页和后台均显示 alpha.13，四个架构菜单链接正确。
 
 ## 安装包校验值
 
