@@ -7,7 +7,7 @@ import {renderDownloads} from './site-downloads.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 export const output=path.join(root,'build/site');
-export const publicFiles=['index.html','style.css','app.js','favicon.svg','404.html','robots.txt','install.md','llms.txt','assets/workspace.jpg','assets/styles.jpg'];
+export const publicFiles=['index.html','style.css','app.js','favicon.svg','404.html','robots.txt','install.md','llms.txt','assets/workspace.jpg','assets/styles.jpg','admin/index.html','admin/style.css','admin/app.js'];
 const escapeHtml=text=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 
 export async function buildSite(){
@@ -21,10 +21,12 @@ export async function buildSite(){
   // Only these public inputs may enter the hosting artifact. Never publish the repository root.
   await rm(output,{recursive:true,force:true});
   await mkdir(path.join(output,'assets'),{recursive:true});
+  await mkdir(path.join(output,'admin'),{recursive:true});
   await writeFile(path.join(output,'index.html'),html);
   await writeFile(path.join(output,'install.md'),guide);
   await writeFile(path.join(output,'llms.txt'),index);
   for(const name of ['style.css','app.js','favicon.svg','404.html','robots.txt'])await copyFile(path.join(root,'site',name),path.join(output,name));
+  for(const name of ['index.html','style.css','app.js'])await copyFile(path.join(root,'site/admin',name),path.join(output,'admin',name));
   for(const name of ['workspace.jpg','styles.jpg'])await copyFile(path.join(root,'docs/assets',name),path.join(output,'assets',name));
   const actual=(await readdir(output,{recursive:true,withFileTypes:true})).filter(x=>x.isFile()).map(x=>path.relative(output,path.join(x.parentPath,x.name)).split(path.sep).join('/')).sort();
   assert.deepEqual(actual,[...publicFiles].sort(),'Unexpected file in public artifact');

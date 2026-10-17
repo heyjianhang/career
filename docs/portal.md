@@ -8,7 +8,7 @@
 npm run preview:site
 ```
 
-终端输出仅本机访问的 Local URL。静态页面源码在 [site](../site/)，构建脚本在 [scripts/build-site.mjs](../scripts/build-site.mjs)。网页用原生 HTML、CSS 和 JavaScript，没有额外运行依赖；构建只需 Node 22+，不需要安装简历 CLI 的依赖。
+终端输出仅本机访问的首页与 `/admin/` 地址。预览服务同时提供真实 API 和本地文件存储，重启后数据仍在 `.cache/portal/data`；默认没有模拟数据。首次启动生成本机管理凭据 `.cache/portal/admin-key.json`，取 `key` 字段登录，不要发送到聊天或提交 Git。静态页面源码在 [site](../site/)，构建脚本在 [scripts/build-site.mjs](../scripts/build-site.mjs)。网页用原生 HTML、CSS 和 JavaScript，没有额外运行依赖；构建只需 Node 22+，不需要安装简历 CLI 的依赖。
 
 开始指令在构建时从 README 的第一个 text 代码块读取，始终指向 GitHub raw 的 `main/install.md`。详细命令集中在根目录 install.md，llms.txt 负责导航；两者与门户托管无关，门户也附带相同文件的静态副本。scripts/bootstrap.mjs 核对固定地址、详细命令中的包名与版本；README、安装说明、独立复制页的短指令保持一致。
 
@@ -18,17 +18,17 @@ npm run preview:site
 node scripts/build-site.mjs
 ```
 
-产物固定为 `build/site/` 的十个公开文件：index.html、style.css、app.js、favicon.svg、404.html、robots.txt、install.md、llms.txt，以及两张合成产品截图。构建采用明确文件清单；只把该目录交给托管服务，不能上传仓库根目录、个人 workspace 或本机配置。门户不在 npm 的 files 白名单内。
+静态产物固定为 `build/site/` 的十三个公开文件：index.html、style.css、app.js、favicon.svg、404.html、robots.txt、install.md、llms.txt、两张合成产品截图，以及 admin 的 HTML／CSS／JS。构建采用明确文件清单；静态托管只能上传该目录，不能把仓库根目录当成公开目录。服务端源码由 EdgeOne 的 Git 构建流程单独打包部署，不属于公开静态产物。门户、后台与本机管理凭据均不在 npm 的 files 白名单内。
 
 ## 桌面下载入口
 
 首页只展示并排的 macOS（苹果图标）和 Windows 下载入口，点击后下拉选择架构；菜单支持键盘、Esc、点击外部关闭，未发布架构在菜单内标为准备中。图标使用随仓库依赖的 Bootstrap Icons，MIT 声明保留在 HTML 中。
 
-下载入口只读取 [site/downloads.json](../site/downloads.json)，不读取 npm 版本，也不会根据 desktop/package.json 的本地候选版本猜测下载地址。`version`、`tag` 描述已公开的桌面 Release；四个 assets 分别对应 mac-arm64、mac-x64、win-x64、win-arm64，填写该 Release 中已验证的完整 GitHub 下载 URL。未发布的架构保留 null。
+静态下载快照读取 [site/downloads.json](../site/downloads.json)。页面打开后请求同域 `/api/downloads`，管理后台已发布版本优先；接口不可用、未配置或浏览器禁用脚本时仍可下载静态快照中的版本。两条路径都不读取 npm 版本，也不会根据 desktop/package.json 的本地候选版本猜测下载地址。`version`、`tag` 描述已公开的桌面 Release；四个 assets 分别对应 mac-arm64、mac-x64、win-x64、win-arm64，填写该 Release 中已验证的完整 GitHub 下载 URL。未发布的架构保留 null。
 
 全部地址为空时，版本和 tag 也保持 null；页面显示「预览版准备中」，按钮不可下载，发布进度链接指向仓库 Releases。某个架构已发布后，对应按钮才启用；可以分平台开放，不要求四个产物同时可用。alpha/beta 等版本明确标为预览版。门户版本独立于 npm 0.2.0，旧命令行入口仍指向实际已发布的 npm 版本。
 
-更新下载的顺序：
+维护静态快照的顺序（后台上线前也使用此流程）：
 
 1. 按桌面发布流程构建、安装验收并公开 GitHub Release，记录源码 SHA、版本和 SHA-256。
 2. 确认 Release 不是草稿，匿名访问下载 URL 成功；核对文件名、系统、架构和校验值。Actions 的临时 artifact 不作为公众下载地址。
@@ -39,7 +39,7 @@ node scripts/build-site.mjs
 
 ## 腾讯 EdgeOne Pages / Makers
 
-腾讯的部分入口已将 Pages 命名为 Makers。这个门户只使用静态托管；无须服务器、数据库或云函数。
+腾讯的部分入口已将 Pages 命名为 Makers。首页可独立静态托管；管理后台使用同项目的 Edge Functions 与 KV，部署配置详见下节。无需维护常驻服务器。
 
 在腾讯云控制台导入 `heyjianhang/career` 的 main 分支，仓库根目录选择 `/`，框架选择其他／静态站。根目录 [edgeone.json](../edgeone.json) 配置：
 
@@ -78,7 +78,52 @@ node scripts/build-site.mjs
 
 ## 其他静态托管
 
-同一份 `build/site/` 也可部署到其他支持 HTTPS 与自定义域名的静态站服务，无需改动页面代码。当前针对腾讯准备配置，未为其他服务创建部署或收费资源。
+同一份 `build/site/` 可部署到其他静态站服务，首页与快照下载可正常使用。统计和后台需要部署兼容 API；仅上传静态文件不会自动获得管理服务。当前针对腾讯准备适配，未为其他服务创建部署或收费资源。
+
+## 管理后台（2026-10-17，本地实现）
+
+入口为 `/admin/`，普通官网导航不展示管理入口。包含近 7／30 天访问、独立访客估算、每日趋势、下载点击、架构／版本／来源分布，以及版本草稿编辑和首页版本切换。首次打开没有数据时显示真实空状态。
+
+### 云端一次性配置
+
+1. 在现有 EdgeOne 项目绑定 KV 命名空间，变量名为 `CAREER_PORTAL`；生产与预览环境分开命名空间，避免测试事件进入生产统计。
+2. 本机运行 `npm run portal:config`，生成 `.cache/portal-production/admin-key.json`（权限 0600，重复运行不轮换）。将 `PORTAL_ADMIN_KEY_HASH` 和 `PORTAL_SESSION_SECRET` 两个字段作为服务端环境变量设置；`key` 是本人的登录密钥，不能放在前端或 URL 中。需要更换凭据时先备份该文件，再移走并重新生成、更新云端变量。
+3. 生产环境设置 `PORTAL_ORIGIN=https://career.heyjianhang.top`。预览环境使用自己的域名或不设置，由请求 URL 确定同源检查。全程 HTTPS。
+4. 经授权提交和部署根目录的 `edge-functions`、`portal`、`site`、构建脚本与 edgeone.json。Git 构建应同时生成静态资源和 `/api/*` 函数；仅上传 build/site 不会部署后台。生产凭据文件和本地数据不部署。
+5. 验收无登录访问后台 API 返回 401、错误来源写入返回 403；登录后空统计可加载。真实访问一次首页、点击一次安装包，在后台核对数据与架构。退出并重启后核对会话和版本持久化；匿名读取 `/api/downloads` 不含密钥。完成一次真实公开 Release 的验证和切换后，才标记云端验收通过。
+
+服务端实现位于 [portal/server.mjs](../portal/server.mjs)，平台适配位于 [edge-functions/api/[[path]].js](../edge-functions/api/[[path]].js)。管理登录使用高熵随机密钥的 SHA-256 摘要，8 小时 HttpOnly／SameSite Cookie 会话、HMAC 签名、同源及 CSRF 校验；轮换会话密钥可撤销旧会话。不提供注册、多管理员或普通短密码登录。高流量部署还应使用托管平台的请求限速，公开统计并非防刷计费依据。
+
+### 版本操作
+
+- 新建版本，勾选已上传的架构，填写更新说明，保存草稿。地址按官方仓库命名约定生成；生成地址不等于安装包已存在。
+- 完成各架构安装验收后，点击「设为首页版本」。确认后服务端查询公开 Release 元数据，并对每个安装包做匿名范围请求；失败、限流、草稿、缺文件或草稿版本变化时保留当前入口。
+- 成功后保存发布快照和前后版本记录，再更新首页指向。可选旧版本再次验证和发布，回退下载入口；修改已发布版本的草稿不影响其快照。
+- 这是单维护者后台。KV 为最终一致存储，跨节点同步最多可能延迟约一分钟；草稿修订检查可防常规陈旧覆盖，但不提供数据库级并发事务，不要同时在多个会话发布。
+- 后台发布只影响门户运行时入口；不替用户构建、签名、上传 GitHub Release、更新 npm 或应用内检查源。发布后仍应维护 downloads.json 作为无脚本与故障回退快照，再按正常流程提交部署。当前公开静态快照保持 alpha.1。
+
+### 统计口径和容量
+
+- 页面访问：官网首页加载且同源 API 可用、浏览器允许统计时记一次；不会采集后台访问。
+- 访客：随机浏览器标识，30 天轮换；清理存储、换浏览器会被视作新访客，不等于人数。服务端只保存其摘要。
+- 下载点击：前端发出的点击事件，安装包链接直接指向 GitHub。即使统计接口失败仍可以下载；不是成功下载、安装或活跃用户数。
+- 只保存时间（日）、类型、架构、版本和粗粒度来源分类；不保存 IP、完整来源 URL、简历或岗位资料。用户可在官网页脚关闭，DNT／GPC 信号也会关闭统计。
+- 每个事件独立写入，重试复用 ID，避免并发计数覆盖。当前统计面向小规模门户，按日翻页，单日最多读取 1,024 条；达到限制明确提示数据不完整，不把部分结果当完整总量。版本草稿最多 100 条，可复用旧草稿。
+- KV 不支持本实现所需的原生 TTL，当前事件持续保留在专用命名空间。管理员应按使用需要在 KV 控制台清理历史 `event_YYYYMMDD_` 前缀；增长到上述范围前迁移到聚合或分析数据库，不能直接增加前端展示数字掩盖容量限制。
+
+### 本地验证与上线边界
+
+```sh
+npm run test:portal
+npm run build:site
+npm run check:docs
+```
+
+API 测试覆盖鉴权、会话过期、CSRF、重复事件、并发写入、分页、时区、草稿持久化、公开安装包验证失败保护、版本快照和静态回退。浏览器使用独立临时存储与明确的合成 GitHub 响应，不查询／发布真实新版本；覆盖 320–1440px、登录、保存、失败后重试、首页切换、统计关闭和无脚本下载。截图留在 `.cache/portal-review`，不对外发布。
+
+本轮未创建云端存储、配置生产密钥、推送或部署。云端路由、账号配额、KV 绑定和真实 Release 联通性须在上述一次性配置后验收，不能用本地通过代替线上完成。
+
+依据腾讯官方 [Edge Functions](https://pages.edgeone.ai/document/edge-functions)、[KV API 与一致性说明](https://pages.edgeone.ai/document/kv-storage)、[Web Crypto API](https://edgeone.ai/document/52693)（2026-10-17 核对）。KV 适配遵循 key 仅字母／数字／下划线、每页最多 256 个键、`complete/cursor/keys[].key` 返回格式。
 
 ## 验收与来源
 

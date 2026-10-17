@@ -50,7 +50,9 @@
     "desktop:win:arm64": "npm run desktop:build -- --platform win --arch arm64",
     "desktop:test": "node scripts/desktop/test.mjs",
     "build:agent-roadmap": "node scripts/build-agent-roadmap.mjs",
-    "test:agent-roadmap": "node tests/agent-roadmap-browser.mjs"
+    "test:agent-roadmap": "node tests/agent-roadmap-browser.mjs",
+    "test:portal": "node --test tests/portal.test.mjs tests/portal-admin.test.mjs && node tests/portal-browser.mjs",
+    "portal:config": "node scripts/portal-config.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-sc": "5.3.1",

@@ -32,7 +32,7 @@
 - [桌面版与安装包构建](desktop.md)：随包 CLI／Skills、Agent 交接、四种安装包与签名。
 - [开发说明](development.md)：运行命令、CI 和打包维护。
 - [版本发布 Skill](../.agents/skills/career-release/SKILL.md)：版本同步、Git／npm 发布、安装验证及主分支保护。
-- [门户与托管](portal.md)：静态入口、指令复制、腾讯境外托管和域名接入。
+- [门户与托管](portal.md)：官网首页、访问／下载统计、版本管理后台、腾讯托管和域名接入。
 - [项目状态](context.md)：当前实现与尚未验证的部分。
 - [验证范围](validation.md)、[Skill 行为场景](skill-evaluation-cases.md)。
 
