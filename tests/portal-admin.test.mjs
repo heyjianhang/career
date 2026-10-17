@@ -273,3 +273,16 @@ test('Node readable cloud bodies support login, preserve UTF-8 and enforce byte 
   const oversized = await invoke(Readable.from([Buffer.from(JSON.stringify({key: '中'.repeat(9000)}))]));
   assert.equal(oversized.status, 413);
 });
+
+test('EdgeOne pre-parsed bodies and preload promises retain validation and size limits', async () => {
+  const invoke = async (body, headers = {}) => handlePortal({url: origin + '/api/admin/login', method: 'POST',
+    headers: new Headers({'Content-Type': 'application/json', Origin: origin, ...headers}), body,
+  }, {kv: memory(), env, baseline});
+  for (const body of [{key: adminKey}, Promise.resolve({key: adminKey})]) {
+    assert.equal((await invoke(body)).status, 200);
+  }
+  assert.equal((await invoke(Promise.resolve({key: '中'.repeat(9000)}))).status, 413);
+  assert.equal((await invoke({key: adminKey}, {'content-length': '25000'})).status, 413);
+  assert.equal((await invoke(Promise.resolve([]))).status, 400);
+  assert.equal((await invoke(Promise.resolve(null))).status, 400);
+});

@@ -17,7 +17,9 @@ const get = async (kv, key) => { const value = await kv.get(key); return value ?
 const put = (kv, key, value) => kv.put(key, JSON.stringify(value));
 async function body(request) {
   if (!/^(application\/json|text\/plain)(;|$)/i.test(request.headers.get('content-type') || '')) fail('不支持的请求格式', 415);
-  const input = request.body; if (!input) fail('请求内容为空');
+  if (Number(request.headers.get('content-length')) > 24000) fail('请求内容过大', 413);
+  // EdgeOne Node augments Request.body with a parsed value (or preload Promise).
+  const input = await request.body; if (!input) fail('请求内容为空');
   const chunks = []; let size = 0;
   const append = value => {
     const chunk = typeof value === 'string' ? encoder.encode(value)
@@ -34,6 +36,8 @@ async function body(request) {
     for await (const chunk of input) append(chunk);
   } else if (typeof input === 'string' || ArrayBuffer.isView(input) || input instanceof ArrayBuffer) {
     append(input);
+  } else if (typeof input === 'object') {
+    append(JSON.stringify(input));
   } else fail('不支持的请求内容', 400);
   const bytes = new Uint8Array(size); let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
