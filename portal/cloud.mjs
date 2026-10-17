@@ -6,5 +6,5 @@ export function handleCloudPortal(request, {env = {}, baseline}) {
   let kv;
   try { kv = blobStore(getStore(blobNamespace(env))); }
   catch { /* An incomplete deployment must preserve public fallback downloads. */ }
-  return handlePortal(request, {kv, env, baseline});
+  return handlePortal(request, {kv, env, baseline, onError: detail => console.error('portal_request_failed', detail)});
 }

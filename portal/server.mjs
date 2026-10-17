@@ -85,6 +85,7 @@ async function stats(kv, days, now) {
 export async function handlePortal(request, options) {
   const {kv, env = {}, baseline, fetcher = fetch, now = Date.now()} = options;
   const url = new URL(request.url); const route = url.pathname.replace(/\/$/, ''); const method = request.method;
+  let phase = 'request';
   try {
     if (['POST', 'PUT', 'DELETE'].includes(method) && request.headers.get('origin') !== (env.PORTAL_ORIGIN || url.origin)) fail('请求来源不匹配', 403);
     if (route === '/api/downloads' && method === 'GET') {
@@ -111,9 +112,13 @@ export async function handlePortal(request, options) {
     if (!configured(env)) return json({error: '管理密码尚未配置，请检查服务端密码摘要和会话密钥。', configured: false}, 503);
     if (!kv) return json({error: '门户存储尚未连接，请检查 Blob 存储部署。', configured: false}, 503);
     if (route === '/api/admin/login' && method === 'POST') {
+      phase = 'login-body';
       const value = await body(request);
+      phase = 'login-password';
       if (!await verifyPassword(value.key, env.PORTAL_ADMIN_KEY_HASH)) fail('管理密钥不正确', 401);
+      phase = 'login-storage';
       await get(kv, 'active_release'); // Do not report login success when storage is unavailable.
+      phase = 'login-session';
       const payload = `${id()}.${now + 28800000}`;
       const token = `${payload}.${await sign(env.PORTAL_SESSION_SECRET, payload)}`;
       return json({ok: true}, 200, {'Set-Cookie': cookieHeader(token, request)});
@@ -162,6 +167,7 @@ export async function handlePortal(request, options) {
     return json({error: '接口不存在或方法不支持'}, 404);
   } catch (error) {
     const expected = error.status || (error instanceof Error && /安装包|版本|Release|GitHub|草稿|发布说明|清单/.test(error.message));
+    if (!expected) options.onError?.({phase, name: error?.name || 'Error', code: /^[A-Z_0-9]+$/.test(error?.code || '') ? error.code : null});
     return json({error: expected ? error.message : '服务暂时不可用，请稍后重试'}, error.status || (expected ? 400 : 503));
   }
 }
