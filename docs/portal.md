@@ -59,6 +59,15 @@ node scripts/build-site.mjs
 
 ## 生产部署记录
 
+2026-10-18 00:17 门户后台已通过真实云端验收，生产部署 `dpv68cdrtuyh`，源码 `b2810022bd30bf33ade9ed9649a00f6f3a446ebc`，构建用时 49 秒。此前 KV 审批阻塞已通过项目 Blob 存储解决。
+
+- `career-portal-production` 已由 SDK 创建并出现在腾讯云 Blob 控制台；生产 API 已改为 Node Cloud Functions，同域入口保持不变。管理员使用现有密码成功登录，刷新页面能恢复会话。
+- 真实官网访问、一次下载点击及架构／版本分布已写入存储，7／30 天汇总与刷新后保留通过；验收时显示 2 次访问、1 个浏览器访客、1 次 macOS Apple Silicon 下载点击，没有注入模拟统计。浏览器下载被客户端拦截，因此该点击不代表安装包下载完成。
+- 现有 `0.3.0-alpha.1` 四架构版本保存后重开仍保留，随后从后台验证公开 Release 和四个安装包匿名范围下载并设为首页版本。公开 `/api/downloads` 返回 `source:managed`、`tracking:true`，四个文件的大小与 GitHub 摘要均与[原发布记录](releases/desktop-0.3.0-alpha.1.md)一致；本次没有重新打包或安装。
+- 修复 EdgeOne 请求体兼容：支持边缘 ArrayBuffer、标准 Web 流、Node 流及 Node 运行时按 Content-Type 预解析的对象／预加载 Promise；保留 24,000 字节限额。密码与签名显式使用 Node 原生加密；故障日志只记录阶段、错误类型和受限错误码，不记录请求内容、密码或会话。
+- 最终 28 项门户 API 测试、320／390／768／1024／1440px 浏览器回归、文档与十三文件静态白名单构建通过。151 项完整基础回归与[三平台 CI](https://github.com/heyjianhang/career/actions/runs/39048745698)全部通过。
+- main 推送仍需在控制台手动触发部署。后台发布仅维护门户下载版本，安装包与 npm 版本没有随这次门户部署改变。生产／预览命名空间分开，预览不配置生产管理凭据。
+
 2026-10-17 23:38 自定义管理密码支持已部署，生产部署 `dp6shahkchfq`，源码 `abdcb88bc43062ba88246bf26c342a95577e4085`，构建用时 24 秒。
 
 - 维护者已更新两个生产凭据变量，逐项核对与本机准备配置一致；服务端保存带盐密码摘要，当前本机配置不保存自定义密码明文。原有生成式密钥仍兼容。
@@ -137,6 +146,8 @@ npm run check:docs
 API 测试覆盖鉴权、会话过期、CSRF、重复事件、并发写入、分页、时区、草稿持久化、公开安装包验证失败保护、版本快照和静态回退。浏览器使用独立临时存储与明确的合成 GitHub 响应，不查询／发布真实新版本；覆盖 320–1440px、登录、保存、失败后重试、首页切换、统计关闭和无脚本下载。截图留在 `.cache/portal-review`，不对外发布。
 
 原有 KV 方案因账号审批未完成而阻塞；现改用项目 Blob 和 Node 云函数。云端真实验收与部署回执记录在上方生产部署记录中，未取得回执前不把本地测试视为上线成功。存储不可用时公开下载仍返回静态快照和 `tracking:false`，管理登录不产生假成功；密码缺失与存储故障分别提示。SDK 原始错误可能带有签名请求信息，因此只返回脱敏的业务错误。
+
+Cloud Functions 请求体格式以官方 `@edgeone/types@1.0.2` 的 `EdgeoneRequest` 定义核对：body 会按 Content-Type 预解析，预加载完成前可为 Promise；不能假定总是标准 ReadableStream。
 
 依据腾讯官方 [Blob 文档](https://pages.edgeone.ai/zh/document/blob-storage)、[Node 云函数](https://pages.edgeone.ai/zh/document/node-functions)、[Web Crypto API](https://edgeone.ai/document/52693)（2026-10-17 核对）。固定 SDK `@edgeone/pages-blob@0.0.18` 的类型和实现支持 `limit`；适配使用每页 256 条、关闭自动全量翻页，保留 `cursor` 并映射 `blobs[].key`，避免统计超过读取预算。SDK 依赖与锁文件位于 portal，门户私有包不发布 npm。
 
