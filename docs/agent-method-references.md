@@ -36,6 +36,8 @@
 
 公开资料会变化，未来改方法时核对原文并记录采用／拒绝的部分。它们的权威性不等于对 career 的认证。
 
+2026-10-17 补充研究 [paramchoudhary/resumeskills 的 job-description-analyzer](https://github.com/paramchoudhary/resumeskills/blob/main/skills/job-description-analyzer/SKILL.md)，用于独立 [career-match](../.agents/skills/career-match/SKILL.md)。采用要求分层、差距分类与行动排序；不采用固定 70/30 权重、词频推断硬要求或高匹配等于过度匹配。继续沿用 career 可解释的证据锚点与未知规则，并增加“指定简历版本”和“补充资产不是本版已写内容”的边界。公司方法迁入独立 [career-company](../.agents/skills/career-company/SKILL.md)，原 board 引用保留兼容入口。
+
 ## 如何判断是否真的更好
 
 文档连通、模板安装和 CLI 检查只能证明规则可获得。是否真正做到慢慢追问、留下充分事实，需要用 [评估场景](skill-evaluation-cases.md) 的多轮对话核对；不能将文档检查通过当成 Agent 行为已经验证。本轮补充的阶段与深度场景保留人工评估入口。

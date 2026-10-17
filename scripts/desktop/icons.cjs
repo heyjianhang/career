@@ -1,4 +1,4 @@
-// Rebuild all native icon formats from the same measured career c. wordmark.
+// Rebuild native icons from one wordmark, with padding specific to each platform.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs/promises');
 const path=require('node:path');
@@ -26,21 +26,32 @@ app.whenReady().then(async()=>{
   const radius=66,gap=66,total=w+gap+radius*2,left=(1024-total)/2,top=(1024-440)/2;
   const x=left+m.actualBoundingBoxLeft*scale,y=top+m.actualBoundingBoxAscent*scale;
   const glyph=(ink,dot)=>'<text x="'+x+'" y="'+y+'" font-family="Georgia,serif" font-size="'+font+'" font-weight="bold" fill="'+ink+'">c</text><circle cx="'+(left+w+gap+radius)+'" cy="'+(top+440-radius)+'" r="'+radius+'" fill="'+dot+'"/>';
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect x="20" y="20" width="984" height="984" rx="220" fill="#22352d"/>'+glyph('#f5f6f0','#a2bb79')+'</svg>';
+  const artwork='<rect x="20" y="20" width="984" height="984" rx="220" fill="#22352d"/>'+glyph('#f5f6f0','#a2bb79');
+  const wrap=content=>'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">'+content+'</svg>';
+  const svg=wrap(artwork);
+  // Scale the whole mark about its centre, including the tile and its corner radius.
+  // macOS: 96 px of clear space per side; Windows: 64 px, keeping small icons legible.
+  // Keep the compact web favicon independent of the native application's safe area.
+  const nativeSvg=tileSize=>wrap('<g transform="translate(512 512) scale('+tileSize/984+') translate(-512 -512)">'+artwork+'</g>');
   // Menu-bar mark uses a tighter frame so c. remains legible at 16 physical points.
   const tray='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+(left-26)+' '+(top-30)+' '+(total+52)+' 500">'+glyph('#000','#000')+'</svg>';
   async function raster(source,size,height=size){canvas.width=size;canvas.height=height;const img=new Image();img.src='data:image/svg+xml;base64,'+btoa(source);await img.decode();ctx.clearRect(0,0,size,height);ctx.drawImage(img,0,0,size,height);return canvas.toDataURL('image/png').split(',')[1];}
-  const images=[];for(const size of [16,20,24,32,40,48,64,128,256,512,1024])images.push({size,data:await raster(svg,size)});
-  return {svg,images,tray1:await raster(tray,22,16),tray2:await raster(tray,44,32),bounds:{left,top,width:total,height:440,centerX:left+total/2,centerY:top+220}};
+  async function sizes(source,values){const images=[];for(const size of values)images.push({size,data:await raster(source,size)});return images;}
+  const mac=await sizes(nativeSvg(832),[16,32,64,128,256,512,1024]);
+  // Include exact taskbar and title-bar sizes for intermediate Windows DPI scales.
+  const windows=await sizes(nativeSvg(896),[16,20,24,30,32,36,40,48,60,64,72,80,96,128,256,1024]);
+  return {svg,mac,windows,tray1:await raster(tray,22,16),tray2:await raster(tray,44,32),bounds:{left,top,width:total,height:440,centerX:left+total/2,centerY:top+220},nativeTiles:{mac:832,windows:896,canvas:1024}};
  })()`);
  const out=path.join(root,'desktop/assets');await fs.mkdir(out,{recursive:true});
- const images=rendered.images.map(({size,data})=>({size,png:Buffer.from(data,'base64')}));
+ const decode=images=>images.map(({size,data})=>({size,png:Buffer.from(data,'base64')}));
+ const mac=decode(rendered.mac),windows=decode(rendered.windows);
  await fs.writeFile(path.join(root,'desktop/icon.svg'),rendered.svg+'\n');
- await fs.writeFile(path.join(out,'icon.png'),images.find(i=>i.size===1024).png);
- await fs.writeFile(path.join(out,'icon.ico'),ico(images.filter(i=>i.size<=256)));
- await fs.writeFile(path.join(out,'icon.icns'),icns(images.filter(i=>[16,32,64,128,256,512,1024].includes(i.size))));
- await fs.writeFile(path.join(out,'tray.ico'),ico(images.filter(i=>i.size<=48)));
+ await fs.writeFile(path.join(out,'icon.png'),mac.find(i=>i.size===1024).png);
+ await fs.writeFile(path.join(out,'icon-win.png'),windows.find(i=>i.size===1024).png);
+ await fs.writeFile(path.join(out,'icon.ico'),ico(windows.filter(i=>i.size<=256)));
+ await fs.writeFile(path.join(out,'icon.icns'),icns(mac));
+ await fs.writeFile(path.join(out,'tray.ico'),ico(windows.filter(i=>[16,20,24,32,40,48,64].includes(i.size))));
  await fs.writeFile(path.join(out,'trayTemplate.png'),Buffer.from(rendered.tray1,'base64'));
  await fs.writeFile(path.join(out,'trayTemplate@2x.png'),Buffer.from(rendered.tray2,'base64'));
- console.log(JSON.stringify({output:out,bounds:rendered.bounds}));app.exit(0);
+ console.log(JSON.stringify({output:out,bounds:rendered.bounds,nativeTiles:rendered.nativeTiles}));app.exit(0);
 }).catch(e=>{console.error(e);app.exit(1);});

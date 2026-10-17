@@ -9,8 +9,9 @@ protocol.registerSchemesAsPrivileged([{scheme:'career-app',privileges:{standard:
 if(process.env.CAREER_DESKTOP_USER_DATA)app.setPath('userData',path.resolve(process.env.CAREER_DESKTOP_USER_DATA));
 const smokeIndex=process.argv.indexOf('--career-smoke');
 const smokeOutput=smokeIndex>=0?process.argv[smokeIndex+1]:null;
-let win,tray,manager,core,quitting=false,working=false,shutdown,company,updates;
+let win,tray,manager,core,quitting=false,working=false,shutdown,company,updates,ai;
 const assets=path.join(__dirname,'assets');
+const appIcon=path.join(assets,process.platform==='win32'?'icon-win.png':'icon.png');
 const coreRoot=path.join(__dirname,'runtime/node_modules/@heyjianhang/career');
 const load=relative=>import(pathToFileURL(path.join(coreRoot,'dist',relative)));
 const external=url=>{try{const u=new URL(url);return ['https:','http:','mailto:'].includes(u.protocol)&&!u.username&&!u.password;}catch{return false;}};
@@ -35,6 +36,24 @@ async function openWorkspace(directory){
  const local=await manager.sessions.get(entry.path);await manager.remember(entry.path);
  return {...entry,url:local.url+'/board',prompt:handoffPrompt(entry.path)};
 }
+async function openInitialPage(){
+ try{
+  const registry=await manager.readRegistry();
+  // Older registries may only have the recent list, ordered most recently used first.
+  const last=registry.last_workspace
+   ?registry.recent.find(entry=>entry.id===registry.last_workspace)
+   :registry.recent[0];
+  if(last){
+   const opened=await openWorkspace(last.path);
+   await win.loadURL(opened.url);
+   return;
+  }
+ }catch(error){
+  // Keep missing or invalid entries so the user can locate or repair them.
+  console.warn('无法打开上次使用的工作区，返回工作区列表：',error.message);
+ }
+ await win.loadURL(welcome);
+}
 async function state(){
  const registry=await manager.readRegistry();
  return {version:app.getVersion(),platform:process.platform,sync_environment:await core.syncEnvironment.syncEnvironment(false),defaultLocation:app.getPath('documents'),recent:await Promise.all(registry.recent.map(async e=>{try{return await manager.entry(e.path);}catch{return {...e,available:false};}}))};
@@ -45,11 +64,11 @@ function handle(name,fn){ipcMain.handle('career:'+name,async(event,...args)=>{
 });}
 async function mutate(fn){if(working)throw new Error('工作区正在准备，请稍候');working=true;try{return await fn();}finally{working=false;}}
 function showWindow(){if(win&&!win.isDestroyed()){if(win.isMinimized())win.restore();win.show();win.focus();}}
-function showWelcome(){showWindow();void win.loadURL(welcome).catch(e=>{if(e.code!=='ERR_ABORTED')console.error(e);});}
+function showWelcome(){showWindow();return win.loadURL(welcome).catch(e=>{if(e.code!=='ERR_ABORTED')console.error(e);});}
 function nativeControls(){
- app.setAboutPanelOptions({applicationName:'career',applicationVersion:app.getVersion(),iconPath:path.join(assets,'icon.png'),copyright:'MIT · heyjianhang'});
+ app.setAboutPanelOptions({applicationName:'career',applicationVersion:app.getVersion(),iconPath:appIcon,copyright:'MIT · heyjianhang'});
  if(process.platform==='darwin'){
-  app.dock?.setIcon(path.join(assets,'icon.png'));
+  app.dock?.setIcon(appIcon);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
    {label:'career',submenu:[{role:'about'},{type:'separator'},{role:'hide'},{role:'hideOthers'},{role:'unhide'},{type:'separator'},{role:'quit'}]},
    {label:'工作区',submenu:[{label:'创建或打开工作区',accelerator:'CmdOrCtrl+Shift+O',click:showWelcome},{type:'separator'},{role:'close'}]},
@@ -92,6 +111,13 @@ function setupIPC(){
  handle('syncEnvironment',()=>core.syncEnvironment.syncEnvironment());
  handle('syncLogin',()=>core.syncEnvironment.startLogin());
  handle('syncLoginStatus',()=>core.syncEnvironment.loginStatus());
+ handle('aiStatus',()=>ai.status());
+ handle('aiSave',value=>ai.save(value));
+ handle('aiDefaults',value=>ai.defaults(value));
+ handle('aiRemove',id=>ai.remove(id));
+ handle('aiCheck',value=>ai.check(value));
+ handle('aiExtract',async value=>{await entryForPage();return ai.extract(value);});
+ handle('aiCancel',id=>ai.cancel(id));
  handle('companyStatus',()=>company.status());
  handle('companySave',value=>mutate(()=>company.save(value)));
  handle('companyCheck',()=>mutate(()=>company.run({action:'check'})));
@@ -100,12 +126,13 @@ function setupIPC(){
  handle('createWorkspace',data=>mutate(async()=>{const entry=await manager.create(data.parent,data.name,data.repository);return openWorkspace(entry.path);}));
  handle('openWorkspace',directory=>mutate(()=>openWorkspace(directory)));
  handle('handoff',async()=>{const e=await entryForPage();return {...e,prompt:handoffPrompt(e.path)};});
+ handle('copyText',async text=>{if(typeof text!=='string'||text.length>1024*1024)throw new Error('复制内容无效或过长');await clipboard.writeText(text);return true;});
  handle('copyPrompt',async directory=>{const e=await manager.entry(directory);if(!(await manager.readRegistry()).recent.some(r=>r.id===e.id))throw new Error('工作区尚未打开');clipboard.writeText(handoffPrompt(e.path));return true;});
  handle('reveal',async directory=>{const e=await manager.entry(directory);if(!(await manager.readRegistry()).recent.some(r=>r.id===e.id))throw new Error('工作区尚未打开');const error=await shell.openPath(e.path);if(error)throw new Error(error);});
  handle('navigate',async url=>{if(!trusted(url))throw new Error('无效工作区地址');await win.loadURL(url);});
 }
 async function createWindow(){
- win=new BrowserWindow({title:'career',width:1240,height:850,minWidth:720,minHeight:560,icon:path.join(assets,'icon.png'),backgroundColor:'#f5f6f0',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+ win=new BrowserWindow({title:'career',width:1240,height:850,minWidth:720,minHeight:560,icon:process.platform==='win32'?path.join(assets,'icon.ico'):appIcon,backgroundColor:'#f5f6f0',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  win.webContents.session.setPermissionRequestHandler((_wc,_permission,done)=>done(false));
  win.webContents.session.setPermissionCheckHandler(()=>false);
  win.webContents.on('will-attach-webview',e=>e.preventDefault());
@@ -116,10 +143,11 @@ async function createWindow(){
  win.webContents.on('did-navigate',()=>{void entryForPage().then(e=>{win.setTitle(e.name+' · career');}).catch(()=>win.setTitle('career'));});
  win.webContents.session.on('will-download',(_event,item)=>{item.setSaveDialogOptions({defaultPath:path.join(app.getPath('downloads'),path.basename(item.getFilename()))});});
  nativeControls();
- await win.loadURL(welcome);if(!smokeOutput)win.show();
+ await openInitialPage();if(!smokeOutput)win.show();
 }
 async function start(){
  updates=await require('./updates.cjs').createUpdateService({directory:app.getPath('userData'),currentVersion:app.getVersion(),platform:process.platform,arch:process.arch,fetchImpl:(url,options)=>net.fetch(url,options),openExternal:url=>shell.openExternal(url),onChange:value=>{if(win&&!win.isDestroyed()&&trusted(win.webContents.getURL()))win.webContents.send('career:updates',value);}});
+ ai=await require('./ai.cjs').createAIService({app,safeStorage,coreRoot});
  company=await require('./company.cjs').createCompanyService({app,safeStorage,coreRoot});
  core={syncEnvironment:await load('workspace/sync-environment.js'),setup:await load('workspace/setup.js'),local:await load('workspace/local.js'),io:await load('presentation/io.js'),collection:await load('presentation/collection.js'),server:await load('presentation/server.js')};
  manager=new core.local.WorkspaceManager(path.join(app.getPath('userData'),'workspaces.json'));manager.prepare=prepare;
@@ -133,7 +161,7 @@ async function start(){
  });
  setupIPC();await createWindow();if(!smokeOutput)updates.start();
  if(smokeOutput){
-  try{const report=await require('./smoke.cjs').run({app,win,tray,manager,core,coreRoot,openWorkspace,printHtml,state});await fs.writeFile(smokeOutput,JSON.stringify(report,null,2));app.quit();}
+  try{const smoke=require('./smoke.cjs'),run=process.argv.includes('--career-smoke-startup')?smoke.runStartup:smoke.run;const report=await run({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialPage,showWelcome,printHtml,state});await fs.writeFile(smokeOutput,JSON.stringify(report,null,2));app.quit();}
   catch(e){await fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack}));app.exit(1);}
  }
 }
@@ -144,7 +172,7 @@ else {
  if(process.platform==='win32')app.setAppUserModelId('top.heyjianhang.career');
  app.on('second-instance',showWindow);app.on('activate',showWindow);
  app.whenReady().then(start).catch(e=>{console.error(e);if(smokeOutput)void fs.writeFile(smokeOutput,JSON.stringify({ok:false,error:e.stack})).finally(()=>app.exit(1));else{dialog.showErrorBox('career 启动失败',e.message);app.quit();}});
- const stop=()=>{shutdown??=(async()=>{try{updates?.close();core?.syncEnvironment.stopLogin();await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
+ const stop=()=>{shutdown??=(async()=>{try{updates?.close();ai?.close();core?.syncEnvironment.stopLogin();await manager?.close();}catch(e){console.error(e);}finally{tray?.destroy();quitting=true;app.quit();}})();};
  app.on('window-all-closed',stop);
  // Close the window first so its unsaved-edit guard can cancel. Drain services while
  // Electron's normal event loop is still running, before entering the quit sequence.

@@ -15,3 +15,5 @@
 ## Optional
 
 - [贡献指南](https://raw.githubusercontent.com/heyjianhang/career/main/CONTRIBUTING.md)：工具源码开发与验证。
+
+- JD research and career planning: .agents/skills/jd-research/SKILL.md

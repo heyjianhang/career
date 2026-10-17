@@ -1,6 +1,6 @@
 # 渐进加载与持续更新的上下文
 
-本协议用于用户 AGENTS、八个用户 Skills 和初始化工具。来源、事实与母版沿用 v2 Markdown；CLI 消费 Agent 写好的 career-resume-package/v1 内容包生成成果页（兼容旧 career-presentation/v1），不替换事实层。所有私人路径相对于用户独立资料目录。
+本协议用于用户 AGENTS、十个用户 Skills 和初始化工具。来源、事实与母版沿用 v2 Markdown；CLI 消费 Agent 写好的 career-resume-package/v1 内容包生成成果页（兼容旧 career-presentation/v1），不替换事实层。所有私人路径相对于用户独立资料目录。
 
 ## 两种渐进
 
@@ -32,8 +32,11 @@ AGENTS 保存稳定导航，不存个人资料和聊天历史；Skill 保存可�
 | context/sessions/*.md | 长任务需要时保存的交接记录 | 不默认逐轮生成聊天副本 |
 | resume/questions.md | 与履历事实有关的缺口及解决状态 | 不再在 state 复制完整问题 |
 | resume/maintenance.md | 模块及具体经历状态、母版待更新事项、初期完成日期与范围 | 不成为第二个事实库，不由空目录推断不适用 |
+| research/jd/主题目录 | JD 主样本台账与原文、岗位要求到经历证据的映射、补足行动及简历使用记录 | 不把岗位要求或学习计划当作个人事实，不自动全部入看板 |
 
 context 内当前是普通 Markdown，不增加另一套履历 schema。文件中指向事实 ID 和相对工作区路径，引用优于重复抄写。
+
+首次完整简历在资料盘点后按 [简历前调研](../.agents/skills/jd-research/references/pre-resume.md) 研究目标方向，再带着缺口访谈；生成前刷新证据与选材。按照 [研究跟踪](../.agents/skills/jd-research/references/tracking.md) 在 INDEX 链接主报告、progress 记录研究范围、state 留当前行动或被暂停的经历断点。研究完成与学习计划完成分别判断，已有资料只导出或用户明确先要草稿不强制重新研究。
 
 ## 冷启动与续接
 

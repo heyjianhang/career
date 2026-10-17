@@ -154,3 +154,65 @@ test('interviews support optional preparation, repeated mocks and bounded multi-
  const listing=await command(w,'interview','list','--opportunity',op.id);assert.equal(listing.data.interviews[0].meta.status,'completed');assert.equal((await board.overview(w)).upcoming_interviews.length,0);
  await writeFile(path.join(w,round.path),'损坏内容');assert.ok((await board.show(w,op.id)).issues.some(i=>i.code==='INVALID_INTERVIEW'));
 });
+
+test('older optional fields and unknown metadata survive typed reads, edits and handoffs', async t => {
+  const {w} = await fixture(t), op = await create(w);
+  const task = await board.saveTask(w, op.id, {title:'核实岗位', owner:'agent', status:'pending', body:'任务原文'});
+  const round = await board.saveInterview(w, op.id, {title:'一面', body:'轮次原文'});
+  const event = await board.log(w, op.id, {title:'用户补充', evidence_type:'user_report', body:'事件原文'});
+  const annotation = {nested:[false, 7, {note:'保留用户自定义内容'}]};
+  async function amend(relative, omitted) {
+    const file = path.join(w, relative), raw = await readFile(file, 'utf8');
+    const [, header, body] = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    const meta = parse(header);
+    for (const key of omitted) delete meta[key];
+    meta.user_annotation = annotation;
+    await writeFile(file, '---\n' + stringify(meta) + '---\n' + body);
+  }
+  await amend(op.path, ['location','salary','next_action','recommendation','archived','outcome']);
+  await amend(task.path, ['assigned_to','due','outcome']);
+  await amend(round.path, ['scheduled_at']);
+  await amend(event.path, ['links','occurred_at']);
+  const before = await board.show(w, op.id);
+  assert.equal(before.card.meta.archived, false);
+  assert.equal(before.card.meta.outcome, null);
+  assert.equal(before.card.meta.location, undefined);
+  assert.equal(before.interviews[0].meta.scheduled_at, undefined);
+  assert.equal((await board.overview(w)).upcoming_interviews[0].scheduled_at, null);
+  await board.update(w, op.id, {title:'新标题'}, before.card.sha256);
+  await board.saveTask(w, op.id, {id:task.id, title:'已核实', owner:'agent', status:'done', outcome:'用户确认'}, before.tasks[0].sha256);
+  await board.saveInterview(w, op.id, {id:round.id, title:'一面结束', status:'completed'}, before.interviews[0].sha256);
+  const after = await board.show(w, op.id);
+  for (const record of [after.card, after.tasks[0], after.interviews[0], after.recent_activity.find(r => r.meta.id === event.id)]) {
+    assert.deepEqual(record.meta.user_annotation, annotation);
+  }
+  assert.equal(after.tasks[0].body, '任务原文');
+  assert.equal(after.interviews[0].body, '轮次原文');
+  assert.equal(after.issues.length, 0);
+  const handoff = await board.context(w, op.id);
+  assert.deepEqual(handoff.card.meta.user_annotation, annotation);
+  assert.deepEqual(handoff.interviews[0].meta.user_annotation, annotation);
+});
+
+test('untrusted inputs and malformed recovery journals cannot mutate saved records', async t => {
+  const {w} = await fixture(t), op = await create(w);
+  const saved = await readFile(path.join(w, op.path));
+  for (const value of [null, [], 'not a record', {title:'缺少必填字段', status:'unknown'}]) {
+    await rejects(board.add(w, value), 'INVALID_RECORD');
+    await rejects(board.update(w, op.id, value, op.sha256), 'INVALID_RECORD');
+    await rejects(board.saveTask(w, op.id, value), 'INVALID_RECORD');
+    await rejects(board.saveInterview(w, op.id, value), 'INVALID_RECORD');
+    await rejects(board.log(w, op.id, value), 'INVALID_RECORD');
+  }
+  const journalPath = path.join(w, 'opportunities/.transaction.json');
+  for (const journal of [null, [], {schema:'career-opportunity-transaction/v1', writes:[null, null]},
+    {schema:'career-opportunity-transaction/v1', writes:[{path:op.path, before:null, after:42, content:'YQ=='}, {}]}]) {
+    const bytes = JSON.stringify(journal);
+    await writeFile(journalPath, bytes);
+    await rejects(board.recover(w), 'INVALID_TRANSACTION');
+    assert.equal(await readFile(journalPath, 'utf8'), bytes);
+    assert.deepEqual(await readFile(path.join(w, op.path)), saved);
+  }
+  await rm(journalPath);
+  assert.equal((await board.show(w, op.id)).activity_count, 1);
+});

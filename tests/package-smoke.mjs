@@ -7,6 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {checkDocumentation} from '../scripts/check-docs.mjs';
+import {bossFiles,verifyBossSkill,exerciseBossSkill,findPython} from './helpers/boss-skill.mjs';
+import {exerciseJdResearch} from './helpers/jd-research.mjs';
 const exec=promisify(execFile),root=fileURLToPath(new URL('../',import.meta.url));
 const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-package-'));
 // A fresh npm ci cache may have tarballs without registry metadata.
@@ -24,10 +26,13 @@ try{
  const names=packed.files.map(f=>f.path);
  for(const file of ['dist/workspace/sync.js','dist/workspace/sync-api.js','dist/workspace/sync-environment.js','dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
- const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board'];
+ assert.ok(names.includes('resources/workspace/gitattributes.template'),'packaging must preserve cross-platform line-ending rules');
+ const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','boss-zhipin-scraper','jd-research'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
   const included=[...new Set(names.filter(name=>name.startsWith(prefix)).map(name=>name.slice(prefix.length).split('/')[0]))].sort();
   assert.deepEqual(included,[...userSkills].sort(),'Only user Skills belong in the npm package');
+  const bossPrefix=prefix+'boss-zhipin-scraper/';
+  assert.deepEqual(names.filter(name=>name.startsWith(bossPrefix)).map(name=>name.slice(bossPrefix.length)).sort(),bossFiles);
  }
  assert.ok(!names.some(f=>/^(workspace|src|tests|research|examples|resources\/workspace\/examples|\.cache|node_modules|outputs)\//.test(f)),'private and development material must stay outside the package');
  const archive=path.join(dir,packed.filename),bootstrap=path.join(dir,'bootstrap');
@@ -40,9 +45,15 @@ try{
  assert.equal(initial.handoff.workspace_next_action,initial.next_action);
  assert.ok((await readFile(path.join(workspace,'README.md'),'utf8')).includes(initial.handoff.prompt));
  const retry=await jsonCommand(bootstrapCli,dir,args);assert.equal(retry.agent.conflicts.length,0);assert.deepEqual(retry.handoff,initial.handoff);
- const documentation=await checkDocumentation(workspace);assert.equal(documentation.skills,8);
+ const documentation=await checkDocumentation(workspace);assert.equal(documentation.skills,userSkills.length);
  assert.ok(!(await stat(path.join(workspace,'.agents/skills/career-release')).catch(()=>null)),'Maintainer release instructions must not be installed');
  for(const name of userSkills)assert.ok((await stat(path.join(workspace,'.agents/skills',name,'SKILL.md'))).isFile());
+ await exerciseJdResearch(path.join(workspace,'.agents/skills/jd-research'),dir);
+ const bossSkill=path.join(workspace,'.agents/skills/boss-zhipin-scraper');
+ await verifyBossSkill(bossSkill);
+ const bossPython=await findPython();
+ if(bossPython)await exerciseBossSkill(bossSkill,dir,bossPython);
+ else console.error('BOSS offline execution skipped: Python 3.10+ unavailable; installation resources verified.');
  // Execute the method helper from the installed workspace, not from this checkout.
  const scoreInput=path.join(dir,'assessment.json');
  await writeFile(scoreInput,JSON.stringify({criteria:[
@@ -54,13 +65,15 @@ try{
  assert.deepEqual(score.missing_extremes,{lower:40,upper:100});
  assert.match(await readFile(path.join(workspace,'.gitignore'),'utf8'),/node_modules/);
  assert.ok(!(await stat(path.join(workspace,'gitignore.template')).catch(()=>null)));
+ assert.equal(await readFile(path.join(workspace,'.gitattributes'),'utf8'),await readFile(path.join(root,'templates/workspace/.gitattributes'),'utf8'));
+ assert.ok(!(await stat(path.join(workspace,'gitattributes.template')).catch(()=>null)));
  const cli=path.join(workspace,'node_modules/@heyjianhang/career/dist/cli.js');
  const command=(...args)=>jsonCommand(cli,workspace,args);
  const syncPrefs=await command('sync','preferences','--automatic','off','--interval','10');assert.equal(syncPrefs.automatic,false);assert.equal(syncPrefs.interval_minutes,10);assert.equal((await command('sync','overview')).repository,null);
  assert.equal((await command('doctor')).tool_matches,true);
  assert.equal((await command('company','status')).configured,false);
  assert.equal((await command('company','tools')).sections.registration.tool,'get_company_registration_info');
- assert.match(await readFile(path.join(workspace,'.agents/skills/career-board/references/company.md'),'utf8'),/company inspect/);
+ assert.match(await readFile(path.join(workspace,'.agents/skills/career-company/references/tools.md'),'utf8'),/company inspect/);
  assert.equal((await command('workspace','check')).valid,true);
  const stageFile=path.join(workspace,'context/progress.md');
  assert.match(await readFile(stageFile,'utf8'),/当前大阶段：待核对/);
@@ -98,7 +111,7 @@ try{
    preview.once('exit',code=>{clearTimeout(timer);reject(new Error('Preview exited '+code+': '+stderr));});
   });
   assert.equal(ready.status,'success');const base=new URL(ready.data.url);
-  assert.match(await (await fetch(base)).text(),/岗位概况/);
+  assert.match(await (await fetch(base)).text(),/data-tab="overview">JD/);
   assert.equal((await (await fetch(new URL('/api/board/overview',base))).json()).total,1);
   assert.match(await(await fetch(new URL('/',base))).text(),/我的简历/);
   const profilePage=await(await fetch(new URL('/profile',base))).text();assert.match(profilePage,/我的资料/);assert.match(profilePage,/materials-layout/);

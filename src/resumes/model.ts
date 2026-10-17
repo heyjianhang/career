@@ -1,4 +1,5 @@
 import type {Presentation,ResumeContent,Contact,Platform,PlatformRules,Report,ResumeItem} from '../presentation/types.js';
+import {visibleContacts,visibleLinks} from '../presentation/content.js';
 
 export interface Experience {
   id:string; kind:'employment'|'project'|'education'|'other'; title:string; subtitle:string;
@@ -22,8 +23,8 @@ export function blankExperience(kind:Experience['kind'],id:string):Experience {r
 /** The one semantic document feeds every layout and supported platform field. No model is called. */
 export function projectPackage(bundle:ResumePackage,registry:Record<Platform,PlatformRules>):Presentation {
  const c=bundle.content;
- const resume:ResumeContent={...c.profile,summary:paragraphs(c.summary),sections:c.sections.filter(s=>s.items.length).map(s=>({id:s.id,title:s.title,items:s.items.map(i=>({id:i.id,title:i.title,subtitle:join(i.subtitle,i.kind==='education'?i.qualification:'').replaceAll('\n\n',' · '),period:[i.start,i.current?'至今':i.end].filter(Boolean).join(' — ')||(typeof i.original_period==='string'?i.original_period:''),paragraphs:paragraphs(i.description),bullets:[...lines(i.responsibilities),...lines(i.achievements)],links:i.links}))}))};
- for(const section of c.common.sections){if(!section.fields.length)continue;resume.sections.push({id:'common-'+section.id,title:section.title,items:section.fields.map((f,i)=>({id:'common-'+section.id+'-'+i,title:f.label,paragraphs:[f.value],bullets:[],...(f.url?{links:[{label:f.label,url:f.url}]}:{})}))});}
+ const resume:ResumeContent={...c.profile,summary:paragraphs(c.summary),sections:c.sections.filter(s=>s.items.length).map(s=>({id:s.id,title:s.title,items:s.items.map(i=>({id:i.id,title:i.title,subtitle:join(i.subtitle,i.kind==='education'?i.qualification:'').replaceAll('\n\n',' · '),period:[i.start,i.current?'至今':i.end].filter(v=>v.trim()).join(' — ')||(typeof i.original_period==='string'?i.original_period:''),paragraphs:paragraphs(i.description),bullets:[...lines(i.responsibilities),...lines(i.achievements)],links:i.links}))}))};
+ for(const section of c.common.sections){const fields=visibleContacts(section.fields);if(!fields.length)continue;resume.sections.push({id:'common-'+section.id,title:section.title,items:fields.map((f,i)=>({id:'common-'+section.id+'-'+i,title:f.label,paragraphs:[f.value],bullets:[],...(f.url?{links:[{label:f.label||f.value,url:f.url}]}:{})}))});}
  const reports:Presentation['reports']={};
  for(const [platform,rule] of Object.entries(registry)) {
   const sections:Report['sections']=[];
@@ -34,7 +35,7 @@ export function projectPackage(bundle:ResumePackage,registry:Record<Platform,Pla
   push('summary','summary','个人概述',{text:c.summary});
   for(const section of c.sections)for(const i of section.items){
    const when={start:i.start,end:i.current?'至今':i.end};
-   const links=i.links.map(l=>`${l.label}：${l.url}`).join('\n');
+   const links=visibleLinks(i.links).map(l=>`${l.label}：${l.url}`).join('\n');
    if(i.kind==='employment')push(i.id,i.kind,i.title,{company:i.title,title:i.subtitle,...when,content:join(i.description,i.responsibilities,rule.fields['employment.achievements']?'':i.achievements,links),achievements:i.achievements});
    if(i.kind==='project')push(i.id,i.kind,i.title,{name:i.title,role:i.subtitle,company:i.company,...when,description:join(!rule.fields['project.role']&&i.subtitle?`项目角色：${i.subtitle}`:'',!rule.fields['project.company']&&i.company?`所属公司：${i.company}`:'',i.description,rule.fields['project.responsibilities']?'':i.responsibilities,rule.fields['project.achievements']?'':i.achievements,links),responsibilities:i.responsibilities,achievements:i.achievements});
    if(i.kind==='education')push(i.id,i.kind,i.title,{school:i.title,major:i.subtitle,qualification:i.qualification,...when,description:join(i.description,i.responsibilities,i.achievements,links)});

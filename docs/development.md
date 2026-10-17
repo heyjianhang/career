@@ -33,9 +33,19 @@ npm run test:templates
 
 公开入口源码位于 `site/`。`npm run preview:site` 构建并启动本机预览，`npm run build:site` 只输出批准的静态文件到 `build/site/`，无须加载私人工作区。桌面下载从 site/downloads.json 读取已公开的安装包地址，未发布的架构保持不可下载；备用开始指令从 README 提取；详细命令由根目录 install.md 维护，llms.txt 导航。scripts/bootstrap.mjs 校验短入口和安装版本。腾讯配置、域名接入和验收记录见[门户与托管](portal.md)。
 
+## 浏览器扩展
+
+源码在 browser-extension，`npm run build:extension` 通过白名单构建加载目录与 ZIP，不包含样例、采集历史或凭据；构建产物沿用 build 忽略规则。`npm run test:extension` 使用临时 Chromium 配置及合成岗位验收，不读取当前浏览器。业务测试随 npm test 运行。扩展版本独立于 npm 和桌面版，未加入其安装资源，详见[扩展使用与验证](browser-extension.md)。
+
+## BOSS 采集 Skill
+
+`.agents/skills/boss-zhipin-scraper/` 是随包的上游固定快照，来源和逐文件哈希在其 upstream.json；只调整 career 引导时不要顺手更改采集代码。上游 MIT LICENSE 必须随资源分发。构建不联网取上游代码，不包含浏览器资料、采集结果或 venv。
+
+`tests/boss-skill.test.mjs` 检查新建／补装、自定义内容保护和固定资源；存在 Python 3.10+ 时从安装后目录执行离线帮助与合成摘要。可用 CAREER_TEST_PYTHON 指定测试解释器。`test:package` 从实际 tgz 再验相同运行资源。以上不访问 BOSS；真实采集需另做账号与页面验收。
+
 ## Agent 路线图
 
-`npm run build:agent-roadmap` 从当前仓库 Markdown 和八个用户 Skills 构建 `build/agent-roadmap/index.html`，浏览器直接打开即可离线阅读。页面源码与场景导航在 `docs/agent-roadmap/`，共同推进规则在 `docs/agent-workflow.md`，不在 HTML 里维护另一份 Skill 正文。更改方法后重新构建，使用 `npm run test:agent-roadmap` 验证导航、原文读取和窄屏。详见 [路线图维护](agent-roadmap.md)。
+`npm run build:agent-roadmap` 从当前仓库 Markdown 和十二个用户 Skills 构建 `build/agent-roadmap/index.html`，浏览器直接打开即可离线阅读。页面源码与场景导航在 `docs/agent-roadmap/`，共同推进规则在 `docs/agent-workflow.md`，不在 HTML 里维护另一份 Skill 正文。更改方法后重新构建，使用 `npm run test:agent-roadmap` 验证导航、原文读取和窄屏。详见 [路线图维护](agent-roadmap.md)。
 
 ## 文件归属
 
@@ -85,9 +95,9 @@ npm run test:package
 npm pack
 ```
 
-`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、八个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
+`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、十二个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；package.json 与资源构建脚本都只包含八个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。合成内容包只留在开发仓库，测试时显式导入，不安装到用户目录；`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
+包采用 files 白名单；package.json 与资源构建脚本都只包含十二个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。合成内容包只留在开发仓库，测试时显式导入，不安装到用户目录；`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
 
 2026-10-15 的 macOS / Node 26 本地验证覆盖 114 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、安全合并、冲突保留、离线保存及自动同步时机；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。此前三平台 Node 22 CI 已通过 60 项测试；新提交的矩阵以对应 Actions 结果为准。浏览器／PDF 不在这套 CI 矩阵内。
 
@@ -104,7 +114,7 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 
 ## 岗位模块（开发源码）
 
-`src/opportunities/store.ts` 提供文件业务层，`src/cli.ts` 暴露统一命令；契约与交接规则见[岗位工作区](opportunities.md)。修改时运行 `tests/opportunities.test.mjs`，覆盖多 Agent 续接、冲突、依赖、坏记录、附件与恢复；完整测试与真实安装包仍按上面执行。src/board 提供本地看板和文件阅读器，复用简历服务及侧栏；tests/board-ui.test.mjs 覆盖读取、写回冲突和文件边界。PDF.js 资源由构建脚本复制到 dist/board/pdf，发布前验证安装包具备资源。
+`src/opportunities/store.ts` 保留统一业务入口，`types.ts`、`validation.ts`、`files.ts`、`transactions.ts` 分别维护类型、Schema 校验、受限文件读写与事务恢复；`src/cli.ts` 暴露统一命令。外部输入先作为 `unknown` 校验，再进入业务层；修改 Schema 时同步类型中的必填／可选字段，保留旧记录与未知扩展字段。契约与交接规则见[岗位工作区](opportunities.md)。修改时运行 `tests/opportunities.test.mjs`，覆盖多 Agent 续接、冲突、依赖、坏记录、附件与恢复；完整测试与真实安装包仍按上面执行。src/board 提供本地看板和文件阅读器，复用简历服务及侧栏；tests/board-ui.test.mjs 覆盖读取、写回冲突和文件边界。PDF.js 资源由构建脚本复制到 dist/board/pdf，发布前验证安装包具备资源。
 
 运行 npm run build，然后 node scripts/prepare-board-demo.mjs 创建源码仓库外的临时合成工作区，最后 node dist/cli.js board preview --workspace <脚本返回的目录> --open --json。也可向演示脚本传入仓库外尚不存在的绝对路径。
 
@@ -114,7 +124,7 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 
 工作区管理在 src/workspace/local.ts 与 local-api.ts；共享侧栏和设置在 presentation 的 render／shell／styles。每个目录绑定独立 localhost 服务，startPreview 的 close 会关闭同组会话。测试必须传入独立 registryFile 或 CAREER_LOCAL_SETTINGS，不能改开发者主目录的最近列表。行为和运行时恢复见[工作区说明](workspaces.md)。
 
-修改共享侧栏时，验证看板、简历、个人资料在相同视口下的几何尺寸；导航样式只能在共享层维护，不要再增加页面专属间距。变更渲染代码后重启预览并刷新页面，避免旧 Node 模块与新读取的 CSS 混用。
+修改共享侧栏时，验证看板、简历、个人资料在相同视口下的几何尺寸；导航样式只能在共享层维护，不要再增加页面专属间距。 页面顶栏共用 workspace-header；桌面基础高度 64px、控件 36px，展开侧栏使用 224–248px 的有界宽度。尺寸与水平留白统一维护在 src/presentation/styles.css 的 --shell-*／--sidebar-width 变量，页面样式只处理自身控件布局；窄窗口允许顶栏换行，不固定高度裁切内容。变更渲染代码后重启预览并刷新页面，避免旧 Node 模块与新读取的 CSS 混用。
 
 ## 桌面端
 
@@ -122,6 +132,11 @@ node dist/cli.js resume preview --workspace .cache/template-demo --open
 
 云同步变更另外运行 `npm run test:sync`。tests/sync.test.mjs 用临时 bare 远端覆盖双设备更新／合并、冲突保留、离线保存、异常远端、恢复和自动同步时机；sync-browser 用模拟依赖状态检查界面、设置落盘与窄屏，不操作真实私人仓库。
 
+
 ## 桌面更新入口
 
 更新服务在 desktop/updates.cjs；共享界面在 src/presentation/updates.ts 和 updates.css。构建时 copy-presentation-assets.mjs 将界面拼入各工作台共用 shell.js／styles.css；启动页通过受限 career-app 协议加载同一份界面。修改后先 npm run build，运行 tests/desktop-updates.test.mjs，再从本机打包应用执行 desktop:test。测试使用合成 Release 和独立 userData，不修改个人更新偏好。当前仅检查版本并打开官方安装包链接；发布流程或自动安装改造需另行验收。
+
+## 模型与 JD 导入
+
+`src/ai` 提供受限输入、结构化提取及本机校验；`desktop/ai.cjs` 管理加密连接和请求取消，`src/presentation/models.ts` 为统一设置页，`src/board/jd-import.ts` 为资料／核对两步流程。`opportunities/import.ts` 原子写入卡片、正文和原始附件。修改后运行 `npm run test:ai`，并从打包应用执行 `desktop:test`；真实供应商单独验收，不能用合成服务结果声称所有模型兼容。详细边界见 [设计说明](plans/ai-models-jd-import.md)。

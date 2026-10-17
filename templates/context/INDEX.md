@@ -14,6 +14,7 @@
 - `context/goals.md`：用户已明确的目标、约束与协作偏好；首次履历维护不要求填满。
 - `context/decisions.md`：已经采纳的决定。
 - `context/feedback.md`：具体反馈与改进记录。
+- `research/jd/`：按需建立的岗位调研、原文、样本台账、补足计划和简历使用记录；有研究后在当前焦点记录实际报告路径。
 - `resume/facts/profile.md`：个人资料事实。
 - `resume/questions.md`：待补充的履历信息。
 - `resume/master/index.md`：简历母版索引。

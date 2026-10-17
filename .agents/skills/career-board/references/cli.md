@@ -19,7 +19,7 @@ overview 包括所有卡片、阶段计数、未完成任务（含归档标记�
 
 `npm run career -- board preview --open --json` 启动共享本机服务，可传 `--port <端口>`。JSON 返回 /board 入口，简历在同一服务的 /。进程持续运行，打开页面后不要结束它。更改岗位文件后可点刷新；页面每 15 秒以及窗口重新获得焦点时检查更新。
 
-前三个 Tab 读取 card.md 正文、analysis/company.md、analysis/match.md；“资料”列出实际文件树。MD 支持目录、源文和本岗位文件链接，PDF 支持翻页／缩放，图片支持缩放。“面试”按列表→单轮详情阅读记录、准备和模拟；页面支持添加／编辑轮次。正文由 Agent 使用 write/update 或 interview save 维护。抽屉宽度在工作区 `.local/ui-preferences.json` 的 board.drawer_width 中保存，独立于岗位文件，不随 Git 同步。
+前三个 Tab 为 JD、公司分析、岗位匹配，读取 job.md、analysis/company.md、analysis/match.md；之后是面试、资料、简历。“资料”列出实际文件树，旧 card.md 正文也可在这里阅读，不自动转换为 JD。MD 支持目录、源文和本岗位文件链接，PDF 支持翻页／缩放，图片支持缩放。“面试”按列表→单轮详情阅读记录、准备和模拟；页面支持添加／编辑轮次。正文由 Agent 使用 write/update 或 interview save 维护。抽屉宽度在工作区 `.local/ui-preferences.json` 的 board.drawer_width 中保存，独立于岗位文件，不随 Git 同步。
 
 ## 创建岗位
 
@@ -31,8 +31,7 @@ overview 包括所有卡片、阶段计数、未完成任务（含归档标记�
   "title": "产品经理",
   "location": "杭州",
   "salary": "20–30K · 14薪（招聘页标注）",
-  "sources": [{"platform":"boss","url":"https://example.com/job/123","native_id":"123","captured_at":"2026-10-13T09:00:00+08:00"}],
-  "body": "## 当前结论\n等待核实岗位职责。\n\n## 待确认\n实际汇报对象与团队规模。"
+  "sources": [{"platform":"boss","url":"https://example.com/job/123","native_id":"123","captured_at":"2026-10-13T09:00:00+08:00"}]
 }
 ```
 

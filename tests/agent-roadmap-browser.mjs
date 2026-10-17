@@ -22,6 +22,21 @@ try{
    assert.equal(await page.locator('.stage .doc-link').count(),step.reads.length);
   }
  }
+ await page.locator('[data-route="research"]').click();
+ await page.locator('.step-button[data-step="research"]').click();
+ await page.locator('.doc-link').filter({hasText:'JD 研究入口'}).click();
+ await page.locator('#reader-content a').filter({hasText:'Career 接入'}).click();
+ assert.equal(await page.locator('#reader-title').innerText(),'接入 Career');
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#reader-title').innerText(),data.docs['.agents/skills/jd-research/SKILL.md'].title);
+ await page.keyboard.press('Escape');
+ await page.screenshot({path:path.join(out,'research-desktop.png'),fullPage:true});
+ await page.locator('[data-route="first"]').click();await page.locator('[data-phase="research"]').click();
+ for(const file of ['pre-resume.md','tracking.md']){
+  const ref='.agents/skills/jd-research/references/'+file;
+  await page.locator(`.stage [data-open-doc="${ref}"]`).click();
+  assert.equal(await page.locator('#reader-title').innerText(),data.docs[ref].title);await page.keyboard.press('Escape');
+ }
  await page.locator('[data-route="continue"]').click();
  await page.locator('.step-button[data-step="depth"]').click();
  await page.locator('.doc-link').filter({hasText:'项目访谈'}).click();

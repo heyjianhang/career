@@ -8,6 +8,7 @@ import {startPreview} from '../dist/presentation/server.js';
 import {exportPdf} from '../dist/presentation/pdf.js';
 import {hash} from '../dist/presentation/io.js';
 import {templates} from '../dist/presentation/templates/registry.js';
+import {detailSections} from './fixtures/resume-details.mjs';
 
 const out=path.resolve(process.argv[2]??'.cache/template-review/'+Date.now());
 await mkdir(out,{recursive:true});
@@ -23,6 +24,12 @@ page.on('pageerror',e=>errors.push(e.message));
 try {
   for(const mode of ['photo','no-photo','long']){
     const input=structuredClone(fixture);
+    input.resume.sections=input.resume.sections.filter(s=>s.id!=='skills');
+    input.resume.sections.push(...detailSections());
+    if(mode==='no-photo'){
+      const projects=input.resume.sections.find(s=>s.id==='projects');
+      projects.items.push({...structuredClone(projects.items[1]),id:'project-ops',title:'运营数据平台（虚构）'});
+    }
     if(mode!=='no-photo')input.resume.photo={path:'photo.jpg',sha256:hash(portrait),alt:'虚构示例人物插画',position:{x:50,y:35}};
     if(mode==='long'){
       input.resume.contacts.push({label:'长链接',value:'https://example.com/'+ 'long-path-'.repeat(35)});
@@ -37,6 +44,7 @@ try {
       await page.setContent(document,{waitUntil:'load'});await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(i=>i.decode()));});
       await page.waitForFunction(()=>document.documentElement.dataset.pagination==='ready',null,{timeout:60_000});
       const pageCount=Number(await page.locator('html').getAttribute('data-page-count'));
+      if(id==='mono-line'&&mode==='no-photo')assert.equal(pageCount,1,'short skills and awards should not create a sparse extra page');
       assert.ok(await page.locator('.design-section').count()>=input.resume.sections.length+1);
       for(const section of input.resume.sections)assert.ok((await page.locator('#pages').innerText()).includes(section.title));
       assert.equal(await page.locator('.resume-photo').count(),mode==='no-photo'?0:1);
@@ -48,6 +56,18 @@ try {
         } else assert.equal(crop.radius,'0px',id+' rectangular photo');
       }
       assert.ok((await page.locator('#pages').innerText()).includes('业务工单 Agent'));
+      // The heading and every row of each short list must stay on the same page.
+      for(const layout of ['facts','dated']){
+        const section=page.locator(`.design-section[data-layout="${layout}"]`);
+        assert.equal(await section.count(),1,`${id} ${mode}: split ${layout} section`);
+        assert.equal(await section.locator('.design-fact').count(),4);
+        for(const row of await section.locator('.design-fact').all()){
+          const bounds=await row.evaluate(e=>{const h=e.querySelector('h3').getBoundingClientRect(),p=e.querySelector('p').getBoundingClientRect(),area=e.closest('.pagedjs_page').querySelector('.pagedjs_area').getBoundingClientRect();return {heading:h.y,detail:p.y,bottom:e.getBoundingClientRect().bottom,pageBottom:area.bottom};});
+          assert.ok(Math.abs(bounds.heading-bounds.detail)<3,`${id} ${mode}: detail fell onto a separate line`);
+          assert.ok(bounds.bottom<=bounds.pageBottom+1,`${id} ${mode}: list overflow`);
+        }
+      }
+      if(mode==='long')assert.ok((await page.locator('#pages').innerText()).includes('最终要点：所有内容保留到结束。'));
       const overflow=(await page.locator('.resume-paper').evaluateAll(papers=>papers.flatMap(e=>{
         const root=e.getBoundingClientRect();
         return [...e.querySelectorAll('h1,h2,h3,p,li,dd,.design-photo-frame')].filter(n=>{const r=n.getBoundingClientRect();return r.right>root.right+1||r.left<root.left-1;}).map(n=>n.className||n.tagName);

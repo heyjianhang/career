@@ -220,3 +220,5 @@ build/collection-<随机后缀>/
 ## 同一工作区的求职看板
 
 本地服务还提供 /board，与简历页面共用可折叠侧栏。career board preview 直接打开看板，没有简历也可运行。离线 HTML 隐藏本机看板链接；岗位数据与阅读器规则见[岗位工作区](opportunities.md)。
+
+空的 resume.sections 或 sections[].items 允许保存；生成时省略空栏目。空白字符串段落与条目不会形成标题或空行，已填写的文字与有效链接保留。展示过滤不修改原内容包或历史构建，详见[空栏目规则](resume-packages.md#可选内容与空栏目)。

@@ -1,3 +1,4 @@
+import {importJD} from '../opportunities/import.js';
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {readFile,stat} from 'node:fs/promises';
 import path from 'node:path';
@@ -9,7 +10,7 @@ import {boardHtml} from './page.js';
 import {preferences,savePreferences} from './preferences.js';
 import {workspaceCommand} from '../workspace/command.js';
 
-export const primaryDocuments=[{id:'overview',label:'岗位概况',path:'card.md'},{id:'company',label:'公司分析',path:'analysis/company.md'},{id:'match',label:'岗位匹配',path:'analysis/match.md'}];
+export const primaryDocuments=[{id:'overview',label:'JD',path:'job.md'},{id:'company',label:'公司分析',path:'analysis/company.md'},{id:'match',label:'岗位匹配',path:'analysis/match.md'}];
 const mime:Record<string,string>={'.pdf':'application/pdf','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif'};
 export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:URL,workspace:string,origin:string,token:string):Promise<boolean> {
   const route=url.pathname;
@@ -33,7 +34,7 @@ export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:UR
     if(req.method==='GET'&&route==='/api/board/detail'){send(200,await store.show(workspace,id));return true;}
     if(req.method==='GET'&&route==='/api/board/context'){
       const context=await store.context(workspace,id);
-      send(200,{...context,prompt:`请在工作区 ${JSON.stringify(workspace)} 继续跟进岗位 ${id}。进入该目录，先读取 AGENTS.md，再执行 ${await workspaceCommand(workspace)} opportunity context --id ${id} --json，按返回的资料与已有决定继续。更新相关 Markdown 和下一步，保留尚未核实的问题。`});return true;
+      send(200,{...context,prompt:`请在工作区 ${JSON.stringify(workspace)} 继续跟进岗位 ${id}。进入该目录，先读取 AGENTS.md，再执行 ${await workspaceCommand(workspace)} opportunity context --id ${id} --json，按返回的资料与已有决定继续。读取 career-board Skill，按用户本轮范围继续：JD 原文保存在 job.md，公司分析使用 career-company，匹配使用 career-match 并核对当前关联简历。未绑定时推荐已有版本并询问是否关联；不自动投递。`});return true;
     }
     if(req.method==='GET'&&route==='/api/board/interview-context'){
       send(200,await store.interviewContext(workspace,id,url.searchParams.get('round')??''));return true;
@@ -49,10 +50,11 @@ export async function boardRequest(req:IncomingMessage,res:ServerResponse,url:UR
       const bytes=await readFile(full),type=mime[ext]??'application/octet-stream';
       res.writeHead(200,{'Content-Type':type,'Content-Length':bytes.length,'Content-Disposition':`${download||!mime[ext]?'attachment':'inline'}; filename*=UTF-8''${encodeURIComponent(path.basename(p))}`,'Content-Security-Policy':"default-src 'none'; sandbox; frame-ancestors 'self'",'Cross-Origin-Resource-Policy':'same-origin'});res.end(bytes);return true;
     }
-    if(req.method==='POST'&&['/api/board/rate','/api/board/stage','/api/board/archive','/api/board/interview','/api/board/preferences'].includes(route)){
+    if(req.method==='POST'&&['/api/board/import','/api/board/rate','/api/board/stage','/api/board/archive','/api/board/interview','/api/board/preferences'].includes(route)){
       if(req.headers.origin!==origin||req.headers['x-career-token']!==token||!req.headers['content-type']?.startsWith('application/json')){send(403,{error:'请求不属于当前预览会话'});return true;}
-      let text='';for await(const chunk of req){text+=String(chunk);if(Buffer.byteLength(text)>8192)throw new Error('请求过大');}
-      const data=JSON.parse(text);
+      const chunks:Buffer[]=[];let size=0;for await(const chunk of req){const bytes=Buffer.from(chunk);size+=bytes.length;if(size>(route.endsWith('/import')?18*1024*1024:8192))throw new Error('请求过大');chunks.push(bytes);}
+      const data=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      if(route.endsWith('/import')){send(200,await importJD(workspace,data));return true;}
       if(route.endsWith('/preferences')){send(200,await savePreferences(workspace,data.drawer_width));return true;}
       if(route.endsWith('/interview')){
         send(200,await store.saveInterview(workspace,id,{title:data.title,scheduled_at:data.scheduled_at,status:data.status,...(data.round?{id:data.round}:{})},data.sha256,'user'));return true;

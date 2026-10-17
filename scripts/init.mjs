@@ -23,7 +23,7 @@ export async function initialize(workspace = defaultWorkspace) {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone};
   const files = new Map([
     ['career.json', JSON.stringify(config, null, 2) + '\n'],
-    ['README.md', '# 我的 career 工作区\n\n原始材料放在 `resume/sources/`。在 Agent 软件中打开本目录（或添加为现有项目），新建对话并发送：“请读取当前工作区的 AGENTS.md，按已有进度引导我开始使用 career。”\n\n请读取本目录 AGENTS.md 完成首次引导。可先仅保存在本机，或连接自己的 GitHub 私人仓库；本地版本与远程同步分别记录。\n'],
+    ['README.md', '# 我的 career 工作区\n\n原始材料放在 `resume/sources/`。在 Agent 软件中打开本目录（或添加为现有项目），新建对话并发送：“请读取当前工作区的 AGENTS.md，按已有进度继续；首次使用请引导我整理经历、研究适合的岗位要求，再生成第一份可编辑简历。一步一步来，边聊边保存，不编造经历；如果我已指定任务，以我的任务为准。”\n\n请读取本目录 AGENTS.md 完成首次引导。可先仅保存在本机，或连接自己的 GitHub 私人仓库；本地版本与远程同步分别记录。\n'],
   ]);
   for (const [dest, skill, template] of [
     ['resume/facts/profile.md', 'career-intake', 'facts/profile.md'],

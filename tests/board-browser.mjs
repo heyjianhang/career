@@ -7,6 +7,7 @@ import {prepareBoardDemo} from '../scripts/prepare-board-demo.mjs';
 import {buildCollection} from '../dist/presentation/collection.js';
 import {startPreview} from '../dist/presentation/server.js';
 import * as board from '../dist/opportunities/store.js';
+import {setup} from '../dist/workspace/setup.js';
 const base=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-board-browser-')),workspace=path.join(base,'workspace');
 const out=path.resolve(process.argv[2]??'.cache/board-review');await mkdir(out,{recursive:true});
 const fixture=await prepareBoardDemo(workspace),id=fixture.selected;
@@ -14,6 +15,49 @@ const collection=await buildCollection(workspace),preview=await startPreview(col
 try {
  const context=await browser.newContext({viewport:{width:1440,height:1000},permissions:['clipboard-read','clipboard-write']});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(12000);
+ // A new workspace already looks like a board, with no synthetic jobs added by viewing it.
+ const emptyWorkspace=path.join(base,'empty-workspace');await setup(emptyWorkspace,false);
+ const emptyCollection=await buildCollection(emptyWorkspace),emptyPreview=await startPreview(emptyCollection.directory,emptyWorkspace);
+ try{
+  await page.goto(emptyPreview.url+'/board');await page.locator('.kanban-column').nth(5).waitFor();
+  const stages=(await(await page.request.get(emptyPreview.url+'/api/board/session')).json()).stages;
+  assert.deepEqual(await page.locator('.column-heading h2').allTextContents(),Object.values(stages));
+  assert.deepEqual(await page.locator('.column-count').allTextContents(),Array(6).fill('0'));
+  assert.equal(await page.locator('.job-card,.board-empty').count(),0);
+  assert.deepEqual(await page.locator('.column-empty').allTextContents(),Array(6).fill('暂无岗位'));
+  assert.equal(await page.locator('#empty-board-action').count(),0);
+  // Every column has an accessible creation entry and passes its own stage to the Agent.
+  assert.equal(await page.locator('.column-heading [data-add-stage]').count(),6);
+  for(const [stage,label] of Object.entries(stages)){
+   const button=page.getByRole('button',{name:`在「${label}」中新建岗位`,exact:true});await button.focus();await page.keyboard.press('Enter');
+   await page.locator('#jd-agent').click();await page.getByRole('heading',{name:'添加岗位',exact:true}).waitFor();const prompt=await page.locator('#action-text').inputValue();
+   assert.ok(prompt.includes(`stage: ${stage}`));assert.ok((await page.locator('#action-description').innerText()).includes(label));
+   if(stage==='ended')assert.ok(prompt.includes('确认结束结果')&&prompt.includes('不要猜测'));
+   await page.locator('#action-confirm').click();await page.locator('#action-dialog').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),prompt);
+  }
+  await page.locator('#add-opportunity').click();await page.locator('#jd-agent').click();assert.ok((await page.locator('#action-text').inputValue()).includes('stage: inbox'));await page.locator('#action-cancel').click();
+  await page.locator('#kanban').evaluate(e=>e.scrollLeft=0);
+  assert.equal((await board.overview(emptyWorkspace)).total,0);
+  for(const viewportWidth of [390,960,1440]){
+   await page.setViewportSize({width:viewportWidth,height:900});
+   assert.equal(await page.locator('.kanban-column').count(),6);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   if(viewportWidth!==960)await page.screenshot({path:path.join(out,`board-empty-${viewportWidth}.png`)});
+  }
+  await page.locator('#board-search').fill('不存在的岗位');await page.getByRole('heading',{name:'没有符合条件的岗位'}).waitFor();await page.locator('#empty-board-action').click();await page.locator('.kanban-column').nth(5).waitFor();
+  const first=await board.add(emptyWorkspace,{company:'新机会（虚构）',title:'产品经理',body:'# 旧岗位概况\n\n待确认团队与下一步。'});await page.locator('#refresh-board').click();await page.locator(`[data-stage="inbox"] [data-opportunity="${first.id}"]`).waitFor();
+  assert.equal(await page.locator('.kanban-column').count(),6);assert.equal(await page.locator('.column-heading [data-add-stage]').count(),6);assert.equal(await page.locator('[data-drop-stage="inbox"] .column-count').innerText(),'1');assert.equal(await page.locator('#empty-board-action').count(),0);
+  // Legacy notes stay available, but never masquerade as the missing JD.
+  await page.locator(`[data-opportunity="${first.id}"]`).click();await page.getByRole('heading',{name:'尚未保存 JD 原文'}).waitFor();
+  assert.equal(await page.locator('#document-view').innerText().then(t=>t.includes('待确认团队')),false);
+  await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('不要把旧概况'));
+  await page.locator('#tab-files').click();await page.locator('[data-file="card.md"]').click();await page.locator('.markdown-body').filter({hasText:'待确认团队'}).waitFor();
+  await page.locator('#tab-match').click();await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('若未关联'));
+  assert.ok((await page.evaluate(()=>navigator.clipboard.readText())).includes('career-match'));
+  await page.locator('#tab-company').click();await page.locator('#create-document').click();await page.waitForFunction(async()=>(await navigator.clipboard.readText()).includes('企查查未配置'));
+  await page.locator('#close-drawer').click();
+ }finally{await emptyPreview.close();}
+ await page.setViewportSize({width:1440,height:1000});
  const card=()=>page.locator(`[data-opportunity="${id}"]`),drawer=page.locator('#opportunity-drawer');
  const open=async()=>{await card().click();await page.locator('#job-title').filter({hasText:'AI 产品经理'}).waitFor();};
  const width=()=>drawer.evaluate(e=>Math.round(e.getBoundingClientRect().width));
@@ -93,6 +137,14 @@ try {
  await page.reload();await inStage('preparing').waitFor();await page.screenshot({path:path.join(out,'board-draggable.png')});
  if(originalStage!=='preparing'){await card().dragTo(target(originalStage));await inStage(originalStage).waitFor();}
  await page.setViewportSize({width:1440,height:1000});await open();
+ await page.locator('.markdown-body').filter({hasText:'工作职责'}).waitFor();
+ assert.deepEqual(await page.locator('#job-tabs [role=tab]').allTextContents(),['JD','公司分析','岗位匹配','面试','资料','简历']);
+ assert.equal(await page.locator('.markdown-body').innerText().then(t=>t.includes('当前进展')),false);
+ await page.locator('#mode-source').click();await page.locator('.source-code').waitFor();
+ assert.equal(await page.locator('.source-code').textContent(),await readFile(path.join(workspace,'opportunities',id,'job.md'),'utf8'));
+ await page.locator('#tab-overview').focus();await page.keyboard.press('End');assert.equal(await page.locator('#tab-resume').getAttribute('aria-selected'),'true');
+ await page.keyboard.press('ArrowLeft');assert.equal(await page.locator('#tab-files').getAttribute('aria-selected'),'true');
+ await page.keyboard.press('Home');await page.locator('.markdown-body').filter({hasText:'工作职责'}).waitFor();
  assert.equal(await page.locator('.kanban-column').count(),6);assert.equal(await page.getByRole('heading',{name:'沟通中',exact:true}).count(),0);
  await page.locator('#tab-company').click();await page.locator('.markdown-body').filter({hasText:'业务与产品'}).waitFor();
  assert.equal(await page.locator('#file-tree').isVisible(),false);
@@ -163,5 +215,5 @@ try {
  await page.getByRole('button',{name:/技术一面.*已完成/}).click();await page.locator('.markdown-body').filter({hasText:'这轮聊了什么'}).waitFor();assert.ok((await page.locator('.reader-scroll').boundingBox()).height>180);assert.equal(await page.locator('.document-toc').isVisible(),false);await page.locator('#toggle-outline').click();assert.equal(await page.locator('.document-toc').isVisible(),true);await page.locator('#toggle-outline').click();assert.equal(await drawer.evaluate(e=>e.scrollWidth<=e.clientWidth+1),true);await page.screenshot({path:path.join(out,'interview-mobile-detail.png')});
  await page.setViewportSize({width:1440,height:1000});assert.equal(await width(),after);
  assert.deepEqual(errors,[]);assert.equal((await board.overview(workspace)).issues.length,0);
- console.log(JSON.stringify({ok:true,screenshots:out,checks:['custom filters, keyboard, search focus, combined filtering and responsive header','equal-height cards and drag-to-stage persistence','drag edge scrolling and cancellation','ended result selection','drag conflict and failed save preservation','shared document controls and source/preview/outline','two-level interviews','optional preparation and repeated mocks','new/edit round','Agent handoff','slow response navigation','stage/outcome/archive','keyboard menu','persistent resize','mobile','PDF/image preview','no browser errors']}));
+ console.log(JSON.stringify({ok:true,screenshots:out,checks:['empty six-column board and first-card transition','stage-aware creation buttons and clipboard','custom filters, keyboard, search focus, combined filtering and responsive header','equal-height cards and drag-to-stage persistence','drag edge scrolling and cancellation','ended result selection','drag conflict and failed save preservation','shared document controls and source/preview/outline','two-level interviews','optional preparation and repeated mocks','new/edit round','Agent handoff','slow response navigation','stage/outcome/archive','keyboard menu','persistent resize','mobile','PDF/image preview','no browser errors']}));
 } finally {await browser.close();await preview.close();await rm(base,{recursive:true,force:true});}

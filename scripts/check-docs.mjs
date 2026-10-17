@@ -53,7 +53,7 @@ export async function checkDocumentation(directory){
 async function main(){
  const source=await checkDocumentation(root);
  const installed=await checkDocumentation(path.join(root,'resources/workspace'));
- assert.equal(source.skills,9);assert.equal(installed.skills,8);
+ assert.equal(source.skills,13);assert.equal(installed.skills,12);
  const readme=await readFile(path.join(root,'README.md'),'utf8');
  const installation=await readFile(path.join(root,'docs/installation.md'),'utf8');
  const page=await readFile(path.join(root,'docs/get-started.html'),'utf8');

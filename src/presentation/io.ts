@@ -44,7 +44,7 @@ export async function check(file: string, workspace?: string, verifySources=true
   const seen = new Set<string>();
   const unique = (id:string) => {if(seen.has(id)) throw new Error('重复 ID：'+id); seen.add(id);};
   for (const section of input.resume.sections) {unique(section.id); for(const item of section.items) unique(item.id);}
-  const checkUrl=(url:string|undefined,location:string)=>{if(url!==undefined&&!isWebUrl(url))throw new Error('无效网页链接：'+location+'；请使用完整 HTTP(S) 网址');};
+  const checkUrl=(url:string|undefined,location:string)=>{if(bundle&&url!==undefined&&!url.trim())return;if(url!==undefined&&!isWebUrl(url))throw new Error('无效网页链接：'+location+'；请使用完整 HTTP(S) 网址');};
   input.resume.contacts.forEach((c,i)=>checkUrl(c.url,`resume.contacts[${i}].url`));
   for(const section of input.resume.sections)for(const item of section.items)item.links?.forEach((link,i)=>checkUrl(link.url,`${section.id}/${item.id}/links[${i}]`));
   const commonIds=new Set<string>();

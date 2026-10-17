@@ -17,4 +17,14 @@ catch(error){
  throw error;
 }
 const report=JSON.parse(await readFile(output,'utf8'));if(!report.ok)throw new Error(report.error);
-console.log(JSON.stringify({...report,evidence:directory},null,2));
+// Reuse only this run's synthetic registry in a fresh process. This exercises
+// application startup itself, independently of the in-process smoke helpers.
+const startupOutput=path.join(directory,'startup-report.json');
+try{run(packaged??require('electron'),[...(packaged?[]:[stage]),'--disable-gpu','--career-smoke',startupOutput,'--career-smoke-startup'],{env,timeout:60000,killSignal:'SIGKILL'});}
+catch(error){
+ const startup=await readFile(startupOutput,'utf8').then(JSON.parse).catch(()=>null);
+ if(startup?.error)throw new Error(startup.error,{cause:error});
+ throw error;
+}
+const startup=JSON.parse(await readFile(startupOutput,'utf8'));if(!startup.ok)throw new Error(startup.error);
+console.log(JSON.stringify({...report,coldStart:startup,evidence:directory},null,2));

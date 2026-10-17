@@ -22,7 +22,7 @@ async function prepareRuntime(workspace, {executable, appRoot, coreRoot, noSymli
 }
 function handoffPrompt(workspace, platform=process.platform) {
   const command=platform==='win32'?'& .\\.local\\career.cmd':'./.local/career';
-  return `请接手这个 career 工作区：\n${workspace}\n\n先读取 AGENTS.md。在这个目录运行 ${command} doctor --json 和 ${command} workspace status --json，按检查结果继续初始化或已有进度。CLI 和 Skills 已随桌面软件准备好。`;
+  return `请接手这个 career 工作区：\n${workspace}\n\n先读取 AGENTS.md。在这个目录运行 ${command} doctor --json 和 ${command} workspace status --json，按检查结果继续初始化或已有进度。首次使用请引导我整理经历、研究适合的岗位要求，再生成第一份可编辑简历。一步一步来，边聊边保存，不编造经历；如果我已指定任务，以我的任务为准。CLI 和 Skills 已随桌面软件准备好，无需另装 Node/npm。`;
 }
 function boundArguments(argv) {
   if(argv[0]!=='--workspace'||!argv[1]||!path.isAbsolute(argv[1]))throw new Error('请使用工作区内的 .local/career 入口。');

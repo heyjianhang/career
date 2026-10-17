@@ -38,6 +38,16 @@ npx --yes --package @heyjianhang/career@0.2.0 career setup --workspace "<个人�
 
 首次 PDF 需要 `npm run career -- runtime install --component pdf --json`，由 Agent 按任务准备浏览器运行时。
 
+## BOSS 岗位采集（当前开发源码）
+
+从当前源码构建的 npm／桌面包会将 [boss-zhipin-scraper](../.agents/skills/boss-zhipin-scraper/SKILL.md)、Python 脚本、城市码表和 MIT 许可安装到个人目录的 `.agents/skills/boss-zhipin-scraper/`。已发布 npm 0.2.0 和桌面 alpha.1 不含此 Skill；需要包含该改动的新包，不会在初始化时从上游临时下载最新版本。
+
+安装 career 本身无需 Python。用户第一次要求搜索 BOSS 岗位时，Agent 按 [环境与命令](../.agents/skills/boss-zhipin-scraper/references/usage.md) 准备 Python 3.10+、工作区 `.local` 内的独立依赖环境及 Chrome／Edge 登录。首次通常需要用户扫码；登录配置留在本机，不同步或打包。采集脚本不内置在 Electron 的 Node 运行时中。
+
+新版本的桌面应用打开旧工作区时会补装受管 Skills。npm 用户先按既有流程升级工具版本，再执行 `npm run career -- agent install --json`；用旧版 CLI 执行不会获得新版资源。安装会保留用户修改并报告 conflicts，不能静默覆盖。新增 Skill 不导入演示简历、岗位或采集记录。
+
+可以直接告诉工作区 Agent：“帮我在 BOSS 找杭州的 Agent 开发岗位，先看一页，筛选合适的再放进看板。”采集与分析由两个 Skill 协作，未授权时不会自动投递或联系招聘方。
+
 ## 使用维护者提供的本地安装包
 
 维护者可提供经过核对的 `.tgz` 安装包。由 Agent 在独立测试目录执行下面的命令；将两个路径替换为当前系统的绝对路径：
@@ -57,3 +67,9 @@ npx --yes --package @heyjianhang/career@0.2.0 career workspace restore --reposit
 ```
 
 此命令恢复资料，不执行仓库中的安装脚本。Agent 核对恢复出的工具依赖与锁文件后，在新目录 `npm ci --ignore-scripts`，运行 `npm run career -- doctor --json`，读取 AGENTS 和 context 继续。使用当前工作区记录的版本，不因恢复而替换成 latest；已存在的目录不自动清空。
+
+## JD 需求研究 Skill（当前开发源码）
+
+[jd-research](../.agents/skills/jd-research/SKILL.md) 随当前源码构建的安装资源提供，可分析单份或多份 JD，用于求职方向与能力补足规划、简历表达优化。只阅读方法无需额外依赖；可选统计脚本使用 Node.js 22+，不联网或调用模型。整个 Skill 文件夹也能单独复制使用，招聘采集工具为可选入口，不依赖 BOSS 登录。已发布 npm 0.2.0／桌面 alpha.1 不含此 Skill，本次未更新已安装应用。
+
+用户可以对工作区 Agent 说：“分析这些 JD，按实际职责区分方向，对照我的经历，指出哪些该改简历、哪些需要补证据或学习；把我选中的机会加入看板。” Agent 按已授权范围读取该 Skill，并衔接现有岗位、经历或简历方法。研究报告按需保存在工作区 `research/jd/`，下一步记入 context；安装 Skill 不会自动开启桌面后台研究或批量采集。

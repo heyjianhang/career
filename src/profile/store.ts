@@ -7,6 +7,7 @@ import {renderMarkdown} from '../board/markdown.js';
 export const groups=[
  {id:'profile',label:'基本资料',prefix:'resume/facts/profile.md'},
  {id:'goals',label:'求职偏好',prefix:'context/goals.md'},
+ {id:'research',label:'岗位调研',prefix:'research/jd/'},
  {id:'employment',label:'工作经历',prefix:'resume/facts/employment/'},
  {id:'projects',label:'项目经历',prefix:'resume/facts/projects/'},
  {id:'education',label:'教育经历',prefix:'resume/facts/education/'},
@@ -17,7 +18,7 @@ export const groups=[
  {id:'questions',label:'待补信息',prefix:'resume/questions.md'},
  {id:'files',label:'全部资料',prefix:''}
 ];
-const roots=['context','resume/facts','resume/sources','resume/master'];
+const roots=['context','resume/facts','resume/sources','resume/master','research/jd'];
 const singles=['resume/questions.md','resume/maintenance.md','resume/master-preview.md'];
 const names:Record<string,string>={'context/INDEX.md':'协作概览','context/progress.md':'职业资料阶段进度','context/state.md':'当前进度','context/goals.md':'求职偏好','context/decisions.md':'已确认的决定','context/feedback.md':'反馈与调整','resume/questions.md':'待补信息','resume/maintenance.md':'资料整理进度','resume/master-preview.md':'完整经历整理','resume/facts/profile.md':'基本资料'};
 export type MaterialFile={path:string;title:string;group:string;size:number;modified:string;kind:string};

@@ -8,7 +8,7 @@ import {noSymlinks} from '../presentation/io.js';
 export const git=(dir:string,...args:string[])=>run('git',['-c','core.hooksPath=','-c','commit.gpgsign=false','-c','core.quotepath=false',...args],dir);
 const credentialHelper=async()=>"!"+"'"+(await executable('gh')).replaceAll('\\','/').replaceAll("'","'\\''")+"' auth git-credential";
 const managed=['career.json','package.json','package-lock.json','AGENTS.md','README.md','.gitignore','.gitattributes','.career','.agents','docs','schemas','examples','context','resume','opportunities','job-search','archive'];
-export function allowed(file:string){return managed.includes(file.split('/')[0]!)&&!/(^|\/)(\.env(?:\..*)?|\.npmrc|\.DS_Store|node_modules|build|\.local|\.cache)(\/|$)/.test(file)&&!/(\.log|\.tmp|\.lock)$/.test(file);}
+export function allowed(file:string){return (managed.includes(file.split('/')[0]!)||file.startsWith('research/jd/'))&&!/(^|\/)(\.env(?:\..*)?|\.npmrc|\.DS_Store|node_modules|build|\.local|\.cache)(\/|$)/.test(file)&&!/(\.log|\.tmp|\.lock)$/.test(file);}
 async function hasHead(w:string){try{await git(w,'rev-parse','--verify','HEAD');return true;}catch{return false;}}
 export async function assertRepo(w:string){
   await config(w);await noSymlinks(path.join(w,'.git'));

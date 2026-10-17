@@ -126,6 +126,49 @@ node scripts/build-site.mjs
 - 这是单维护者后台。Blob 读取与列表显式使用强一致模式，写入后立即读取最新值；但它不提供数据库级并发事务或条件写锁。草稿修订检查可防常规陈旧覆盖，不要同时在多个会话发布。
 - 后台发布只影响门户运行时入口；不替用户构建、签名、上传 GitHub Release、更新 npm 或应用内检查源。发布后仍应维护 downloads.json 作为无脚本与故障回退快照，再按正常流程提交部署。当前公开静态快照保持 alpha.1。
 
+### 管理 CLI（维护者与 Agent）
+
+在开发仓库中使用 Node.js 22+，无需额外安装依赖。CLI 复用线上后台 API，与网页共用草稿、统计和发布记录；不需要腾讯云账号、存储密钥或浏览器 Cookie。管理命令和会话不进入用户安装包。
+
+```sh
+npm run portal -- login
+npm run --silent portal -- status --json
+npm run --silent portal -- current --json
+npm run --silent portal -- stats --days 30 --json
+npm run --silent portal -- release list --json
+npm run portal -- --help
+```
+
+`login` 在终端隐藏密码输入，使用与 `/admin/` 相同的管理密码。非交互环境支持 `login --password-stdin`，只由可信凭据工具通过标准输入传入；不要把明文密码放在命令参数、`echo`、Shell 历史、脚本、Skill 或工作区文件中。Agent 日常只需调用 `status`，已登录时复用会话，失效时请维护者重新登录。
+
+默认服务为 `https://career.heyjianhang.top`，可用 `--origin <HTTPS 源地址>` 指定其他部署；只允许本机 `localhost`／回环地址使用 HTTP。会话按 origin 隔离，请求不跟随重定向，避免将凭据转发到其他地址。
+
+登录只保存有效期 8 小时的会话令牌，不保存密码或服务端会话密钥。macOS／Linux 位于 `~/.config/career-portal/`，目录／文件权限为 0700／0600；Windows 位于当前用户 `%LOCALAPPDATA%/career-portal/`，依赖用户目录 ACL。可用 `CAREER_PORTAL_CONFIG_DIR` 指定本机专用目录，不能指向 Git 仓库或共享目录。`logout` 删除本机会话；网络失败时仍会清除，并返回错误而非假报服务端退出成功。当前签名会话没有逐令牌撤销功能，已复制的令牌需等待过期，或由维护者轮换服务端会话密钥使全部旧会话失效。
+
+版本操作使用 [downloads.json](../site/downloads.json) 同样的清单格式：`version`、`tag`、四个架构的 `assets`。只填写此次实际已上传且完成验收的架构，其余值为 `null`。准备单独候选 JSON 与简短 Markdown 发布说明，先保存草稿，不必提前更改静态首页版本。
+
+```sh
+# 使用实际文件路径；保存返回 id 和 revision
+npm run --silent portal -- release save --manifest <候选清单.json> --notes-file <发布说明.md> --json
+npm run --silent portal -- release show --id <草稿ID> --json
+# 修改已有草稿时必须带上读取到的修订号
+npm run --silent portal -- release save --manifest <候选清单.json> --notes-file <发布说明.md> --id <草稿ID> --revision <草稿修订号> --json
+# 只读检查公开 Release 及匿名下载；不代表真实安装验收
+npm run --silent portal -- release verify --id <草稿ID> --revision <草稿修订号> --json
+npm run --silent portal -- current --json
+# 已获发布授权且所选安装包验收完成后，使用上一步实际读取的首页 revision
+npm run --silent portal -- release publish --id <草稿ID> --revision <草稿修订号> --current-revision <首页修订号> --acceptance-confirmed --json
+npm run portal -- logout
+```
+
+所有命令输出 JSON；成功写标准输出，失败写标准错误并返回非零退出码。`--json` 输出单行，`npm run --silent` 去掉 npm 自身提示，便于 Agent 读取。版本 ID 与修订号必须使用真实响应值，不能猜测；第一次使用静态回退时首页 revision 为 `baseline`。发布在服务端重新验证，并回查公开 `/api/downloads` 的 ID、修订号和清单一致后才返回 `publicFeedConfirmed:true`。
+
+错误码 `CONFLICT` 表示内容已变更，应重新查看；`RESULT_UNKNOWN` 或 `PUBLISH_NOT_CONFIRMED` 表示写入结果或公开入口尚未确认，先查看 `release list`／`current`，不要自动重复发布。HTTP／鉴权失败不返回成功。下载验证结果的 `installed:not-checked` 明确表示仍需安装验收。
+
+此 CLI 管理门户下载入口与统计；构建、签名、上传／公开 GitHub Release、npm 发版仍使用原有工具。发布后维护静态 `site/downloads.json` 并部署回退快照。具体 Agent 工作顺序见 [career-release](../.agents/skills/career-release/SKILL.md) 与[门户 CLI 指引](../.agents/skills/career-release/references/portal-cli.md)。
+
+离线合成验收：`node --test tests/portal-cli.test.mjs`。测试启动临时本机后台，真实子进程验证登录、跨命令会话、草稿冲突、发布回查、失败保护及退出；GitHub 响应为明确的合成数据，不修改生产版本。
+
 ### 统计口径和容量
 
 - 页面访问：官网首页加载且同源 API 可用、浏览器允许统计时记一次；不会采集后台访问。

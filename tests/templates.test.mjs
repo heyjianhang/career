@@ -7,9 +7,40 @@ import {templates,renderTemplate,templateCss} from '../dist/presentation/templat
 import {escape} from '../dist/presentation/escape.js';
 import {build,loadBuild} from '../dist/presentation/build.js';
 import {savePreference} from '../dist/presentation/io.js';
+import {detailSections} from './fixtures/resume-details.mjs';
 
 const selected=templates.filter(t=>!['classic','compact'].includes(t.id));
 const fixture=JSON.parse(await readFile('examples/presentation/package.json','utf8'));
+
+test('short factual and dated sections use rows without rewriting supplied content',()=>{
+  const resume=structuredClone(fixture.resume);resume.sections=detailSections();
+  // Explicit periods and legacy date-only paragraphs have the same visual treatment.
+  const award=resume.sections[1].items[0];award.period=award.paragraphs[0];award.paragraphs=[];
+  const original=structuredClone(resume);
+  for(const t of selected){
+    const markup=renderTemplate(t.id,{resume,assets:{},synthetic:true});
+    assert.match(markup,/data-layout="facts" data-keep-together="true"/);
+    assert.match(markup,/data-layout="dated" data-keep-together="true"/);
+    assert.equal((markup.match(/class="design-item design-fact"/g)||[]).length,8);
+    for(const s of resume.sections)for(const i of s.items)for(const text of [i.title,i.period,...i.paragraphs].filter(Boolean))assert.ok(markup.includes(escape(text)));
+  }
+  assert.deepEqual(resume,original);
+});
+
+test('narrative, multiline, linked and large sections retain natural pagination',()=>{
+  for(const extra of [{paragraphs:['第一段','第二段']},{paragraphs:['第一行\n第二行']},{paragraphs:['长'.repeat(181)]},{bullets:['必须保留的要点']},{subtitle:'职责说明'},{period:'2025',paragraphs:['说明']},{links:[{label:'详情',url:'https://example.com/'}]}]){
+    const resume=structuredClone(fixture.resume);resume.sections=detailSections().slice(0,1);
+    Object.assign(resume.sections[0].items[0],extra);
+    const markup=renderTemplate('mono-line',{resume,assets:{},synthetic:false});
+    assert.ok(!markup.includes('class="design-item design-fact"'));
+    assert.ok(!markup.includes('data-keep-together'));
+  }
+  const resume=structuredClone(fixture.resume);resume.sections=detailSections().slice(0,1);
+  resume.sections[0].items=Array.from({length:40},(_,i)=>({...resume.sections[0].items[0],id:'row-'+i}));
+  const markup=renderTemplate('mono-line',{resume,assets:{},synthetic:false});
+  assert.equal((markup.match(/class="design-item design-fact"/g)||[]).length,40);
+  assert.ok(!markup.includes('data-keep-together'));
+});
 
 test('twelve selected layouts preserve arbitrary sections and escape every content field',()=>{
   assert.equal(selected.length,12);

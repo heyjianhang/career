@@ -24,9 +24,9 @@ function groupFiles(id=group){return id==='files'?index.files:index.files.filter
 function renderNav(){
  $('#material-groups').hidden=group==='files';$('#all-files').hidden=group!=='files';
 
- $('#material-groups').innerHTML=index.groups.map((g,i)=>{
+ $('#material-groups').innerHTML=index.groups.map(g=>{
   const files=groupFiles(g.id),nested=g.prefix.endsWith('/')&&g.id!=='files';
-  return `<div class="material-group ${i===8?'nav-secondary':''}"><div class="group-row"><button class="group-link" data-group="${g.id}" ${group===g.id?'aria-current="page"':''}><span>${esc(g.label)}</span>${nested&&files.length?`<small>${files.length}</small>`:''}</button>${nested&&files.length?`<button class="group-expand" data-expand="${g.id}" aria-label="${expanded.has(g.id)?'收起':'展开'}${g.label}" aria-expanded="${expanded.has(g.id)}" aria-controls="entries-${g.id}">${icon('chevron-right')}</button>`:''}</div>${nested&&files.length?`<div id="entries-${g.id}" class="material-entries" ${expanded.has(g.id)?'':'hidden'}>${files.map(f=>`<button class="entry-link" data-entry="${esc(f.path)}" title="${esc(f.title)}" ${selected===f.path?'aria-current="page"':''}>${esc(f.title)}</button>`).join('')}</div>`:''}</div>`;
+  return `<div class="material-group ${g.id==='context'?'nav-secondary':''}"><div class="group-row"><button class="group-link" data-group="${g.id}" ${group===g.id?'aria-current="page"':''}><span>${esc(g.label)}</span>${nested&&files.length?`<small>${files.length}</small>`:''}</button>${nested&&files.length?`<button class="group-expand" data-expand="${g.id}" aria-label="${expanded.has(g.id)?'收起':'展开'}${g.label}" aria-expanded="${expanded.has(g.id)}" aria-controls="entries-${g.id}">${icon('chevron-right')}</button>`:''}</div>${nested&&files.length?`<div id="entries-${g.id}" class="material-entries" ${expanded.has(g.id)?'':'hidden'}>${files.map(f=>`<button class="entry-link" data-entry="${esc(f.path)}" title="${esc(f.title)}" ${selected===f.path?'aria-current="page"':''}>${esc(f.title)}</button>`).join('')}</div>`:''}</div>`;
  }).join('');
  if(group==='files'){
   type Tree={dirs:Map<string,Tree>;files:MaterialFile[]};const root:Tree={dirs:new Map(),files:[]};
@@ -98,7 +98,11 @@ $('#media-tools').onclick=e=>{const el=(e.target as Element).closest<HTMLElement
 $('#preview-mode').onclick=()=>{mode='preview';renderDocument();};$('#source-mode').onclick=()=>{mode='source';renderDocument();};
 $('#outline-toggle').onclick=()=>{if(mode==='source'){mode='preview';renderDocument();}const open=$('#material-outline').hidden;$('#material-outline').hidden=!open;$('#outline-toggle').setAttribute('aria-expanded',String(open));};
 $('#copy-material').onclick=()=>{if(doc)void copy(doc.source);};
-function agentPrompt(){const g=index.groups.find(g=>g.id===group);return `请在当前 career 个人工作区继续整理我的${g?.label??'资料'}。先读取 AGENTS.md 和 context/INDEX.md，再${selected?'读取 '+JSON.stringify(selected)+'，':'查看相关资料，'}与我核对并补充内容，更新原文件，保留来源和待确认问题。`;}
+function agentPrompt(){
+ const g=index.groups.find(g=>g.id===group);
+ const task=group==='research'?'按 jd-research Skill 继续岗位研究。复用已有样本与进度，保留原文来源，更新要求与经历的证据映射、补足计划和简历使用记录；未确认的能力先问我，不写成已有经历。':'与我核对并补充内容，更新原文件，保留来源和待确认问题。';
+ return `请在当前 career 个人工作区继续整理我的${g?.label??'资料'}。先读取 AGENTS.md 和 context/INDEX.md，再${selected?'读取 '+JSON.stringify(selected)+'，':'查看相关资料，'}${task}`;
+}
 $('#copy-agent').onclick=()=>void copy(agentPrompt());
 $('.material-reader').addEventListener('click',e=>{
  const target=e.target as Element,link=target.closest<HTMLElement>('[data-document]'),anchor=target.closest<HTMLElement>('[data-anchor]');
