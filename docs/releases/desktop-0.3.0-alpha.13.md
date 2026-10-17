@@ -1,6 +1,6 @@
 # career Desktop 0.3.0-alpha.13
 
-状态：待发布。2026-10-18 准备，完成四架构打包应用验收、公开下载校验后发布并更新门户。
+发布日期：2026-10-18（北京时间）。[GitHub 预发布](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.13)已公开，四架构验收与匿名完整下载校验均通过；门户运行时下载入口已切换，静态部署回执待补。
 
 ## 本次更新
 
@@ -22,4 +22,19 @@
 
 ## 验证与下载
 
-待补本次实际源码 SHA、CI、四架构运行报告、SHA-256、匿名完整下载和门户部署回执；未取得对应证据前不标记通过。
+源码：`09a84300eb21a4159c39d67403a4448597aadef1`，通过 [PR #3](https://github.com/heyjianhang/career/pull/3) 合并。
+
+- [候选三平台 CI](https://github.com/heyjianhang/career/actions/runs/39051560895)和[合并后的 main CI](https://github.com/heyjianhang/career/actions/runs/39052126505)均通过，包含 202 项基础测试、文档检查、合成资料和实际 npm 归档安装。
+- 本机 Mac ARM64 的打包应用与独立冷启动验收通过；模型／JD、看板、个人资料、简历库浏览器回归，以及 14 款模板的空章节 HTML／PDF 检查通过。
+- [四架构原生构建与应用验收](https://github.com/heyjianhang/career/actions/runs/39052133701)全部通过：macOS ARM64／x64、Windows ARM64／x64 均运行刚打包的应用，验证空资料库、十二个 Skills、内置 CLI／企查查、加密模型配置／JD 导入、简历 PDF、更新检查及独立冷启动。四份报告均为 alpha.13、ok:true。[上传校验](https://github.com/heyjianhang/career/actions/runs/39053064855)与[四架构匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39053230622)通过，文件均返回 HTTP 200 且哈希／字节数一致。
+
+门户 CLI 发布成功并回查公开入口，revision 为 `b0758180c2d8411cb510c17046c14adc`；发布时间 2026-10-18 01:21。静态部署回执待补。
+
+## 安装包校验值
+
+| 文件 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| career-0.3.0-alpha.13-mac-arm64.dmg | 184117981 | `1a9e688ef4297a45fbf442fa13261d09151618a66d6b5b559b066132f17c628b` |
+| career-0.3.0-alpha.13-mac-x64.dmg | 188695217 | `98172933576c840b597894c23565440f596758e367fc24047e00b38e05bd719f` |
+| career-0.3.0-alpha.13-win-x64.exe | 169097029 | `a3f55cc6227b3ff05a70583d2d2aecaef3353329e252c8f4d65aed1b2c134989` |
+| career-0.3.0-alpha.13-win-arm64.exe | 162911551 | `3f9afd9fa0e8755b64832c5f63d150c14c054967b51c85a302779a986a22f320` |
