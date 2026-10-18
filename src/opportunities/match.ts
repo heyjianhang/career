@@ -1,7 +1,8 @@
 import path from 'node:path';
 import {Ajv,type ValidateFunction} from 'ajv';
 import {root,json} from '../presentation/io.js';
-import {decode} from './files.js';
+import {decode,existing} from './files.js';
+import {CommandError} from '../agent-api.js';
 import {show,readDocument} from './store.js';
 import {readResume} from '../resumes/store.js';
 
@@ -29,16 +30,33 @@ export function matchScore(criteria:MatchCriterion[]){
 }
 
 export async function readMatchSummary(w:string,op:string):Promise<MatchSummary>{
+ return inspectMatch(w,op);
+}
+
+/** Read-only: a candidate is checked without replacing an existing report. */
+export async function checkMatchReport(w:string,op:string,inputFile?:string){
+ let content:string|undefined;
+ if(inputFile!==undefined){
+  const bytes=await existing(path.resolve(inputFile));
+  if(!bytes)throw new CommandError('INPUT_MISSING','匹配报告候选文件不存在');
+  content=bytes.toString('utf8');
+ }
+ const result=await inspectMatch(w,op,content);
+ return {valid:result.state==='current',...result,semantic_review:'not_assessed' as const};
+}
+
+async function inspectMatch(w:string,op:string,candidate?:string):Promise<MatchSummary>{
  const detail=await show(w,op),result:MatchSummary={exists:false,state:'missing',warnings:[]};
- if(!detail.files.some(f=>f.path===`opportunities/${op}/analysis/match.md`))return result;
+ if(candidate===undefined&&!detail.files.some(f=>f.path===`opportunities/${op}/analysis/match.md`))return result;
  result.exists=true;result.state='unscored';
  try{
-  const doc=await readDocument(w,op,'analysis/match.md');
+  const doc=candidate===undefined?await readDocument(w,op,'analysis/match.md'):{content:candidate};
   // Legacy prose remains readable; never infer a number from prose or user stars.
   if(!/^---\r?\n/.test(doc.content))return result;
   const parsed=decode(Buffer.from(doc.content),'analysis/match.md');if(!parsed.meta||typeof parsed.meta!=='object'||!('schema' in parsed.meta))return result;
   const validate=await (validation??=json<object>(path.join(root,'schemas/match.v1.schema.json')).then(schema=>new Ajv({allErrors:true,strict:false}).compile<Metadata>(schema)));
   if(!validate(parsed.meta)||!Number.isFinite(Date.parse(parsed.meta.assessed_at as string)))throw new Error('总体评分的资料或版本信息不完整，请更新分析');
+  if(!parsed.body.replace(/<!--[^]*?-->/g,'').trim())throw new Error('只有总体评分，缺少面向用户的详细分析正文');
   const meta=parsed.meta as Metadata;if(meta.opportunity_id!==op)throw new Error('这份评分属于另一岗位，请核对分析');
   if(!meta.summary.trim()||meta.hard_conditions.some(c=>!c.label.trim()||!c.reason.trim()))throw new Error('总体结论或必要条件缺少说明');
   result.score=matchScore(meta.criteria);result.meta=meta;result.state='current';

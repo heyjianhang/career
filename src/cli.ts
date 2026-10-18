@@ -5,6 +5,7 @@ import path from 'node:path';
 import {runCompany,capabilities as companyCapabilities,CompanyError} from './integrations/qcc.js';
 import * as resumes from './resumes/store.js';
 import * as opportunities from './opportunities/store.js';
+import {checkMatchReport} from './opportunities/match.js';
 import {spawn} from 'node:child_process';
 import {templateMetadata} from './presentation/templates/registry.js';
 import {check,root,themes,readDefaultTheme,readPreference,savePreference,json,rules,platforms} from './presentation/io.js';
@@ -41,6 +42,7 @@ const commands = {
   "opportunity.read":{"args": "--id <opp-id> --path <relative.md>", "description": "读取岗位内 Markdown 全文及更新摘要", "options": ["workspace", "id", "path"]},
   "opportunity.update":{"args": "--id <opp-id> --input <patch.json> --if-match <sha256>", "description": "更新卡片与阶段，保留未提供字段及我的评分", "options": ["workspace", "id", "input", "if-match", "actor"]},
   "opportunity.rate":{"args": "--id <opp-id> --stars <1-5|none> --if-match <sha256>", "description": "根据用户决定设置或清除我的评分", "options": ["workspace", "id", "stars", "if-match"]},
+  "opportunity.match-check":{"args":"--id <opp-id> [--input <candidate.md>]","description":"只读校验匹配报告的评分、正文及当前输入版本；省略 input 检查已保存报告，不验证语义真实性","options":["workspace","id","input"]},
   "opportunity.write":{"args": "--id <opp-id> --path <relative.md> --input <file.md> [--if-match <sha256>]", "description": "保存 JD、用户笔记、分析或面试文档", "options": ["workspace", "id", "path", "input", "if-match", "actor"]},
   "opportunity.attach":{"args": "--id <opp-id> --input <local-file> [--name <filename>]", "description": "复制本地附件，禁止覆盖原件", "options": ["workspace", "id", "input", "name", "actor"]},
   "opportunity.log":{"args": "--id <opp-id> --input <event.json>", "description": "追加带证据类别的动态，区分模拟与真实面试", "options": ["workspace", "id", "input", "actor"]},
@@ -143,6 +145,7 @@ try {
       case 'opportunity.read':output(await opportunities.readDocument(workspace,need('id'),need('path')));break;
       case 'opportunity.update':output(await opportunities.update(workspace,need('id'),await opportunities.candidate(need('input')),need('if-match'),options.actor as string|undefined));break;
       case 'opportunity.rate':output(await opportunities.rate(workspace,need('id'),need('stars'),need('if-match')));break;
+      case 'opportunity.match-check':{const r=await checkMatchReport(workspace,need('id'),options.input as string|undefined);output(r,[],r.valid?[]:[{code:'MATCH_REPORT_INCOMPLETE',message:r.warnings.join('；')||(r.state==='missing'?'尚未保存匹配报告':'匹配报告缺少 career-match/v1 总体结果，请按 Skill 保存格式补全')}]);break;}
       case 'opportunity.write':output(await opportunities.writeDocument(workspace,need('id'),need('path'),need('input'),options['if-match'] as string|undefined,options.actor as string|undefined));break;
       case 'opportunity.attach':output(await opportunities.attach(workspace,need('id'),need('input'),options.name as string|undefined,options.actor as string|undefined));break;
       case 'opportunity.log':output(await opportunities.log(workspace,need('id'),await opportunities.candidate(need('input')),options.actor as string|undefined));break;

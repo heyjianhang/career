@@ -47,12 +47,11 @@ function listLayout(items:ResumeItem[]):'facts'|'dated'|undefined {
 
 function section(d:Design,s:TemplateInput['resume']['sections'][number]) {
   const layout=listLayout(s.items);
-  const keep=layout&&s.items.length<=6&&s.items.reduce((n,i)=>n+i.title.length+(i.period?.length??0)+i.paragraphs.join('').length,0)<=500;
   const items=s.items.map(i=>{
-    if(layout)return `<div class="design-item design-fact"><h3>${escape(i.title)}</h3><p>${escape(i.period??i.paragraphs[0]!)}</p></div>`;
-    return `<div class="design-item" data-entry-id="${escape(i.id)}"${i.page_break_before?' data-break-before="true"':''}>${i.title||i.period||i.subtitle?`<div class="design-item-heading">${i.period?`<span class="design-period">${escape(i.period)}</span>`:''}${i.title?`<h3>${escape(i.title)}</h3>`:''}${i.subtitle?`<div class="design-subtitle">${escape(i.subtitle)}</div>`:''}</div>`:''}${i.technologies?`<p class="resume-technologies">${escape(i.technologies)}</p>`:''}${itemLinks(i.links)}${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}${i.bullets.length?`<ul>${i.bullets.map(b=>`<li>${escape(b)}</li>`).join('')}</ul>`:''}</div>`;
+    if(layout)return `<div class="design-item design-fact" data-entry-id="${escape(i.id)}"><h3>${escape(i.title)}</h3><p>${escape(i.period??i.paragraphs[0]!)}</p></div>`;
+    return `<div class="design-item" data-entry-title="${escape(i.title)}" data-entry-id="${escape(i.id)}"${i.page_break_before?' data-break-before="true"':''}><div class="flow-lead"${i.paragraphs.length||i.bullets.length?' data-has-body="true"':''}>${i.title||i.period||i.subtitle?`<div class="design-item-heading">${i.period?`<span class="design-period">${escape(i.period)}</span>`:''}${i.title?`<h3>${escape(i.title)}</h3>`:''}${i.subtitle?`<div class="design-subtitle">${escape(i.subtitle)}</div>`:''}</div>`:''}${i.technologies?`<p class="resume-technologies">${escape(i.technologies)}</p>`:''}${itemLinks(i.links)}</div>${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}${i.bullets.length?`<ul>${i.bullets.map(b=>`<li>${escape(b)}</li>`).join('')}</ul>`:''}</div>`;
   }).join('');
-  return `<section class="design-section"${layout?` data-layout="${layout}"`:''}${keep?' data-keep-together="true"':''}>${heading(s.title,d)}${items}</section>`;
+  return `<section class="design-section"${layout?` data-layout="${layout}"`:''}>${heading(s.title,d)}${items}</section>`;
 }
 
 function render(d:Design,{resume:r,assets,synthetic}:TemplateInput) {
@@ -66,7 +65,7 @@ function render(d:Design,{resume:r,assets,synthetic}:TemplateInput) {
 
 export const selectedTemplates:ResumeTemplate[] = designs.map(d=>{
   const selector=`.resume-paper[data-template="${d.id}"]`;
-  return {id:d.id,name:d.name,version:5,description:d.name,tags:['单栏','A4',d.reference,d.round?'圆形照片':'证件照'],photo:'optional',
+  return {id:d.id,name:d.name,version:6,description:d.name,tags:['单栏','A4',d.reference,d.round?'圆形照片':'证件照'],photo:'optional',
     css:`${selector}{--design-accent:${d.color}}\n`+commonCss.replaceAll('&',selector),
     render:input=>render(d,input)};
 });

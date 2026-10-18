@@ -16,16 +16,13 @@ declare function paginationDocument(markup:string,resources:{engine:string;css:s
 const pagination=JSON.parse($('#pagination-resources').textContent!);
 let documentZoom='fit',documentPage=1;
 const frames=new Map<HTMLElement,{frame:HTMLIFrameElement,height:number,timer:ReturnType<typeof setTimeout>}>();
+declare const previewViewport:typeof import('./preview-viewport.js').previewViewport;
+const preview=previewViewport();
 function resizePreview(host:HTMLElement) {
-  const item=frames.get(host);if(!item||!host.clientWidth)return;
-  const isDocument=host.id==='resume-preview';
-  const available=host.parentElement!.clientWidth;
-  const scale=isDocument&&documentZoom!=='fit'?Number(documentZoom):Math.min(1,available/(210*96/25.4));
-  host.style.width=isDocument&&documentZoom!=='fit'?`${210*96/25.4*scale}px`:'100%';
-  item.frame.style.transform=`scale(${scale})`;
-  host.style.height=item.height?`${Math.ceil(item.height*scale)}px`:'300px';
+  const item=frames.get(host);if(!item)return;
+  preview.resize(host,item.frame,host.id==='resume-preview'?$('.document-scroll'):$('#gallery-detail'),host.id==='resume-preview'?documentZoom:'fit',item.height||300);
 }
-const previewObserver=new ResizeObserver(entries=>entries.forEach(e=>resizePreview(e.target as HTMLElement)));
+const previewObserver=new ResizeObserver(()=>{for(const host of frames.keys())resizePreview(host);});
 function previewError(host:HTMLElement,theme:string) {
   const item=frames.get(host);if(item)clearTimeout(item.timer);frames.delete(host);
   host.dataset.pagination='error';host.style.height='auto';
@@ -35,18 +32,19 @@ function previewError(host:HTMLElement,theme:string) {
   box.append(label,retry);host.replaceChildren(box);
 }
 function releasePreview(host:HTMLElement) {
-  const item=frames.get(host);if(item)clearTimeout(item.timer);frames.delete(host);previewObserver.unobserve(host);
-  host.replaceChildren();host.style.removeProperty('height');host.dataset.pagination='idle';
+  const item=frames.get(host);if(item)clearTimeout(item.timer);frames.delete(host);previewObserver.unobserve(host.id==='resume-preview'?$('.document-scroll'):host.parentElement!);
+  host.replaceChildren();host.style.removeProperty('height');host.style.removeProperty('width');delete host.dataset.previewScale;delete host.dataset.previewAvailable;host.dataset.pagination='idle';
 }
 function showResume(target:string,id:string) {
   const source=template(id);if(!source)throw new Error('此成果页没有该样式');
   const host=$(target),old=frames.get(host);if(old)clearTimeout(old.timer);
   host.classList.add('paged-preview');host.dataset.pagination='loading';host.dataset.theme=id;
+  if(host.id==='resume-preview'){$<HTMLButtonElement>('#preview-prev').disabled=true;$<HTMLButtonElement>('#preview-next').disabled=true;$('#preview-page-number').textContent='—';}
   const status=document.createElement('p');status.className='pagination-status';status.setAttribute('role','status');status.textContent='正在排版…';
   const frame=document.createElement('iframe');frame.className='resume-frame';frame.title=name(id)+'简历分页预览';frame.style.visibility='hidden';
   frame.srcdoc=paginationDocument(source.innerHTML,pagination,document.title);
   frames.set(host,{frame,height:0,timer:setTimeout(()=>previewError(host,id),60_000)});
-  host.replaceChildren(status,frame);previewObserver.observe(host);resizePreview(host);
+  host.replaceChildren(status,frame);previewObserver.observe(host.id==='resume-preview'?$('.document-scroll'):host.parentElement!);resizePreview(host);
 }
 window.addEventListener('message',event=>{
   if(event.data?.type!=='career-pagination')return;
@@ -58,12 +56,13 @@ window.addEventListener('message',event=>{
     item.height=Math.ceil(doc.querySelector('#pages')!.getBoundingClientRect().height);
     item.frame.style.height=item.height+'px';item.frame.style.visibility='visible';
     host.dataset.pagination='ready';host.dataset.pageCount=doc.documentElement.dataset.pageCount;
-    host.querySelector('.pagination-status')?.remove();resizePreview(host);if(host.id==='resume-preview'){documentPage=1;$('#layout-notice').textContent=doc.documentElement.dataset.layoutWarning??'';$('#layout-notice').hidden=!doc.documentElement.dataset.layoutWarning;$('#preview-page-number').textContent=`1 / ${host.dataset.pageCount}`;}
+    host.querySelector('.pagination-status')?.remove();resizePreview(host);if(host.id==='resume-preview'){documentPage=preview.current(item.frame,$('.document-scroll'));$('#layout-notice').textContent=doc.documentElement.dataset.layoutWarning??'';$('#layout-notice').hidden=!doc.documentElement.dataset.layoutWarning;updateDocumentControls();}
   }
 });
-function changePage(delta:number){const host=$('#resume-preview'),frame=frames.get(host)?.frame,pages=frame?.contentDocument?.querySelectorAll<HTMLElement>('.pagedjs_page');if(!pages?.length)return;documentPage=Math.max(1,Math.min(pages.length,documentPage+delta));const scale=frame!.getBoundingClientRect().width/(210*96/25.4);$('.document-scroll').scrollTo({top:pages[documentPage-1]!.offsetTop*scale,behavior:'smooth'});$('#preview-page-number').textContent=`${documentPage} / ${pages.length}`;}
+function updateDocumentControls(){const count=Number($('#resume-preview').dataset.pageCount)||1;preview.controls(documentPage,count,$('#preview-page-number'),$<HTMLButtonElement>('#preview-prev'),$<HTMLButtonElement>('#preview-next'));}
+function changePage(delta:number){const host=$('#resume-preview'),frame=frames.get(host)?.frame,pages=frame?.contentDocument?.querySelectorAll<HTMLElement>('.pagedjs_page');if(!pages?.length)return;documentPage=Math.max(1,Math.min(pages.length,documentPage+delta));const viewport=$('.document-scroll');viewport.scrollTo({top:Math.max(0,preview.top(frame!,viewport,pages[documentPage-1]!)-8),behavior:'smooth'});updateDocumentControls();}
 $('#preview-zoom').addEventListener('change',e=>{documentZoom=(e.target as HTMLSelectElement).value;resizePreview($('#resume-preview'));});
-$('.document-scroll').addEventListener('scroll',()=>{if(activeView!=='resume')return;const frame=frames.get($('#resume-preview'))?.frame,pages=frame?.contentDocument?.querySelectorAll<HTMLElement>('.pagedjs_page');if(!pages?.length)return;const scale=frame!.getBoundingClientRect().width/(210*96/25.4),top=$('.document-scroll').scrollTop+80;documentPage=Array.from(pages).filter(page=>page.offsetTop*scale<=top).length||1;$('#preview-page-number').textContent=`${documentPage} / ${pages.length}`;},{passive:true});
+$('.document-scroll').addEventListener('scroll',()=>{if(activeView!=='resume')return;const frame=frames.get($('#resume-preview'))?.frame;if(!frame?.contentDocument?.querySelector('.pagedjs_page'))return;documentPage=preview.current(frame,$('.document-scroll'));updateDocumentControls();},{passive:true});
 $('#preview-prev').addEventListener('click',()=>changePage(-1));$('#preview-next').addEventListener('click',()=>changePage(1));
 function selectTheme(theme:string) {
   if(!template(theme))return;

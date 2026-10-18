@@ -101,10 +101,10 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialP
  // A rate-limited API can still expose a dated public manifest. The check button
  // cools down without disabling an already verified download.
  const retryAt=Date.now()+120000;
- const limited={...await js('window.careerDesktop.updatesState()'),error:'GitHub 公开版本接口暂时限流，将按服务端要求等待后再检查。',retryAt,nextCheckAt:retryAt,publicVersion:'0.3.0-alpha.1',publicChecked:Date.now()};
+ const limited={...await js('window.careerDesktop.updatesState()'),error:'GitHub 公开版本接口暂时限流，将按服务端要求等待后再检查。',retryAt,nextCheckAt:retryAt,publicVersion:'0.3.0-alpha.1',publicChecked:Date.now(),publicSource:'portal',publicCompatible:true};
  win.webContents.send('career:updates',limited);
  await waitFor(`document.querySelector('.updates-public')&&document.querySelector('[data-update-action="check"]').disabled`);
- assert.match(await js(`document.querySelector('.updates-status-line strong').textContent`),/已核对官网/);
+ assert.match(await js(`document.querySelector('.updates-status-line strong').textContent`),/本次检查未完成/);
  assert.match(await js(`document.querySelector('.updates-public').textContent`),/官网公开版 v0.3.0-alpha.1/);
  assert.doesNotMatch(await js(`document.querySelector('.updates-status-line strong').textContent`),/最新版|暂无可用更新/);
  await capture('updates-rate-limit');

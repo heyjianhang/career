@@ -23,18 +23,69 @@ export function paginationDocument(markup:string, resources:{engine:string;css:s
       await document.fonts.ready;
       await Promise.all(Array.from(document.images).map(i=>i.decode()));
       const source=document.getElementById('source');
-      // Measure with the final fonts and A4 content width. Long tails remain
-      // splittable; keeping them would create the same oversized blank gaps.
-      for(const tail of source.querySelectorAll('[data-flow-tail]')){
-        const line=parseFloat(getComputedStyle(tail).lineHeight);
-        if(Number.isFinite(line)&&tail.getBoundingClientRect().height<=line*5)tail.setAttribute('data-flow-keep','');
-      }
       const content=source.innerHTML;
       source.remove();
       const styles=JSON.parse(document.getElementById('layout-data').textContent);
       const flow=await new PagedModule.Previewer().preview(content,[{'about:blank':styles}],document.getElementById('pages'));
       document.documentElement.dataset.pageCount=String(flow.total);
       const pages=Array.from(document.querySelectorAll('.pagedjs_page'));
+      // Paged.js protects the next heading + first body lines. When that opening
+      // cannot fit, distribute a bounded amount of the remaining space between
+      // existing blocks, rather than leaving all of it at the foot of the page.
+      // Never stretch text, force a page count, or balance last/manual pages.
+      const measureInk=content=>{
+        const box=content.getBoundingClientRect(),range=document.createRange();
+        const walker=document.createTreeWalker(content,NodeFilter.SHOW_TEXT);
+        let bottom=box.top,inside=true,node;
+        const measure=rect=>{
+          if(!rect.width||!rect.height)return;
+          bottom=Math.max(bottom,rect.bottom);
+          // Paged.js uses columns. Overflow can move text sideways into an
+          // invisible column instead of increasing the reported bottom edge.
+          // Top ink may overhang its line box; added bottom spacing cannot
+          // move it upward, so only bottom and side bounds constrain balancing.
+          if(rect.left<box.left-1||rect.right>box.right+1||rect.bottom>box.bottom+1)inside=false;
+        };
+        while(node=walker.nextNode())if(node.textContent.trim()){
+          range.selectNodeContents(node);for(const rect of range.getClientRects())measure(rect);
+        }
+        for(const img of content.querySelectorAll('img'))measure((img.closest('.eng-photo,.standard-photo-frame,.design-photo-frame')??img).getBoundingClientRect());
+        return {bottom,inside};
+      };
+      for(let index=0;index<pages.length-1;index++){
+        const content=pages[index].querySelector('.pagedjs_page_content');
+        const next=pages[index+1].querySelector('.pagedjs_page_content');
+        const paper=content?.querySelector('.resume-paper');
+        if(!paper||!next||paper.dataset.density==='compact'||paper.dataset.template==='compact')continue;
+        // An explicit break expresses the author's intent, including breaks
+        // promoted to a section by the shared stylesheet.
+        if(next.querySelector('[data-break-before="true"], [data-break-before="page"]'))continue;
+        const box=content.getBoundingClientRect(),initial=measureInk(content),bottom=initial.bottom;
+        if(!initial.inside)continue;
+        const line=parseFloat(getComputedStyle(paper).lineHeight);
+        const slack=box.bottom-bottom;
+        if(!Number.isFinite(line)||bottom-box.top<box.height*.7||slack<line*1.5||slack>line*6)continue;
+        const blocks=Array.from(content.querySelectorAll('.eng-section>h2,.eng-section>p,.eng-facts,.eng-lead,.eng-item>p,.eng-item>ul>li,.resume-section>h2,.resume-section>p,.resume-item>.flow-lead,.resume-item>p,.resume-item>ul>li,.design-section>h2,.design-section>p,.design-item>.flow-lead,.design-item>p,.design-item>ul>li'))
+          .filter(el=>{const rect=el.getBoundingClientRect();return rect.height>0&&rect.bottom<bottom-2&&!el.hasAttribute('data-split-to');});
+        if(!blocks.length)continue;
+        const inset=Math.max(4,line*.35),available=slack-inset;
+        const addition=Math.min(8,available/blocks.length);
+        const saved=blocks.map(el=>({el,padding:parseFloat(getComputedStyle(el).paddingBottom)||0,inline:el.style.paddingBottom}));
+        const apply=factor=>saved.forEach(({el,padding})=>el.style.paddingBottom=(padding+addition*factor)+'px');
+        const fits=()=>{const ink=measureInk(content);return ink.inside&&ink.bottom<=box.bottom-inset;};
+        apply(1);
+        if(!fits()){
+          let low=0,high=1;
+          for(let attempt=0;attempt<10;attempt++){
+            const middle=(low+high)/2;apply(middle);
+            if(fits())low=middle;else high=middle;
+          }
+          apply(low);
+        }
+        // Both vertical and horizontal bounds are checked after final rounding.
+        if(!fits())saved.forEach(({el,inline})=>el.style.paddingBottom=inline);
+        else content.dataset.pageBalanced='true';
+      }
       const last=pages.at(-1)?.querySelector('.pagedjs_page_content');
       const occupied=last?Math.max(0,...Array.from(last.querySelectorAll('h1,h2,h3,p,li,img')).map(e=>e.getBoundingClientRect().bottom-last.getBoundingClientRect().top)):0;
       const shortTail=flow.total>1&&last&&occupied<last.getBoundingClientRect().height*.25;

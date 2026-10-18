@@ -42,3 +42,6 @@
 .module-heading{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 16px;margin-bottom:18px}
 .module-title-field{flex:1;min-width:160px;display:grid;gap:5px}.module-title-field>span{font-size:11px;color:#74846e}.module-title-field input{width:100%;font-size:16px;font-weight:600;padding:8px 10px;color:#304b3b;background:#fafbf8}
 .module-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.module-actions button{padding:7px 8px;font-size:12px;border:1px solid #e1e6dc;border-radius:5px;background:#fafbf8;color:#526746;white-space:nowrap}.module-actions button:disabled{opacity:.35;cursor:default}.module-actions .module-remove{color:#966b62;border-color:transparent;background:transparent}
+
+#editor-preview-scroll{overflow-anchor:none}
+#editor-preview-paper{overflow:hidden}
