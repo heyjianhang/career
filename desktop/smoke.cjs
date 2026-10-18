@@ -166,6 +166,9 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialP
  await capture('resume-empty-sections');
  const exported=cli(['resume','export','--build',path.join(snapshot.directory,'resumes',manifest.entries[0].id),'--format','pdf','--out',path.join(base,'cli.pdf'),'--json']);assert.equal(exported.status,0,exported.stderr);
  assert.equal((await fs.readFile(path.join(base,'cli.pdf'))).subarray(0,5).toString(),'%PDF-');
+ // Leave the live reader before mutating its fixture: its stamp poll reloads
+ // changed content and can otherwise race the next navigation on Windows.
+ await win.loadURL('career-app://desktop/index.html');
  // Exercise module editing and pagination in the packaged runtime at a narrow width.
  const editable=await resumes.readResume(first.path,existing.id);
  editable.package.content.summary='合成个人简介，仅用于打包验收。';
