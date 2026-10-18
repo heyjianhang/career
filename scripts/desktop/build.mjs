@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {prepare,root,stage} from './prepare.mjs';
+import {macSigningOptions,verifyMacBundle,verifyMacDiskImage} from './mac-signing.mjs';
 const require=createRequire(import.meta.url);
 process.env.ELECTRON_BUILDER_CACHE??=path.join(root,'.cache/electron-builder');
 const {build,Platform,Arch}=require('electron-builder');
@@ -18,15 +19,21 @@ await prepare();
 const electronVersion=JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).devDependencies.electron;
 const architectures=options.arch==='all'?[Arch.arm64,Arch.x64]:[Arch[options.arch]];
 const output=path.join(root,'release/desktop');await mkdir(output,{recursive:true});
+const developerId=process.env.CAREER_DESKTOP_SIGN==='1';
 const artifacts=await build({targets:(options.platform==='mac'?Platform.MAC:Platform.WINDOWS).createTarget(options.dir?'dir':options.platform==='mac'?['dmg','zip']:['nsis'],...architectures),publish:'never',config:{
- appId:'top.heyjianhang.career',productName:'career',electronVersion,electronDownload:{cache:path.join(root,'.cache/electron')},forceCodeSigning:process.env.CAREER_DESKTOP_SIGN==='1',
+ appId:'top.heyjianhang.career',productName:'career',electronVersion,electronDownload:{cache:path.join(root,'.cache/electron')},forceCodeSigning:options.platform==='mac'||developerId,
  directories:{app:stage,output,buildResources:path.join(root,'desktop/assets')},
  asar:false,npmRebuild:false,files:['*.cjs','index.html','app.js','style.css','icon.svg','assets/**/*','LICENSE','package.json','build-info.json','runtime/node_modules/**/*','!node_modules/**/*'],
  artifactName:'career-${version}-${os}-${arch}.${ext}',
- mac:{category:'public.app-category.productivity',icon:'icon.icns',hardenedRuntime:true,...(process.env.CAREER_DESKTOP_SIGN==='1'?{notarize:true}:{identity:null})},
+ mac:{category:'public.app-category.productivity',icon:'icon.icns',...macSigningOptions(developerId)},
  win:{icon:'icon.ico'},nsis:{oneClick:false,perMachine:false,allowToChangeInstallationDirectory:true,createDesktopShortcut:true,createStartMenuShortcut:true,shortcutName:'career',deleteAppDataOnUninstall:false,installerIcon:'icon.ico',uninstallerIcon:'icon.ico',installerHeaderIcon:'icon.ico'},
  dmg:{title:'career ${version}'},publish:null
 }});
+if(options.platform==='mac'){
+ const signatures=architectures.map(arch=>verifyMacBundle(path.join(output,arch===Arch.arm64?'mac-arm64':'mac','career.app'),{developerId}));
+ for(const artifact of artifacts.filter(file=>file.endsWith('.dmg')))signatures.push(await verifyMacDiskImage(artifact,{developerId}));
+ await writeFile(path.join(output,`SIGNATURES-mac-${options.arch}.json`),JSON.stringify(signatures,null,2)+'\n');
+}
 const hashes=[];for(const file of artifacts){try{hashes.push(createHash('sha256').update(await readFile(file)).digest('hex')+'  '+path.basename(file));}catch{}}
 if(hashes.length)await writeFile(path.join(output,`SHA256SUMS-${options.platform}-${options.arch}.txt`),hashes.join('\n')+'\n');
 if(hashes.length&&options.arch==='all'){

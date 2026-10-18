@@ -91,7 +91,11 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 桌面测试用独立合成目录，覆盖 CLI 在缺少系统 Node/npm 的 PATH 下执行、目录绑定、两个工作区隔离、随包 Skills、页面沙箱、Agent 交接、原生和 CLI 的 PDF 导出；启动检查覆盖多工作区恢复上次选择、主动回到列表，以及上次目录被移动时保留记录并回退，再启动第二个独立进程验证冷启动恢复。证据和截图在 `.cache/desktop-test-*/`。CI 的四个任务使用 macOS ARM64／Intel、Windows ARM64／x64 原生 runner，通过 --app 检查刚构建出的应用并保留合成报告；不以开发 Electron 代替产物。安装器交互与系统拦截提示仍需人工安装验收，不能把构建成功当成已完成安装测试。
 
-默认生成未签名预览包。当前 alpha.1 经维护者确认以未签名预览版发布，下载说明明确标注；正式版发布前应完成签名、公证及安装验收：macOS 使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回未签名产物。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据。未经验证与单独公开的 Actions 产物只用于测试；公开预览版以发布记录为准。
+当前开发源码从 alpha.15 起，Mac 预览包使用完整的 ad-hoc 临时签名，包含应用资源和内部组件；保持 hardened runtime，为 Electron 设置 JIT 与跨签名库加载所需权限。这不等于 Apple Developer ID 签名或公证，首次下载安装仍需由用户在系统设置中明确允许。Windows 预览包仍没有代码签名。已公开版本的真实状态以发布记录为准。
+
+Mac 构建必须通过 `codesign --verify --deep --strict`，并核对资源封装与预期签名类型；最终 DMG 另行只读挂载，检查映像及其中的应用签名，结果随 `SIGNATURES-mac-<架构>.json` 保存。失败即停止构建，不允许把跳过签名视为成功。签名完整性通过不能代替 Gatekeeper 验收：还要用浏览器下载最终包，在保留下载标记的情况下检查系统提示，并由用户手动允许后确认启动。不能通过清除下载标记、关闭系统防护或直接运行包内二进制冒充此项通过。
+
+正式分发使用 Developer ID Application 证书与 Apple 公证凭据，Windows 使用代码签名证书。不要把证书或口令提交进仓库。macOS 设置 `CAREER_DESKTOP_SIGN=1`，并通过 electron-builder 支持的 `CSC_LINK`／`CSC_KEY_PASSWORD` 和 `APPLE_API_KEY`／`APPLE_API_KEY_ID`／`APPLE_API_ISSUER` 环境变量提供凭据；签名构建应失败而非退回临时签名。Windows 使用 `CSC_LINK`／`CSC_KEY_PASSWORD` 并同样开启签名要求。手动 CI 目前不注入签名凭据。未经验证与单独公开的 Actions 产物只用于测试；公开预览版以发布记录为准。
 
 桌面版本以 desktop/package.json 为准，与 npm 包独立编号；发布时记录包含的核心源码版本。已公开的 alpha.1 没有应用内更新检查。当前公开桌面版已包含版本检查和安装包下载入口；不含自动安装、重启升级或开机启动。开发源码已接入企查查，BOSS 采集通过随包 Skill 按需准备。软件升级采用下载安装包覆盖升级，资料继续保存在原文件夹。
 

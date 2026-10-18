@@ -1,7 +1,7 @@
 {
   "name": "career-desktop",
   "productName": "career",
-  "version": "0.3.0-alpha.14",
+  "version": "0.3.0-alpha.15",
   "private": true,
   "description": "与 Agent 协作的个人求职工作台",
   "author": "heyjianhang",
