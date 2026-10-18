@@ -1,5 +1,20 @@
 import {Ajv} from 'ajv';
-export type Provider = {id:string;name:string;kind:'bailian'|'compatible';baseURL:string;model:string;vision:boolean;method:'jsonMode'|'jsonSchema'|'functionCalling'};
+export type ProviderKind = 'bailian'|'deepseek'|'volcengine'|'compatible';
+export type ModelUse = 'text'|'vision'|'speech';
+export type ModelModality = 'language'|'speech';
+export type Provider = {id:string;name:string;kind:ProviderKind;baseURL:string;model:string;vision:boolean;method:'jsonMode'|'jsonSchema'|'functionCalling';modality?:ModelModality;serviceId?:string;enabled?:boolean;credentialReady?:boolean};
+export type ModelService = {id:string;name:string;kind:ProviderKind;baseURL:string;speechURL:string;enabled:boolean;hasKey:boolean;hasSpeechKey?:boolean};
+export function supportsUse(p:Provider,use:ModelUse){return p.enabled!==false && p.credentialReady!==false && (use==='speech'?p.modality==='speech':p.modality!=='speech'&&(use==='text'||p.vision));}
+export function checkedService(value:unknown):Omit<ModelService,'hasKey'|'hasSpeechKey'> {
+ const s=value as ModelService;
+ if(!s||typeof s.enabled!=='boolean')throw new Error('服务配置无效。');
+ const p=checkedProvider({...s,id:'',model:'connection',vision:false,method:'jsonMode',modality:'language'});
+ if(s.id&&!/^service-[a-f0-9-]{36}$/.test(s.id))throw new Error('服务标识无效。');
+ const speechURL=typeof s.speechURL==='string'?s.speechURL.trim():'';
+ if(speechURL){let u:URL;try{u=new URL(speechURL);}catch{throw new Error('请填写完整的语音 WebSocket 地址。');}
+ if(u.protocol!=='wss:'||u.username||u.password||u.search||u.hash)throw new Error('语音服务地址需要 wss://，且不能包含密钥或查询参数。');}
+ return {id:s.id||'',name:p.name,kind:p.kind,baseURL:p.baseURL,speechURL,enabled:s.enabled};
+}
 export type ImageInput = {name:string;data:string};
 export type JDInput = {text:string;images:ImageInput[]};
 export type JDDraft = {company:string;title:string;location:string;salary:string;raw_text:string;warnings:string[]};
@@ -7,12 +22,14 @@ export const jdSchema = {type:'object',additionalProperties:false,properties:{co
 const validate=new Ajv().compile(jdSchema);
 export function checkedDraft(value:unknown):JDDraft {if(!validate(value))throw new Error('模型返回的字段不完整或格式不符合要求，请重试或手动填写。');return value as JDDraft;}
 export function checkedProvider(value:unknown):Provider {
- const p=value as Provider;if(!p||!['bailian','compatible'].includes(p.kind)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||typeof p.model!=='string'||!p.model.trim()||p.model.length>150||typeof p.vision!=='boolean'||!['jsonMode','jsonSchema','functionCalling'].includes(p.method))throw new Error('请填写服务名称、模型和输出方式。');
+ const p=value as Provider;if(!p||!['bailian','deepseek','volcengine','compatible'].includes(p.kind)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||typeof p.model!=='string'||!p.model.trim()||p.model.length>150||typeof p.vision!=='boolean'||!['jsonMode','jsonSchema','functionCalling'].includes(p.method))throw new Error('请填写服务名称、模型和输出方式。');
  let u:URL;try{u=new URL(p.baseURL);}catch{throw new Error('请填写完整的 API Base URL。');}
  if(u.username||u.password||u.search||u.hash||!(u.protocol==='https:'||(u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname))))throw new Error('服务地址需要 HTTPS；本机服务可使用 http://127.0.0.1。地址中不能包含密钥或查询参数。');
  if(/\/(chat\/completions|responses)\/?$/.test(u.pathname))throw new Error('请填写 Base URL（通常以 /v1 结尾），不要包含 /chat/completions。');
  if(p.id&&!/^model-[a-f0-9-]{36}$/.test(p.id))throw new Error('模型标识无效。');
- return {id:p.id||'',name:p.name.trim(),kind:p.kind,baseURL:u.toString().replace(/\/$/,''),model:p.model.trim(),vision:p.vision,method:p.method};
+ if(p.modality!==undefined&&!['language','speech'].includes(p.modality))throw new Error('模型类型无效。');
+ if(p.modality==='speech'&&(p.vision||!['bailian','volcengine'].includes(p.kind)))throw new Error('实时语音配置支持百炼和火山语音；请勿把语音模型设为图片模型。');
+ return {id:p.id||'',name:p.name.trim(),kind:p.kind,baseURL:u.toString().replace(/\/$/,''),model:p.model.trim(),vision:p.vision,method:p.method,...(p.modality?{modality:p.modality}:{}),...(p.serviceId?{serviceId:p.serviceId}: {})};
 }
 export function checkedInput(value:unknown):JDInput {
  const v=value as JDInput;if(!v||typeof v.text!=='string'||v.text.length>50000||!Array.isArray(v.images)||v.images.length>4)throw new Error('每次导入一个岗位，文字最多 5 万字，图片最多 4 张。');

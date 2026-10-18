@@ -113,6 +113,8 @@ function setupIPC(){
  handle('syncLoginStatus',()=>core.syncEnvironment.loginStatus());
  handle('aiStatus',()=>ai.status());
  handle('aiSave',value=>ai.save(value));
+ handle('aiServiceSave',value=>ai.serviceSave(value));
+ handle('aiServiceRemove',id=>ai.serviceRemove(id));
  handle('aiDefaults',value=>ai.defaults(value));
  handle('aiRemove',id=>ai.remove(id));
  handle('aiCheck',value=>ai.check(value));

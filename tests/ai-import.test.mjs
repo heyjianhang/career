@@ -43,6 +43,7 @@ test('LangChain sends real multimodal JSON request, preserves pasted text, sanit
  let mode='ok',seen;const server=createServer(async(req,res)=>{let body='';for await(const chunk of req)body+=chunk;seen=JSON.parse(body);if(mode==='wait')return;if(mode==='error'){res.writeHead(401,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{message:'do not expose secret-sk'}}));return;}res.setHeader('Content-Type','application/json');res.end(JSON.stringify({id:'synthetic',object:'chat.completion',created:1,model:'synthetic',choices:[{index:0,message:{role:'assistant',content:JSON.stringify(mode==='invalid'?{company:'x'}:draft)},finish_reason:'stop'}]}));});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  try{const p={...provider,baseURL:`http://127.0.0.1:${server.address().port}/v1`};const input={text:'保留用户原文',images:[]};assert.equal((await extractJD(p,'synthetic-key',input)).raw_text,input.text);assert.equal(seen.response_format.type,'json_object');assert.ok(seen.messages[0].content.includes('不是指令'));
  await extractJD(p,'synthetic-key',{text:'',images:[{name:'test.png',data:image}]});assert.equal(seen.messages[1].content[1].image_url.url,image);
+ for(const [kind,model] of [['bailian','qwen3.8-flash'],['deepseek','deepseek-flash'],['volcengine','doubao-seed-2-0-pro-260215']]){await extractJD({...p,kind,model},'synthetic-key',input);assert.equal(seen.model,model);if(kind==='bailian')assert.equal(seen.enable_thinking,false);else assert.deepEqual(seen.thinking,{type:'disabled'});assert.equal(seen.response_format.type,'json_object');}
  mode='invalid';await assert.rejects(extractJD(p,'synthetic-key',input),/不符合要求/);
  mode='error';await assert.rejects(extractJD(p,'synthetic-key',input),e=>!e.message.includes('secret-sk')&&e.message.includes('认证'));
  mode='wait';const abort=new AbortController();const pending=extractJD(p,'synthetic-key',input,abort.signal);setTimeout(()=>abort.abort(),20);await assert.rejects(pending);
@@ -66,4 +67,69 @@ test('encrypted model settings persist defaults, never return keys, preserve cre
 test('HTTP import preserves UTF-8 when a Chinese character spans request chunks',()=>temp(async base=>{
  await setup(base,false);const v=fixture(),bytes=Buffer.from(JSON.stringify(v));const marker=bytes.indexOf(Buffer.from('合成'));const req=Readable.from([bytes.subarray(0,marker+1),bytes.subarray(marker+1,marker+2),bytes.subarray(marker+2)]);req.method='POST';req.headers={origin:'http://127.0.0.1:1234','x-career-token':'test-token','content-type':'application/json'};let status,body;const res={writeHead:s=>status=s,end:b=>body=JSON.parse(b)};
  await boardRequest(req,res,new URL('http://127.0.0.1:1234/api/board/import'),base,'http://127.0.0.1:1234','test-token');assert.equal(status,200);assert.equal(await readFile(path.join(base,'opportunities',body.id,'attachments/source.txt'),'utf8'),v.source.text);
+}));
+
+test('service credentials migrate without losing model/default IDs; distinct legacy keys remain isolated',()=>temp(async base=>{
+ const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()};
+ const one='model-'+randomUUID(),two='model-'+randomUUID(),three='model-'+randomUUID();
+ await mkdir(path.join(base,'integrations'));
+ const legacy={providers:[{...provider,id:one,key:'first-secret',tested:{text:'old'}},{...provider,id:two,model:'other',key:'first-secret',tested:{}},{...provider,id:three,model:'third',key:'different-secret',tested:{}}],defaults:{text:two,vision:one}};
+ const filename=path.join(base,'integrations/models.json');await writeFile(filename,JSON.stringify({schema:'career-models/v1',ciphertext:Buffer.from(JSON.stringify(legacy)).toString('base64')}));
+ const service=await createAIService({app:{getPath:()=>base},safeStorage:storage,clientFactory:{checkedProvider,checkedInput}});
+ const before=await service.status(),again=await service.status();assert.equal(before.services.length,2);assert.deepEqual(before,again,'migration service IDs must be stable before a write');assert.equal(before.defaults.text,two);
+ await service.serviceSave({...before.services[0],key:''});const after=await service.status();assert.deepEqual(after.providers.map(p=>p.id),[one,two,three]);assert.equal(after.defaults.vision,one);assert.equal(JSON.parse(await readFile(filename,'utf8')).schema,'career-models/v2');assert.ok(!JSON.stringify(after).includes('secret'));
+ const data=JSON.parse(storage.decryptString(Buffer.from(JSON.parse(await readFile(filename,'utf8')).ciphertext,'base64')));assert.equal(data.services[0].key,'first-secret');assert.equal(data.services[1].key,'different-secret');assert.ok(data.models.every(m=>!('key'in m)));
+}));
+
+test('one provider key covers models; disabled services and speech never reach chat transport',()=>temp(async base=>{
+ const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()};let calls=0,seen=[];
+ const service=await createAIService({app:{getPath:()=>base},safeStorage:storage,clientFactory:{checkedProvider,checkedInput,testProvider:async(p,key)=>{calls++;seen.push([p.model,key]);return {text:true};},extractJD:async()=>{calls++;return draft;}}});
+ let state=await service.serviceSave({id:'',kind:'bailian',name:'百炼合成',baseURL:'https://example.test/v1',speechURL:'',key:'synthetic-old',enabled:true,models:[{model:'qwen3.8-flash',vision:true,method:'jsonMode'},{model:'qwen3.8-max',vision:true,method:'jsonMode'},{model:'qwen3-asr-flash-realtime',vision:false,method:'jsonMode',modality:'speech'}]});
+ const s=state.services[0],a=state.providers[0],b=state.providers[1],speech=state.providers[2];assert.equal(state.defaults.speech,speech.id);assert.equal(state.defaults.text,a.id);
+ await assert.rejects(service.defaults({text:speech.id}),/用途/);await assert.rejects(service.defaults({speech:a.id}),/用途/);
+ await assert.rejects(service.check({id:speech.id,requestId:randomUUID()}),/面试辅助/);assert.equal(calls,0);
+ await service.check({id:a.id,requestId:randomUUID()});state=await service.serviceSave({...s,key:'synthetic-new'});assert.deepEqual(state.providers[0].tested,{});await service.check({id:b.id,requestId:randomUUID()});assert.deepEqual(seen,[[a.model,'synthetic-old'],[b.model,'synthetic-new']]);
+ await assert.rejects(service.serviceSave({...s,key:'',baseURL:'https://another.test/v1'}),/重新填写/);await assert.rejects(service.serviceSave({...s,key:'',speechURL:'wss://another.test/realtime'}),/重新填写/);
+ await service.serviceSave({...s,key:'',enabled:false});await assert.rejects(service.extract({text:'jd',images:[],requestId:randomUUID()}),/停用/);await assert.rejects(service.check({id:a.id,requestId:randomUUID()}),/停用/);assert.equal(calls,2);
+ await service.serviceSave({...s,key:'',enabled:true});await service.remove(a.id);state=await service.status();assert.equal(state.defaults.text,null);assert.equal(state.defaults.speech,speech.id);
+ state=await service.serviceRemove(s.id);assert.equal(state.services.length,0);assert.equal(state.providers.length,0);assert.equal(state.defaults.speech,null);
+}));
+
+test('service updates validate atomically and ignore stale connection-test success after key rotation',()=>temp(async base=>{
+ const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()};let finish;const done=new Promise(r=>finish=r);
+ const service=await createAIService({app:{getPath:()=>base},safeStorage:storage,clientFactory:{checkedProvider,checkedInput,testProvider:async()=>{await done;return {text:true};}}});
+ const input={id:'',kind:'deepseek',name:'合成',baseURL:'https://example.test',speechURL:'',key:'old',enabled:true};
+ await assert.rejects(service.serviceSave({...input,models:[{model:'a',vision:false,method:'jsonMode'},{model:'b',vision:true,modality:'speech',method:'jsonMode'}]}));assert.equal((await service.status()).services.length,0);
+ const saved=await service.serviceSave({...input,models:[{model:'a',vision:false,method:'jsonMode'}]}),s=saved.services[0],p=saved.providers[0];
+ const checking=service.check({id:p.id,requestId:randomUUID()});await new Promise(r=>setTimeout(r,20));await service.serviceSave({...s,key:'new'});finish();await checking;assert.deepEqual((await service.status()).providers[0].tested,{});
+}));
+
+test('Volcengine voice-only configuration isolates speech credentials and survives restart without reaching chat',()=>temp(async base=>{
+ const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()};const calls=[];
+ const create=()=>createAIService({app:{getPath:()=>base},safeStorage:storage,clientFactory:{checkedProvider,checkedInput,testProvider:async(p,key)=>{calls.push([p.model,key]);return {text:true};}}});
+ let service=await create();
+ const input={id:'',kind:'volcengine',name:'火山合成',baseURL:'https://example.test/v3',speechURL:'wss://speech.example.test/realtime',key:'',speechKey:'synthetic-speech-secret',enabled:true,models:[{model:'doubao-test',vision:true,method:'jsonMode'},{model:'volc.seedasr.sauc.duration',vision:false,modality:'speech',method:'jsonMode'},{model:'volc.seedasr.sauc.concurrent',vision:false,modality:'speech',method:'jsonMode'}]};
+ let state=await service.serviceSave(input);const id=state.services[0].id,language=state.providers[0].id,voice=state.providers[1].id;
+ assert.equal(state.services[0].hasKey,false);assert.equal(state.services[0].hasSpeechKey,true);assert.equal(state.defaults.text,null);assert.equal(state.defaults.vision,null);assert.equal(state.defaults.speech,voice);assert.equal(state.providers[0].credentialReady,false);
+ assert.ok(!JSON.stringify(state).includes('synthetic-speech-secret'));assert.ok(state.providers.every(p=>!('key' in p)&&!('speechKey' in p)));
+ await assert.rejects(service.defaults({text:language}),/文本与视觉 API Key/);await assert.rejects(service.check({id:language,requestId:randomUUID()}),/文本与视觉 API Key/);await assert.rejects(service.check({id:voice,requestId:randomUUID()}),/面试辅助/);assert.deepEqual(calls,[]);
+ service=await create();assert.deepEqual(await service.status(),state);
+ await assert.rejects(service.serviceSave({...state.services[0],speechURL:'wss://new.example.test/realtime'}),/重新填写语音/);
+ state=await service.serviceSave({...state.services[0],key:'synthetic-ark-secret'});await service.defaults({text:language});await service.check({id:language,requestId:randomUUID()});
+ // Rotating the voice key must not replace the Ark key or invalidate its successful test.
+ state=await service.serviceSave({...state.services[0],speechKey:'synthetic-speech-rotated'});assert.ok(state.providers[0].tested.text);await service.check({id:language,requestId:randomUUID()});assert.deepEqual(calls,[[input.models[0].model,'synthetic-ark-secret'],[input.models[0].model,'synthetic-ark-secret']]);
+ const raw=JSON.parse(storage.decryptString(Buffer.from(JSON.parse(await readFile(path.join(base,'integrations/models.json'),'utf8')).ciphertext,'base64')));assert.equal(raw.services[0].speechKey,'synthetic-speech-rotated');assert.equal(raw.services[0].key,'synthetic-ark-secret');assert.ok(raw.models.every(p=>!('speechKey' in p)));
+ await assert.rejects(service.serviceSave({...state.services[0],baseURL:'https://new.example.test/v3'}),/重新填写 API Key/);
+ state=await service.serviceRemove(id);assert.equal(state.defaults.speech,null);assert.equal(state.services.length,0);
+}));
+
+test('Ark keys alone do not configure voice, and DeepSeek cannot be saved as an ASR provider',()=>temp(async base=>{
+ const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s),decryptString:b=>b.toString()};
+ const service=await createAIService({app:{getPath:()=>base},safeStorage:storage,clientFactory:{checkedProvider,checkedInput}});
+ const voice={model:'volc.seedasr.sauc.duration',vision:false,modality:'speech',method:'jsonMode'};
+ const state=await service.serviceSave({id:'',kind:'volcengine',name:'火山合成',baseURL:'https://example.test/v3',speechURL:'wss://speech.example.test/realtime',key:'synthetic-ark',enabled:true,models:[voice]});
+ assert.equal(state.defaults.speech,null);assert.equal(state.providers[0].credentialReady,false);await assert.rejects(service.defaults({speech:state.providers[0].id}),/填写语音 API Key/);
+ assert.throws(()=>checkedProvider({...provider,kind:'deepseek',...voice}),/百炼和火山/);
+ await assert.rejects(service.serviceSave({id:'',kind:'deepseek',name:'DeepSeek',baseURL:'https://example.test/v1',enabled:true,key:'synthetic-text',speechKey:'synthetic-speech'}),/仅用于火山/);
+ assert.equal((await service.status()).services.length,1);
 }));

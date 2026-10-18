@@ -15,7 +15,7 @@ exports.runStartup=async({win,manager})=>{
  const opened=await win.webContents.executeJavaScript('window.careerDesktop.handoff()');
  assert.equal(opened.path,expected.path);
  assert.equal((await win.webContents.executeJavaScript('window.careerDesktop.updatesState()')).automatic,false);
- const modelState=await win.webContents.executeJavaScript('window.careerDesktop.aiStatus()');assert.equal(modelState.providers[0].name,'桌面合成验证');assert.equal(modelState.defaults.text,modelState.providers[0].id);await win.webContents.executeJavaScript('window.careerDesktop.aiRemove('+JSON.stringify(modelState.providers[0].id)+')');
+ const modelState=await win.webContents.executeJavaScript('window.careerDesktop.aiStatus()');assert.equal(modelState.providers[0].name,'桌面合成验证');assert.equal(modelState.defaults.text,modelState.providers[0].id);const voiceService=modelState.services.find(s=>s.kind==='volcengine');assert.equal(voiceService.hasSpeechKey,true);assert.equal(voiceService.hasKey,false);assert.equal(modelState.providers.find(p=>p.id===modelState.defaults.speech).model,'volc.seedasr.sauc.duration');await win.webContents.executeJavaScript('window.careerDesktop.aiRemove('+JSON.stringify(modelState.providers[0].id)+')');
  return {ok:true,workspace:opened.path,checks:['cold start restores the last workspace from persisted multi-workspace history','automatic update preference survives application restart']};
 };
 exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialPage,showWelcome,printHtml,state})=>{

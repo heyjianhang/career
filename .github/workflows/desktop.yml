@@ -48,5 +48,6 @@ jobs:
             release/desktop/*.zip
             release/desktop/*.exe
             release/desktop/SHA256SUMS-*.txt
+            release/desktop/SIGNATURES-*.json
           if-no-files-found: error
           retention-days: 14
