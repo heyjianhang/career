@@ -17,9 +17,12 @@ exports.run=async({app,win,workspace})=>{
   const saved=await fs.readFile(path.join(app.getPath('userData'),'integrations/models.json'),'utf8');assert.ok(!saved.includes('synthetic-desktop-model-key'));assert.ok(!saved.includes('127.0.0.1'));
   await js(`document.querySelector('[data-test-model]').click()`);await wait(`document.querySelector('.model-tested')?.textContent.includes('文本已验证')`);
   await fs.writeFile(path.join(app.getPath('userData'),'ai-models.png'),(await win.webContents.capturePage()).toPNG());
-  await js(`document.querySelector('#model-provider-close').click();document.querySelector('[data-service="volcengine"]').click()`);await wait(`document.querySelector('#model-speech-key')`);
+  // A dialog's close event removes it asynchronously. Wait for removal before
+  // opening another provider so duplicate form IDs cannot select the old form.
+  await js(`document.querySelector('#model-provider-close').click()`);await wait(`!document.querySelector('.model-provider-dialog')`);
+  await js(`document.querySelector('[data-service="volcengine"]').click()`);await wait(`document.querySelector('.model-provider-dialog[open] #model-speech-key')`);
   await js(`document.querySelector('#model-speech-key').value='synthetic-desktop-voice-key';document.querySelector('#model-service-form').requestSubmit()`);
-  await wait(`[...document.querySelectorAll('.model-feedback')].some(e=>e.textContent==='连接配置已保存。')`);
+  await wait(`document.querySelector('.model-provider-dialog[open] .model-feedback')?.textContent==='连接配置已保存。' && document.querySelector('#model-speech-key')?.placeholder.includes('已安全保存') && !document.querySelector('#model-service-save')?.disabled`);
   const voiceState=await js('window.careerDesktop.aiStatus()'),voiceService=voiceState.services.find(s=>s.kind==='volcengine');assert.equal(voiceService.hasKey,false);assert.equal(voiceService.hasSpeechKey,true);assert.equal(voiceState.providers.find(p=>p.id===voiceState.defaults.speech).model,'volc.seedasr.sauc.duration');assert.ok(!JSON.stringify(voiceState).includes('synthetic-desktop-voice-key'));assert.ok(!(await fs.readFile(path.join(app.getPath('userData'),'integrations/models.json'),'utf8')).includes('synthetic-desktop-voice-key'));assert.equal(await js(`document.querySelector('#model-speech-key').value`),'');
   await fs.writeFile(path.join(app.getPath('userData'),'ai-voice.png'),(await win.webContents.capturePage()).toPNG());
   await js(`document.querySelector('#model-provider-close').click();document.querySelector('#settings-close').click();document.querySelector('#add-opportunity').click()`);await wait(`document.querySelector('#jd-text')`);
