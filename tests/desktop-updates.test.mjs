@@ -38,8 +38,9 @@ const api='https://api.github.com/repos/heyjianhang/career/releases?per_page=100
 const managed=v=>({manifest:staticManifest(v),notes:'公开更新说明',publishedAt:'2026-10-18T10:14:12Z',verification:{assets:{'mac-arm64':{size:123456}}}});
 const unavailable=()=>new Response('',{status:503});
 const apiOnly=fn=>(url,opts)=>url===api?fn(url,opts):unavailable();
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
-async function settled(svc){for(let i=0;i<100&&(await svc.state()).checking;i++)await tick();assert.equal((await svc.state()).checking,false);}
+// Join the already running check instead of guessing how many event-loop ticks
+// filesystem persistence needs on a busy native runner. No new check when idle.
+async function settled(svc){if((await svc.state()).checking)await svc.check();assert.equal((await svc.state()).checking,false);}
 
 test('portal is the primary public source; concurrent checks deduplicate and preserve release details',async t=>{
  let calls=0,resolve;const gate=new Promise(r=>resolve=r),opened=[];
