@@ -1,8 +1,8 @@
 # career 桌面版
 
-桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。`0.3.0-alpha.14` 已作为未签名预览版公开，支持 macOS 与 Windows 的 ARM64／x64；下载、校验值与验收边界见[发布记录](releases/desktop-0.3.0-alpha.14.md)。公开 npm 仍为 0.2.0。
+桌面壳在 `desktop/`，复用现有看板、简历、资料页面和文件业务层。`0.3.0-alpha.15` 已作为预览版公开，支持 macOS 与 Windows 的 ARM64／x64；下载、校验值与验收边界见[发布记录](releases/desktop-0.3.0-alpha.15.md)。公开 npm 仍为 0.2.0。
 
-此版本包含模型与 JD 文字／图片导入、JD 研究和十三个用户 Skills、简历前调研与资料跟踪、新用户引导，以及新版百炼模型设置；保留更新限流恢复、简历空章节隐藏与此前桌面改进。新增总体匹配评分和独立「打招呼」页，支持按关联简历准备开场白。AI 能力见[设计与验证](plans/ai-models-jd-import.md)。
+此版本包含模型与 JD 文字／图片导入、JD 研究和十三个用户 Skills、简历前调研与资料跟踪、新用户引导，以及统一宽度的设置页面、百炼／DeepSeek／火山引擎模型配置；保留更新限流恢复、简历空章节隐藏与此前桌面改进。新增总体匹配评分和独立「打招呼」页，支持按关联简历准备开场白。文本、视觉与实时语音默认用途分开；语音仅预配置，录音与实时转写尚未接入。Mac 完整临时签名检查已加入构建。AI 能力见[设计与验证](plans/ai-models-jd-import.md)。
 
 ## 使用流程
 
@@ -91,7 +91,7 @@ npm run desktop:test -- --app "release/desktop/mac-arm64/career.app/Contents/Mac
 
 桌面测试用独立合成目录，覆盖 CLI 在缺少系统 Node/npm 的 PATH 下执行、目录绑定、两个工作区隔离、随包 Skills、页面沙箱、Agent 交接、原生和 CLI 的 PDF 导出；启动检查覆盖多工作区恢复上次选择、主动回到列表，以及上次目录被移动时保留记录并回退，再启动第二个独立进程验证冷启动恢复。证据和截图在 `.cache/desktop-test-*/`。CI 的四个任务使用 macOS ARM64／Intel、Windows ARM64／x64 原生 runner，通过 --app 检查刚构建出的应用并保留合成报告；不以开发 Electron 代替产物。安装器交互与系统拦截提示仍需人工安装验收，不能把构建成功当成已完成安装测试。
 
-当前开发源码从 alpha.15 起，Mac 预览包使用完整的 ad-hoc 临时签名，包含应用资源和内部组件；保持 hardened runtime，为 Electron 设置 JIT 与跨签名库加载所需权限。这不等于 Apple Developer ID 签名或公证，首次下载安装仍需由用户在系统设置中明确允许。Windows 预览包仍没有代码签名。已公开版本的真实状态以发布记录为准。
+从 alpha.15 起，Mac 预览包使用完整的 ad-hoc 临时签名，包含应用资源和内部组件；保持 hardened runtime，为 Electron 设置 JIT 与跨签名库加载所需权限。这不等于 Apple Developer ID 签名或公证，首次下载安装仍需由用户在系统设置中明确允许。Windows 预览包仍没有代码签名。已公开版本的真实状态以发布记录为准。
 
 Mac 构建必须通过 `codesign --verify --deep --strict`，并核对资源封装与预期签名类型；最终 DMG 另行只读挂载，检查映像及其中的应用签名，结果随 `SIGNATURES-mac-<架构>.json` 保存。失败即停止构建，不允许把跳过签名视为成功。签名完整性通过不能代替 Gatekeeper 验收：还要用浏览器下载最终包，在保留下载标记的情况下检查系统提示，并由用户手动允许后确认启动。不能通过清除下载标记、关闭系统防护或直接运行包内二进制冒充此项通过。
 
