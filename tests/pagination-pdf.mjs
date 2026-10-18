@@ -52,15 +52,18 @@ try{
   }
   const firstBodyBottom=Math.min(...pages[0].items.filter(i=>i.y>35).map(i=>i.y));
   const lastBodyBottom=Math.min(...pages.at(-1).items.filter(i=>i.y>35).map(i=>i.y));
-  all.push({theme,mode,pages:pdf.numPages,firstBodyBottom,lastBodyBottom,passed:true});await loading.destroy();
+  const firstRows=[];for(const item of pages[0].items){const row=firstRows.find(r=>Math.abs(r.y-item.y)<.5);if(row)row.text+=item.text;else firstRows.push({...item});}
+  const workStarts=['工作甲0','工作甲1'].map(label=>firstRows.find(i=>i.text.includes(label))?.y);
+  const workGap=workStarts.every(Number.isFinite)?workStarts[0]-workStarts[1]:undefined;
+  all.push({theme,mode,pages:pdf.numPages,firstBodyBottom,lastBodyBottom,workGap,passed:true});await loading.destroy();
  }
  console.log(JSON.stringify({theme,passed:true}));
  }
  const natural=all.find(r=>r.theme==='engineering'&&r.mode==='employment'),manual=all.find(r=>r.theme==='engineering'&&r.mode==='employment-manual');
- assert.equal(natural.pages,manual.pages,'balancing must not add pages');
+ assert.ok(natural.pages<=manual.pages,'natural flow must not add pages compared with an explicit break');
  assert.ok(manual.firstBodyBottom>100,'fixture must reproduce a substantial first-page gap');
- assert.ok(manual.firstBodyBottom-natural.firstBodyBottom>30,'natural page should distribute unused space');
+ assert.ok(natural.firstBodyBottom<=manual.firstBodyBottom+1,'natural flow must use the available first-page space');
  assert.ok(natural.firstBodyBottom>48,'body must stay above the engineering bottom margin');
- assert.equal(natural.lastBodyBottom,manual.lastBodyBottom,'last page must retain natural spacing');
+ assert.ok(Number.isFinite(natural.workGap)&&Math.abs(natural.workGap-manual.workGap)<.1,'identical work bullets must retain identical spacing with or without a later manual break');
  await writeFile(path.join(out,'results.json'),JSON.stringify(all,null,2));console.log(JSON.stringify({passed:true,out,cases:all}));
 }finally{await rm(w,{recursive:true,force:true});}

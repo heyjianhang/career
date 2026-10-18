@@ -1,6 +1,6 @@
 .resume-paper[data-template="engineering"]{--eng-ink:#263b4d;--eng-accent:#345b76;--eng-muted:#65758a;--eng-rule:#d7e0e8;font-size:10.5pt;line-height:1.65;color:var(--eng-ink);page:engineering}
 @page engineering{size:A4;margin:14mm 14mm 17mm;@bottom-left{content:string(resume-name);font-family:"Noto Sans SC Variable",sans-serif;font-size:7pt;color:#65758a}@bottom-right{content:counter(page) " / " counter(pages);font-family:"Noto Sans SC Variable",sans-serif;font-size:7pt;color:#65758a}}
-[data-template="engineering"] .eng-header{display:flex;gap:8mm;align-items:stretch;margin-bottom:6mm;break-inside:avoid}
+[data-template="engineering"] .eng-header{display:flex;gap:8mm;align-items:stretch;margin-bottom:5mm;break-inside:avoid}
 [data-template="engineering"] .eng-identity{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:3mm;padding:1mm 0}
 [data-template="engineering"] .eng-name{display:flex;gap:5mm;align-items:baseline;flex-wrap:wrap}
 [data-template="engineering"] h1{font-size:26pt;line-height:1.2;letter-spacing:1.5px;font-weight:700;string-set:resume-name content()}
@@ -12,13 +12,12 @@
 [data-template="engineering"] .resume-web-link{color:var(--eng-accent);text-decoration:none}
 [data-template="engineering"] .eng-photo{width:25mm;height:33mm;flex:none;overflow:hidden;background:#f1f4f7;border-radius:1mm}
 [data-template="engineering"] .eng-photo img{width:100%;height:100%;object-fit:cover;display:block}
-[data-template="engineering"] .eng-section{margin-top:5mm}
-[data-template="engineering"] h2{display:flex;align-items:center;gap:4mm;font-size:11.5pt;font-weight:650;margin:0 0 3mm;break-after:avoid}
+[data-template="engineering"] .eng-section{margin-top:4mm}
+[data-template="engineering"] h2{display:flex;align-items:center;gap:4mm;font-size:11.5pt;font-weight:650;margin:0 0 2mm;break-after:avoid}
 [data-template="engineering"] h2:after{content:"";flex:1;height:.25mm;background:var(--eng-rule)}
-[data-template="engineering"] h3{font-size:11pt;line-height:1.5;font-weight:650;margin:0;break-after:avoid}
-[data-template="engineering"] p{margin:1.8mm 0;orphans:2;widows:2}
-[data-template="engineering"] .eng-item{margin-bottom:5mm;break-inside:auto}
-[data-template="engineering"] .eng-item+.eng-item{padding-top:4mm;border-top:.2mm solid var(--eng-rule)}
+[data-template="engineering"] h3{font-size:11pt;line-height:1.5;font-weight:700;margin:0;break-after:avoid}
+[data-template="engineering"] p{margin:1.5mm 0;orphans:2;widows:2}
+[data-template="engineering"] .eng-item{margin-bottom:3.5mm;break-inside:auto}
 [data-template="engineering"] .eng-lead{break-inside:avoid;break-after:auto}
 [data-template="engineering"] .eng-lead[data-has-body]{break-after:avoid}
 [data-template="engineering"] .eng-item-title{display:flex;align-items:baseline;gap:3mm;flex-wrap:wrap}
@@ -27,19 +26,22 @@
 [data-template="engineering"] .resume-item-links{font-size:8pt;margin:0;gap:3mm}
 [data-template="engineering"] .eng-role{font-size:9.5pt;font-weight:600;color:var(--eng-accent);margin:1mm 0}
 [data-template="engineering"] .resume-technologies{font-size:8.5pt;line-height:1.6;color:var(--eng-muted);margin:1.5mm 0 2.5mm}
-[data-template="engineering"] ul{margin:2mm 0 0;padding-left:4mm}
-[data-template="engineering"] li{margin:1.5mm 0;orphans:2;widows:2;break-inside:auto}
+[data-template="engineering"] ul{margin:1.5mm 0 0;padding-left:4mm}
+[data-template="engineering"] li{margin:1mm 0;orphans:2;widows:2;break-inside:auto}
 [data-template="engineering"] li::marker{color:#7a92a8}
 [data-template="engineering"] strong{font-weight:600}
-[data-template="engineering"] .eng-facts{display:grid;grid-template-columns:1fr 1fr;gap:3mm 7mm}
+[data-template="engineering"] .eng-facts{display:grid;grid-template-columns:1fr 1fr;gap:2mm 7mm}
 [data-template="engineering"] .eng-fact{break-inside:avoid}
 [data-template="engineering"] .eng-fact h3{font-size:9.5pt;color:var(--eng-accent)}
 [data-template="engineering"] .eng-fact p{font-size:.94em;margin:1mm 0 0}
 [data-template="engineering"] .eng-synthetic{font-size:7pt;color:var(--eng-muted);margin:0}
 .resume-paper[data-template="engineering"][data-density="compact"] .eng-section{margin-top:3.5mm}
-.resume-paper[data-template="engineering"][data-density="compact"] .eng-item{margin-bottom:3.5mm}
+.resume-paper[data-template="engineering"][data-density="compact"] .eng-item{margin-bottom:2.5mm}
 
 [data-template="engineering"] .eng-fact-wide{grid-column:1/-1}
 
 [data-template="engineering"] .eng-item[data-split-from]{border-top:0;padding-top:0}
 [data-template="engineering"] .eng-item[data-split-from]:not(:has(.eng-lead))::before{content:attr(data-entry-title) "（续）"!important;display:block;font-size:8.5pt;line-height:1.5;color:var(--eng-muted);margin-bottom:2mm}
+
+/* The last child must not extend the heading's keep-with-next chain. */
+[data-template="engineering"] .eng-lead>:last-child{break-after:auto}

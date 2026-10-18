@@ -13,7 +13,7 @@ const prose=(s:string)=>escape(s).replace(/^([^：:·•]{2,14})([：:·•])\s*
 function item(i:ResumeItem){
  const hasBody=i.paragraphs.length>0||i.bullets.length>0;
  // Keep only the heading stack together. Descriptions and bullets may flow across
- // pages. Each bullet flows independently; a short tail must not pull a whole pair forward.
+ // pages with two-line widow/orphan protection, without binding whole bullets.
  return `<div class="eng-item" data-entry-id="${escape(i.id)}" data-entry-title="${escape(i.title)}"${i.page_break_before?' data-break-before="true"':''}><div class="eng-lead"${hasBody?' data-has-body="true"':''}><div class="eng-item-title">${i.title?`<h3>${escape(i.title)}</h3>`:''}${i.period?`<span class="eng-period">${escape(i.period)}</span>`:''}${itemLinks(i.links)}</div>${i.subtitle?`<p class="eng-role">${escape(i.subtitle)}</p>`:''}${i.technologies?`<p class="resume-technologies">${escape(i.technologies)}</p>`:''}</div>${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}${i.bullets.length?`<ul>${i.bullets.map(b=>`<li>${prose(b)}</li>`).join('')}</ul>`:''}</div>`;
 }
 function render({resume:r,assets,synthetic}:TemplateInput){
@@ -23,4 +23,4 @@ function render({resume:r,assets,synthetic}:TemplateInput){
  return `<section class="eng-section" data-section-id="${escape(s.id)}">${s.title?`<h2>${escape(s.title)}</h2>`:''}${facts?`<div class="eng-facts">${s.items.map(i=>`<div class="eng-fact${i.paragraphs.join('').length>110?' eng-fact-wide':''}" data-entry-id="${escape(i.id)}"><h3>${escape(i.title)}</h3>${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}</div>`).join('')}</div>`:s.items.map(item).join('')}</section>`;
  }).join('')}`;
 }
-export const engineeringTemplate:ResumeTemplate={id:'engineering',name:'简约研发',description:'技术栈独立成行，蓝灰层次与清晰分页',version:3,tags:['技术简历','单栏','A4'],photo:'optional',css:readFileSync(new URL('./engineering.css',import.meta.url),'utf8'),render};
+export const engineeringTemplate:ResumeTemplate={id:'engineering',name:'简约研发',description:'技术栈独立成行，蓝灰层次与清晰分页',version:4,tags:['技术简历','单栏','A4'],photo:'optional',css:readFileSync(new URL('./engineering.css',import.meta.url),'utf8'),render};
