@@ -26,9 +26,9 @@ export function paginationDocument(markup:string, resources:{engine:string;css:s
       const content=source.innerHTML;
       source.remove();
       const styles=JSON.parse(document.getElementById('layout-data').textContent);
-      const flow=await new PagedModule.Previewer().preview(content,[{'about:blank':styles}],document.getElementById('pages'));
-      document.documentElement.dataset.pageCount=String(flow.total);
-      const pages=Array.from(document.querySelectorAll('.pagedjs_page'));
+
+      // Legacy templates may fill bounded page slack after natural pagination.
+      // Engineering deliberately skips this pass to keep spacing consistent.
       // Paged.js protects the next heading + first body lines. When that opening
       // cannot fit, distribute a bounded amount of the remaining space between
       // existing blocks, rather than leaving all of it at the foot of the page.
@@ -52,11 +52,15 @@ export function paginationDocument(markup:string, resources:{engine:string;css:s
         for(const img of content.querySelectorAll('img'))measure((img.closest('.eng-photo,.standard-photo-frame,.design-photo-frame')??img).getBoundingClientRect());
         return {bottom,inside};
       };
+      const flow=await new PagedModule.Previewer().preview(content,[{'about:blank':styles}],document.getElementById('pages'));
+      document.documentElement.dataset.pageCount=String(flow.total);
+      const pages=Array.from(document.querySelectorAll('.pagedjs_page'));
       for(let index=0;index<pages.length-1;index++){
         const content=pages[index].querySelector('.pagedjs_page_content');
         const next=pages[index+1].querySelector('.pagedjs_page_content');
         const paper=content?.querySelector('.resume-paper');
-        if(!paper||!next||paper.dataset.density==='compact'||paper.dataset.template==='compact')continue;
+        if(!paper||!next||paper.dataset.density==='compact'||paper.dataset.template==='compact'||paper.dataset.template==='engineering')continue;
+        // Engineering uses fixed spacing and natural flow, never page stretching.
         // An explicit break expresses the author's intent, including breaks
         // promoted to a section by the shared stylesheet.
         if(next.querySelector('[data-break-before="true"], [data-break-before="page"]'))continue;

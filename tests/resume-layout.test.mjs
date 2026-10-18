@@ -40,3 +40,11 @@ test('renamed and reordered modules survive a CAS save, reload and legacy import
  await savePackage(w,b,first.sha256);const saved=await readResume(w,b.id);assert.equal(saved.package.content.sections[1].title,'工程实践');assert.deepEqual(saved.package.content.sections[1].items,before[1].items);assert.deepEqual(saved.package.content.layout,b.content.layout);
  const {importLegacy}=await import('../dist/resumes/model.js');const migrated=importLegacy(projectPackage(b,await rules()),'resume-imported','导入');assert.equal(migrated.content.summary_title,'个人优势');assert.deepEqual(migrated.content.layout,b.content.layout);
 });
+
+
+test('offline preview pagination function has no server-module closure dependencies', async()=>{
+ const {paginationDocument,paginationResources}=await import('../dist/presentation/pagination.js');
+ const resources=paginationResources(''),markup='<article class="resume-paper" data-template="engineering"><p>原文</p></article>';
+ const offline=Function('return ('+paginationDocument.toString()+')')();
+ assert.equal(offline(markup,JSON.parse(JSON.stringify(resources)),'分页检查'),paginationDocument(markup,resources,'分页检查'));
+});
