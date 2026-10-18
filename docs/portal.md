@@ -35,7 +35,7 @@ node scripts/build-site.mjs
 3. 将真实版本、标签与 URL 写入 downloads.json，运行 `node --test tests/portal.test.mjs`、`npm run build:site` 和 `npm run check:docs`。
 4. 在本机预览检查启用的下载链接、未发布架构、窄屏及备用复制入口；按授权提交／部署，再核对线上链接。
 
-`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前已公开 desktop-v0.3.0-alpha.15，四种架构的匿名完整下载和 SHA-256 均已验证；[发布记录](releases/desktop-0.3.0-alpha.15.md)包含安装包来源和验收边界。门户本次部署状态见下方生产记录。
+`scripts/site-downloads.mjs` 校验官方仓库、Release 标签、文件版本和架构；构建只输出链接，不把 JSON、本地安装包或凭据复制到门户。无需让访客浏览器调用 GitHub API，页面不受匿名 API 限额影响。当前已公开 desktop-v0.3.0-alpha.16，四种架构的匿名完整下载和 SHA-256 均已验证；[发布记录](releases/desktop-0.3.0-alpha.16.md)包含安装包来源和验收边界。门户本次部署状态见下方生产记录。
 
 ## 腾讯 EdgeOne Pages / Makers
 
@@ -58,6 +58,8 @@ node scripts/build-site.mjs
 绑定仓库后，生产分支更新可以触发重新构建。公开 npm 包的发布仍为独立步骤；发布前核对门户命令指定版本已在 registry 可安装。只部署静态产物即可展示 portal，不需要 npm token。
 
 ## 生产部署记录
+
+2026-10-18 18:14:12（北京时间），门户 CLI 发布 alpha.16 成功，云端独立验证四个公开附件，返回 `ok:true` 与 `publicFeedConfirmed:true`；当前 revision 为 `370293c87210400e83969178fbd498be`。本机额外匿名预检查遇到 GitHub 限流，CI 完整下载及云端校验均已通过。 四架构匿名完整下载与 SHA-256 均通过。静态回退清单同步为 alpha.16，随本提交部署；本条发布时间记录门户运行时切换，不单独作为静态部署完成的证明。
 
 2026-10-18 13:58:09，管理 CLI 成功发布 alpha.15，公开入口回查 `publicFeedConfirmed:true`，revision 为 `d36854380f034336a75e9842cadf0fe7`。四架构[匿名完整下载与 SHA-256](https://github.com/heyjianhang/career/actions/runs/39102175462)和云端发布时的独立验证通过；本机额外匿名预检查曾遇到 GitHub 限流。静态回退清单同步为 alpha.15，随本记录提交部署；此时间点的回执证明运行时下载切换，不代表该静态提交已经部署。
 
