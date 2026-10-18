@@ -5,6 +5,7 @@ const {randomUUID}=require('node:crypto');
 const API='https://api.github.com/repos/heyjianhang/career/releases?per_page=100';
 const REPO='https://github.com/heyjianhang/career/releases';
 const INTERVAL=6*60*60*1000;
+const PORTAL='https://career.heyjianhang.top/api/downloads';
 const MANIFEST='https://raw.githubusercontent.com/heyjianhang/career/main/site/downloads.json';
 const CACHE_TIME=5*60*1000;
 const MAX_BYTES=4*1024*1024;
@@ -76,8 +77,8 @@ async function readReleases(fetchImpl,{etag,cached,now}){
  const data=json(text);if(!Array.isArray(data))throw publicError('版本信息格式异常，请稍后重试。');
  return {releases:data,etag:response.headers.get('etag')||''};
 }
-// The portal manifest is a maintained public download entry, not a complete
-// release history. Never use it to claim the selected channel is up to date.
+// A public download record describes the website's current offering, not every
+// release in a channel. Keep that scope visible, including missing architectures.
 function publishedDownload(data,{currentVersion,platform,arch,preview}){
  if(!data||!version(data.version)||data.tag!=='desktop-v'+data.version||!data.assets||typeof data.assets!=='object'||Array.isArray(data.assets))return null;
  for(const key of Object.keys(data.assets)){
@@ -89,16 +90,22 @@ function publishedDownload(data,{currentVersion,platform,arch,preview}){
  const url=os&&['arm64','x64'].includes(arch)?data.assets[os+'-'+arch]:null;
  const candidate=url&&compare(data.version,currentVersion)>0&&(preview||!version(data.version).pre.length)?{
   version:data.version,tag:data.tag,name:url.slice(url.lastIndexOf('/')+1),downloadUrl:url,releaseUrl:REPO+'/tag/'+data.tag,
-  notes:'此版本来自官网公开下载清单，完整更新说明暂时无法读取。',publishedAt:null,size:null
+  notes:typeof data.notes==='string'?data.notes.slice(0,16000):'此版本来自公开下载清单。',publishedAt:typeof data.publishedAt==='string'?data.publishedAt:null,size:Number.isFinite(data.sizes?.[os+'-'+arch])&&data.sizes[os+'-'+arch]>0?data.sizes[os+'-'+arch]:null
  }:null;
- return {version:data.version,candidate};
+ return {version:data.version,candidate,compatible:!!url&&(preview||!version(data.version).pre.length)};
 }
-async function readManifest(fetchImpl,options){
- const response=await fetchImpl(MANIFEST,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(10000)});
- if(!response.ok)throw publicError('官网公开下载清单暂时无法读取。');
- const data=json(await readText(response));
- if(!publishedDownload(data,options))throw publicError('官网公开下载清单格式异常。');
- return {version:data.version,tag:data.tag,assets:data.assets};
+function networkError(error,label){
+ if(error.publicMessage)return error.publicMessage;
+ if(error.name==='TimeoutError'||error.name==='AbortError')return label+'连接超时，请稍后重试。';
+ return label+'暂时无法连接，请检查网络后重试。';
+}
+async function readManifest(fetchImpl,options,source){
+ const response=await fetchImpl(source==='portal'?PORTAL:MANIFEST,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(10000)});
+ if(!response.ok)throw publicError(`公开下载清单暂时无法读取（HTTP ${response.status}）。`);
+ const body=json(await readText(response)),data=source==='portal'?body?.manifest:body;
+ if(!publishedDownload(data,options))throw publicError('公开下载清单格式异常。');
+ const sizes=source==='portal'?Object.fromEntries(Object.entries(body.verification?.assets??{}).map(([key,value])=>[key,value?.size])):{};
+ return {version:data.version,tag:data.tag,assets:data.assets,notes:source==='portal'&&typeof body.notes==='string'?body.notes.slice(0,16000):undefined,publishedAt:source==='portal'&&Number.isFinite(Date.parse(body.publishedAt))?body.publishedAt:null,sizes};
 }
 async function createUpdateService({directory,currentVersion,platform,arch,fetchImpl=fetch,openExternal,onChange=()=>{},now=Date.now}){
  if(!version(currentVersion))throw new Error('当前应用版本无效');
@@ -108,41 +115,60 @@ async function createUpdateService({directory,currentVersion,platform,arch,fetch
  const time=value=>Number.isFinite(value)&&value>0?value:null;
  let prefs={automatic:typeof saved.automatic==='boolean'?saved.automatic:true,preview:typeof saved.preview==='boolean'?saved.preview:!!version(currentVersion).pre.length};
  let releases=Array.isArray(saved.releases)?saved.releases:[],lastChecked=time(saved.lastChecked),lastAttempt=time(saved.lastAttempt);
- let etag=typeof saved.etag==='string'?saved.etag:'',nextCheckAt=time(saved.nextCheckAt),retryAt=time(saved.retryAt);
+ let etag=typeof saved.etag==='string'?saved.etag:'',retryAt=time(saved.retryAt);
+ // Version 1 applied GitHub's rate limit to every source. A migrated client may
+ // immediately check the website, while still respecting the GitHub deadline.
+ let nextCheckAt=saved.cacheVersion===2?time(saved.nextCheckAt):null;
+ let automaticRetryAt=saved.cacheVersion===2?time(saved.automaticRetryAt):null;
+ let checkedAt=saved.cacheVersion===2?time(saved.checkedAt):null;
+ let coverage=['public','releases'].includes(saved.coverage)?saved.coverage:null;
  let failures=Number.isSafeInteger(saved.failures)?Math.max(0,Math.min(10,saved.failures)):0;
- let manifest=saved.manifest,manifestChecked=time(saved.manifestChecked);
+ let manifest=saved.manifest,manifestChecked=time(saved.manifestChecked),manifestSource=saved.manifestSource==='portal'?'portal':'repository';
  const notified=new Set(Array.isArray(saved.notified)?saved.notified.filter(v=>typeof v==='string').slice(-100):[]);
+ let warning=typeof saved.warning==='string'?saved.warning.slice(0,500):'';
  let checking=false,error=loadError||(typeof saved.error==='string'?saved.error.slice(0,500):''),pending=null,queue=Promise.resolve(),startTimer,timer,closed=false;
  const options=()=>({currentVersion,platform,arch,preview:prefs.preview});
  const fallback=()=>publishedDownload(manifest,options());
- const latest=()=>[selectRelease(releases,options()),error?fallback()?.candidate:null].filter(Boolean).sort((a,b)=>compare(b.version,a.version))[0]??null;
- const snapshot=()=>({currentVersion,platform,arch,...prefs,checking,lastChecked,latest:latest(),error,nextCheckAt,retryAt,publicVersion:error&&manifestChecked?fallback()?.version??null:null,publicChecked:error&&fallback()?manifestChecked:null});
+ const latest=()=>[selectRelease(releases,options()),fallback()?.candidate].filter(Boolean).sort((a,b)=>compare(b.version,a.version))[0]??null;
+ const snapshot=()=>({currentVersion,platform,arch,...prefs,checking,lastChecked,checkedAt,coverage,warning,latest:latest(),error,nextCheckAt,retryAt,publicVersion:manifestChecked?fallback()?.version??null:null,publicChecked:fallback()?manifestChecked:null,publicSource:manifestSource,publicRelation:fallback()?compare(currentVersion,fallback().version):null,publicCompatible:fallback()?.compatible??false});
  const emit=()=>{if(!closed)onChange(snapshot());};
  const locked=fn=>{const next=queue.then(fn);queue=next.catch(()=>{});return next;};
  async function persist(){
   await fs.mkdir(directory,{recursive:true});const temp=file+'.'+randomUUID()+'.tmp';
-  try{await fs.writeFile(temp,JSON.stringify({...prefs,lastChecked,lastAttempt,nextCheckAt,retryAt,failures,etag,error,manifest,manifestChecked,notified:[...notified].slice(-100),releases},null,2)+'\n',{mode:0o600});await fs.rename(temp,file);}finally{await fs.rm(temp,{force:true});}
+  try{await fs.writeFile(temp,JSON.stringify({cacheVersion:2,...prefs,lastChecked,lastAttempt,checkedAt,coverage,warning,nextCheckAt,automaticRetryAt,retryAt,failures,etag,error,manifest,manifestChecked,manifestSource,notified:[...notified].slice(-100),releases},null,2)+'\n',{mode:0o600});await fs.rename(temp,file);}finally{await fs.rm(temp,{force:true});}
  }
  async function check(){
   if(pending)return pending;
-  // Shared by manual checks, channel toggles and startup; persists across relaunch.
   if(nextCheckAt&&now()<nextCheckAt)return snapshot();
   checking=true;lastAttempt=now();emit();
   pending=(async()=>{
+   let publicOk=false,fullOk=false,publicFailure='',releaseFailure='';
+   warning='';
    try{
-    const fetched=await readReleases(fetchImpl,{etag,cached:lastChecked!==null,now});
-    await locked(async()=>{
-     const before={releases,lastChecked,etag,nextCheckAt,retryAt,failures,error};
-     if(!fetched.unchanged)releases=fetched.releases.filter(r=>r?.draft===false&&typeof r.tag_name==='string'&&r.tag_name.startsWith('desktop-v')).map(r=>({draft:false,prerelease:!!r.prerelease,tag_name:r.tag_name,html_url:r.html_url,body:typeof r.body==='string'?r.body.slice(0,16000):'',published_at:r.published_at,assets:Array.isArray(r.assets)?r.assets.map(a=>({name:a?.name,state:a?.state,size:a?.size,browser_download_url:a?.browser_download_url})):[]}));
-     lastChecked=now();etag=fetched.etag;nextCheckAt=now()+CACHE_TIME;retryAt=null;failures=0;error='';
-     try{await persist();}catch(e){({releases,lastChecked,etag,nextCheckAt,retryAt,failures,error}=before);throw e;}
-    });
-   }catch(e){
-    error=e.name==='TimeoutError'||e.name==='AbortError'?'检查超时，请确认网络后重试。':e.publicMessage||'暂时无法检查更新，请确认网络和本机存储权限后重试。';
-    failures=Math.min(failures+1,10);retryAt=e.retryAt??null;
-    nextCheckAt=Math.max(retryAt||0,now()+Math.min(60000*2**(failures-1),60*60*1000));
-    try{manifest=await readManifest(fetchImpl,options());manifestChecked=now();}catch{/* Keep a dated fallback; it never replaces a full successful check. */}
-    try{await locked(persist);}catch{error+=' 本机更新缓存未能保存。';}
+    // The portal is independently published and has no anonymous GitHub quota.
+    for(const source of ['portal','repository']){
+     try{
+      manifest=await readManifest(fetchImpl,options(),source);manifestChecked=now();manifestSource=source;publicOk=true;
+      if(source==='repository')warning='官网暂时无法连接，已核对发布仓库的下载清单。';
+      break;
+     }catch(e){publicFailure=networkError(e,source==='portal'?'官网更新服务':'发布仓库');}
+    }
+    if(!publicOk||!fallback()?.compatible){
+     if(retryAt&&now()<retryAt)releaseFailure='GitHub 公开版本接口暂时限流，将按服务端要求等待后再检查。';
+     else try{
+      const fetched=await readReleases(fetchImpl,{etag,cached:lastChecked!==null,now});
+      if(!fetched.unchanged)releases=fetched.releases.filter(r=>r?.draft===false&&typeof r.tag_name==='string'&&r.tag_name.startsWith('desktop-v')).map(r=>({draft:false,prerelease:!!r.prerelease,tag_name:r.tag_name,html_url:r.html_url,body:typeof r.body==='string'?r.body.slice(0,16000):'',published_at:r.published_at,assets:Array.isArray(r.assets)?r.assets.map(a=>({name:a?.name,state:a?.state,size:a?.size,browser_download_url:a?.browser_download_url})):[]}));
+      lastChecked=now();etag=fetched.etag;retryAt=null;fullOk=true;
+     }catch(e){retryAt=e.retryAt??null;releaseFailure=networkError(e,'GitHub 版本服务');}
+    }
+    if(fullOk||(publicOk&&fallback()?.compatible)){
+     checkedAt=now();coverage=fullOk?'releases':'public';failures=0;error='';nextCheckAt=now()+CACHE_TIME;automaticRetryAt=null;
+    }else{
+     error=(publicOk?'官网当前下载记录未提供所选渠道或本机架构的安装包。':publicFailure+' ')+releaseFailure;
+     failures=Math.min(failures+1,10);nextCheckAt=now()+60000;
+     automaticRetryAt=now()+Math.min(60000*2**(failures-1),60*60*1000);
+    }
+    try{await locked(persist);}catch{warning+=(warning?' ':'')+'本次结果可查看，但本机更新缓存未能保存，请检查存储权限。';}
    }finally{checking=false;pending=null;emit();}
    return snapshot();
   })();return pending;
@@ -151,14 +177,14 @@ async function createUpdateService({directory,currentVersion,platform,arch,fetch
   state:async()=>snapshot(),check,
   preferences:patch=>locked(async()=>{
    if(!patch||typeof patch!=='object'||Array.isArray(patch)||Object.keys(patch).some(k=>!['automatic','preview'].includes(k)||typeof patch[k]!=='boolean'))throw new Error('更新设置无效');
-   const before=prefs;prefs={...prefs,...patch};try{await persist();}catch(e){prefs=before;throw e;}emit();return snapshot();
+   const before={prefs,nextCheckAt,checkedAt,coverage};const changed=typeof patch.preview==='boolean'&&patch.preview!==prefs.preview;prefs={...prefs,...patch};if(changed){nextCheckAt=null;checkedAt=null;coverage=null;}try{await persist();}catch(e){({prefs,nextCheckAt,checkedAt,coverage}=before);throw e;}emit();return snapshot();
   }),
   claimNotice:tag=>locked(async()=>{
    if(!prefs.automatic||latest()?.tag!==tag||notified.has(tag))return false;
    notified.add(tag);try{await persist();}catch(e){notified.delete(tag);throw e;}return true;
   }),
   openDownload:async tag=>{const release=latest();if(!release||release.tag!==tag)throw new Error('版本信息已变化，请重新检查更新。');await openExternal(release.downloadUrl);return true;},
-  start(){if(startTimer||timer)return;const tick=()=>{if(prefs.automatic&&!closed&&(!lastAttempt||now()-lastAttempt>=INTERVAL)&&(!lastChecked||now()-lastChecked>=INTERVAL))void check();};startTimer=setTimeout(tick,15000);startTimer.unref?.();timer=setInterval(tick,60000);timer.unref?.();},
+  start(){if(startTimer||timer)return;const tick=()=>{const due=error?(automaticRetryAt??nextCheckAt??0):(checkedAt?checkedAt+INTERVAL:0);if(prefs.automatic&&!closed&&now()>=due)void check();};startTimer=setTimeout(tick,15000);startTimer.unref?.();timer=setInterval(tick,60000);timer.unref?.();},
   close(){closed=true;clearTimeout(startTimer);clearInterval(timer);},
  };
 }

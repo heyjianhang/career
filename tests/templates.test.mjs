@@ -19,9 +19,10 @@ test('short factual and dated sections use rows without rewriting supplied conte
   const original=structuredClone(resume);
   for(const t of selected){
     const markup=renderTemplate(t.id,{resume,assets:{},synthetic:true});
-    assert.match(markup,/data-layout="facts" data-keep-together="true"/);
-    assert.match(markup,/data-layout="dated" data-keep-together="true"/);
+    assert.match(markup,/data-layout="facts"/);
+    assert.match(markup,/data-layout="dated"/);
     assert.equal((markup.match(/class="design-item design-fact"/g)||[]).length,8);
+    assert.ok(!markup.includes('data-keep-together'),'fact rows may break between entries');
     for(const s of resume.sections)for(const i of s.items)for(const text of [i.title,i.period,...i.paragraphs].filter(Boolean))assert.ok(markup.includes(escape(text)));
   }
   assert.deepEqual(resume,original);

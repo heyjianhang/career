@@ -33,97 +33,97 @@ test('release channels and exact architecture use only public uploaded desktop i
  for(const mutate of [r=>r.assets[0].browser_download_url='https://evil.example/app.dmg',r=>r.html_url='https://evil.example/',r=>r.assets[0].state='new',r=>r.assets[0].size=0]){const r=release('0.4.0');mutate(r);assert.equal(selectRelease([r],options),null);}
  assert.equal(selectRelease(all,{...options,platform:'linux'}),null);
 });
-test('checking is deduplicated; preview selection, settings and notice receipt persist across restarts',async t=>{
- let calls=0,resolve;const gate=new Promise(r=>resolve=r),opened=[];
- const config=await setup(t,{fetchImpl:async()=>{calls++;await gate;return response([release('0.3.0-alpha.10')]);},openExternal:async url=>opened.push(url)});
- const svc=await createUpdateService(config);assert.equal((await svc.state()).preview,true);
- const first=svc.check(),second=svc.check();assert.equal((await svc.state()).checking,true);resolve();await Promise.all([first,second]);assert.equal(calls,1);
- const latest=(await svc.state()).latest;assert.equal(latest.version,'0.3.0-alpha.10');
- await svc.openDownload(latest.tag);assert.equal(opened[0],latest.downloadUrl);
- await assert.rejects(svc.openDownload('desktop-v0.4.0'),/已变化/);
- assert.deepEqual(await Promise.all([svc.claimNotice(latest.tag),svc.claimNotice(latest.tag)]),[true,false]);
- await svc.preferences({automatic:false,preview:false});assert.equal((await svc.state()).latest,null);
- const restored=await createUpdateService(config);assert.equal((await restored.state()).automatic,false);assert.equal((await restored.state()).preview,false);
- await restored.preferences({automatic:true,preview:true});assert.equal((await restored.state()).latest.tag,latest.tag);assert.equal(await restored.claimNotice(latest.tag),false);
- assert.equal(JSON.parse(await readFile(path.join(config.directory,'updates.json'),'utf8')).notified.length,1);
- await assert.rejects(restored.preferences({automatic:'true'}),/无效/);await assert.rejects(restored.preferences({url:'https://evil.example'}),/无效/);
-});
-test('a failed or rate-limited check preserves the last successful release and never reports current',async t=>{
- let mode='ok',clock=Date.now();const config=await setup(t,{now:()=>clock,fetchImpl:async()=>mode==='ok'?response([release('0.3.0-alpha.9')]):mode==='limit'?new Response('',{status:403,headers:{'x-ratelimit-remaining':'0'}}):Promise.reject(new TypeError('fetch failed'))});
- const svc=await createUpdateService(config);const first=await svc.check();mode='limit';clock+=300001;const second=await svc.check();assert.match(second.error,/限流/);assert.equal(second.latest.tag,first.latest.tag);assert.equal(second.lastChecked,first.lastChecked);
- mode='offline';clock=second.nextCheckAt+1;const third=await svc.check();assert.match(third.error,/无法检查/);assert.equal(third.checking,false);
-});
-test('channel changes during an in-flight request cannot leak a preview update into stable',async t=>{
- let resolve;const gate=new Promise(r=>resolve=r);const svc=await createUpdateService(await setup(t,{fetchImpl:async()=>{await gate;return response([release('0.4.0-beta.1')]);}}));
- const checking=svc.check();await svc.preferences({preview:false});resolve();const result=await checking;assert.equal(result.latest,null);assert.equal(result.preview,false);
-});
-test('invalid remote responses fail closed, while empty public releases are a successful check',async t=>{
- let payload={bad:true},clock=Date.now();const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async()=>response(payload)}));
- assert.match((await svc.check()).error,/格式/);payload=[];clock+=60001;const result=await svc.check();assert.equal(result.error,'');assert.equal(result.latest,null);assert.ok(result.lastChecked);
- const big=await createUpdateService(await setup(t,{fetchImpl:async()=>new Response('[]',{headers:{'content-length':String(5*1024*1024)}})}));assert.match((await big.check()).error,/过大/);
-});
-test('stable builds default to stable, automatic-off suppresses notices, and startup does not check immediately',async t=>{
- let calls=0;const svc=await createUpdateService(await setup(t,{currentVersion:'0.3.0',fetchImpl:async()=>{calls++;return response([release('0.4.0')]);}}));
- assert.equal((await svc.state()).preview,false);svc.start();svc.start();svc.close();assert.equal(calls,0);
- await svc.check();await svc.preferences({automatic:false});assert.equal(await svc.claimNotice('desktop-v0.4.0'),false);
-});
-test('a corrupt preference file does not block app startup or silently re-enable automatic checks',async t=>{
- const config=await setup(t,{fetchImpl:async()=>response([])});await writeFile(path.join(config.directory,'updates.json'),'{broken');
- const svc=await createUpdateService(config);assert.equal((await svc.state()).automatic,false);assert.match((await svc.state()).error,/设置/);
- assert.equal((await svc.check()).error,'');
-});
+const portal='https://career.heyjianhang.top/api/downloads';
+const api='https://api.github.com/repos/heyjianhang/career/releases?per_page=100';
+const managed=v=>({manifest:staticManifest(v),notes:'公开更新说明',publishedAt:'2026-10-18T10:14:12Z',verification:{assets:{'mac-arm64':{size:123456}}}});
+const unavailable=()=>new Response('',{status:503});
+const apiOnly=fn=>(url,opts)=>url===api?fn(url,opts):unavailable();
+// Join the already running check instead of guessing how many event-loop ticks
+// filesystem persistence needs on a busy native runner. No new check when idle.
+async function settled(svc){if((await svc.state()).checking)await svc.check();assert.equal((await svc.state()).checking,false);}
 
-test('successful responses are reused for five minutes and conditionally revalidated with ETag',async t=>{
- let clock=Date.now(),calls=0;
- const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async(url,options)=>{
-  calls++;assert.equal(isManifest(url),false);
-  if(calls===1)return new Response(JSON.stringify([release('0.4.0')]),{headers:{etag:'"release-1"'}});
-  assert.equal(options.headers['If-None-Match'],'"release-1"');return new Response(null,{status:304});
- }}));
- const first=await svc.check();await svc.check();await svc.preferences({preview:false});await svc.check();assert.equal(calls,1);
- clock+=300001;const next=await svc.check();assert.equal(calls,2);assert.equal(next.latest.tag,first.latest.tag);assert.equal(next.error,'');assert.ok(next.lastChecked>first.lastChecked);
+test('portal is the primary public source; concurrent checks deduplicate and preserve release details',async t=>{
+ let calls=0,resolve;const gate=new Promise(r=>resolve=r),opened=[];
+ const config=await setup(t,{fetchImpl:async url=>{calls++;assert.equal(url,portal);await gate;return response(managed('0.3.0-alpha.10'));},openExternal:async url=>opened.push(url)});
+ const svc=await createUpdateService(config),first=svc.check(),second=svc.check();assert.equal((await svc.state()).checking,true);resolve();await Promise.all([first,second]);assert.equal(calls,1);
+ const state=await svc.state();assert.equal(state.coverage,'public');assert.equal(state.error,'');assert.equal(state.publicSource,'portal');assert.equal(state.publicRelation,-1);assert.equal(state.latest.notes,'公开更新说明');assert.equal(state.latest.size,123456);assert.equal(state.lastChecked,null);
+ await svc.openDownload(state.latest.tag);assert.equal(opened[0],state.latest.downloadUrl);await assert.rejects(svc.openDownload('desktop-v9.0.0'),/已变化/);
+ assert.deepEqual(await Promise.all([svc.claimNotice(state.latest.tag),svc.claimNotice(state.latest.tag)]),[true,false]);
+ const restored=await createUpdateService(config);assert.equal((await restored.state()).latest.version,'0.3.0-alpha.10');assert.equal(await restored.claimNotice(state.latest.tag),false);
+ await restored.preferences({automatic:false});assert.equal((await restored.state()).automatic,false);await assert.rejects(restored.preferences({automatic:'true'}),/无效/);
 });
-test('rate reset deadline survives restart and channel toggles without extra network calls',async t=>{
- let clock=Date.now(),calls=0;const reset=Math.ceil(clock/1000)+3600;
- const config=await setup(t,{now:()=>clock,fetchImpl:async url=>{
-  calls++;if(isManifest(url))return response(staticManifest('0.3.0-alpha.1'));
-  return new Response('',{status:403,headers:{'x-ratelimit-remaining':'0','x-ratelimit-reset':String(reset)}});
- }});
- const svc=await createUpdateService(config),first=await svc.check();assert.equal(first.retryAt,reset*1000+1000);assert.equal(first.lastChecked,null);assert.equal(first.publicVersion,'0.3.0-alpha.1');assert.equal(first.latest,null);
- const restarted=await createUpdateService(config);await restarted.preferences({preview:false});await restarted.check();await svc.check();assert.equal(calls,2);
- assert.match((await restarted.state()).error,/限流/);clock=first.retryAt+1;await restarted.check();assert.equal(calls,4);
-});
-test('Retry-After seconds and HTTP dates are respected; other 403 responses are not called rate limits',async t=>{
- for(const value of ['300',new Date(Date.now()+300000).toUTCString()]){
-  const clock=Date.now();const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async url=>isManifest(url)?response(staticManifest('0.3.0-alpha.1')):new Response('',{status:429,headers:{'retry-after':value}})}));
-  const state=await svc.check();assert.ok(state.retryAt>=clock+298000);assert.match(state.error,/限流/);
+test('matching and older public versions complete a scoped check without offering a downgrade',async t=>{
+ for(const v of ['0.3.0-alpha.8','0.3.0-alpha.1']){
+  const svc=await createUpdateService(await setup(t,{fetchImpl:async()=>response(managed(v))}));const s=await svc.check();assert.equal(s.latest,null);assert.equal(s.error,'');assert.equal(s.coverage,'public');assert.ok(s.checkedAt);assert.equal(s.publicRelation,v===options.currentVersion?0:1);
  }
- const svc=await createUpdateService(await setup(t,{fetchImpl:async()=>new Response('Forbidden',{status:403})}));const state=await svc.check();assert.match(state.error,/HTTP 403/);assert.doesNotMatch(state.error,/限流/);assert.equal(state.retryAt,null);
 });
-test('public manifest fallback offers only the exact published architecture and preserves channel selection',async t=>{
- const opened=[];const config=await setup(t,{fetchImpl:async url=>isManifest(url)?response(staticManifest('0.4.0-beta.1')):new Response('',{status:429}),openExternal:async url=>opened.push(url)});
- const svc=await createUpdateService(config);const state=await svc.check();assert.equal(state.lastChecked,null);assert.equal(state.latest.version,'0.4.0-beta.1');assert.equal(state.latest.size,null);assert.match(state.error,/限流/);
- await svc.openDownload(state.latest.tag);assert.match(opened[0],/mac-arm64\.dmg$/);
- await svc.preferences({preview:false});assert.equal((await svc.state()).latest,null);assert.equal((await svc.state()).publicVersion,'0.4.0-beta.1');
- const missing=staticManifest('0.4.0');missing.assets['mac-arm64']=null;assert.equal(publishedDownload(missing,options).candidate,null);
- for(const [platform,arch,suffix] of [['darwin','arm64','mac-arm64.dmg'],['darwin','x64','mac-x64.dmg'],['win32','arm64','win-arm64.exe'],['win32','x64','win-x64.exe']])assert.ok(publishedDownload(staticManifest('0.4.0'),{...options,platform,arch}).candidate.name.endsWith(suffix));
+test('repository snapshot is a validated fallback when the portal is unavailable',async t=>{
+ const calls=[];const svc=await createUpdateService(await setup(t,{fetchImpl:async url=>{calls.push(url);return isManifest(url)?response(staticManifest('0.4.0')):unavailable();}}));
+ const s=await svc.check();assert.equal(calls.length,2);assert.equal(s.error,'');assert.equal(s.publicSource,'repository');assert.match(s.warning,/官网/);assert.equal(s.latest.size,null);
 });
-test('fallback never erases a newer full-list release or the last complete check',async t=>{
- let clock=Date.now(),offline=false;
- const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async url=>isManifest(url)?response(staticManifest('0.4.0')):offline?new Response('',{status:429}):response([release('0.5.0')])}));
- const first=await svc.check();clock+=300001;offline=true;const next=await svc.check();assert.equal(next.latest.version,'0.5.0');assert.equal(next.lastChecked,first.lastChecked);assert.equal(next.publicVersion,'0.4.0');
+test('missing architecture and excluded preview channel query release history for a usable installer',async t=>{
+ for(const excluded of ['architecture','channel']){
+  const data=managed('0.4.0-beta.1');if(excluded==='architecture')data.manifest.assets['mac-arm64']=null;
+  const svc=await createUpdateService(await setup(t,{fetchImpl:async url=>url===portal?response(data):response([release('0.3.0')])}));
+  if(excluded==='channel')await svc.preferences({preview:false});const s=await svc.check();assert.equal(s.coverage,'releases');assert.equal(s.latest.version,'0.3.0');assert.equal(s.publicCompatible,false);assert.equal(s.error,'');
+ }
 });
-test('invalid or redirected manifest links fail closed and cannot add a download',async t=>{
+test('changing preview selection while fetching cannot expose an excluded preview',async t=>{
+ let resolve;const gate=new Promise(r=>resolve=r);const svc=await createUpdateService(await setup(t,{fetchImpl:async url=>{if(url===portal){await gate;return response(managed('0.4.0-beta.1'));}return response([release('0.3.0')]);}}));
+ const pending=svc.check();await svc.preferences({preview:false});resolve();const s=await pending;assert.equal(s.preview,false);assert.equal(s.latest.version,'0.3.0');
+});
+test('successful checks reuse five-minute cache; a changed channel invalidates public coverage',async t=>{
+ let clock=Date.now(),calls=0;const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async url=>{calls++;return url===portal?response(managed('0.4.0-beta.1')):response([release('0.3.0')]);}}));
+ await svc.check();await svc.check();await svc.preferences({preview:true});await svc.check();assert.equal(calls,1);
+ clock+=300001;await svc.check();assert.equal(calls,2);await svc.preferences({preview:false});assert.equal((await svc.state()).coverage,null);await svc.check();assert.equal(calls,4);assert.equal((await svc.state()).latest.version,'0.3.0');
+});
+test('GitHub fallback uses ETag revalidation and accepts an empty public history',async t=>{
+ let clock=Date.now(),calls=0;const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:apiOnly(async(url,opts)=>{calls++;if(calls===1)return new Response('[]',{headers:{etag:'"v1"'}});assert.equal(opts.headers['If-None-Match'],'"v1"');return new Response(null,{status:304});})}));
+ const first=await svc.check();assert.equal(first.error,'');assert.equal(first.coverage,'releases');clock+=300001;const second=await svc.check();assert.equal(calls,2);assert.ok(second.lastChecked>first.lastChecked);assert.equal(second.latest,null);
+});
+test('GitHub rate limits persist but do not prevent checking the independent website',async t=>{
+ let clock=Date.now(),available=false;const reset=Math.ceil(clock/1000)+3600,calls=[];
+ const config=await setup(t,{now:()=>clock,fetchImpl:async url=>{calls.push(url);if(url===portal&&available)return response(managed('0.4.0'));if(url===api)return new Response('',{status:403,headers:{'x-ratelimit-remaining':'0','x-ratelimit-reset':String(reset)}});return unavailable();}});
+ const first=await (await createUpdateService(config)).check();assert.match(first.error,/限流/);assert.equal(first.retryAt,reset*1000+1000);assert.equal(first.nextCheckAt,clock+60000);
+ const restarted=await createUpdateService(config);await restarted.check();assert.equal(calls.length,3);clock+=60001;available=true;const s=await restarted.check();assert.equal(s.error,'');assert.equal(s.latest.version,'0.4.0');assert.equal(calls.filter(x=>x===api).length,1);
+});
+test('rate deadlines respect Retry-After seconds and dates; ordinary 403 stays an HTTP error',async t=>{
+ for(const value of ['300',new Date(Date.now()+300000).toUTCString()]){const clock=Date.now();const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:apiOnly(async()=>new Response('',{status:429,headers:{'retry-after':value}}))}));const s=await svc.check();assert.ok(s.retryAt>=clock+298000);assert.match(s.error,/限流/);}
+ const svc=await createUpdateService(await setup(t,{fetchImpl:apiOnly(async()=>new Response('Forbidden',{status:403}))}));const s=await svc.check();assert.match(s.error,/HTTP 403/);assert.doesNotMatch(s.error,/限流/);assert.equal(s.retryAt,null);
+});
+test('legacy global cooldown migrates without blocking portal checks or discarding preferences',async t=>{
+ const clock=Date.now(),config=await setup(t,{now:()=>clock,fetchImpl:async url=>{assert.equal(url,portal);return response(managed('0.4.0'));}});
+ await writeFile(path.join(config.directory,'updates.json'),JSON.stringify({automatic:false,preview:true,nextCheckAt:clock+3600000,retryAt:clock+3600000,error:'旧版限流',manifest:staticManifest('0.3.0-alpha.1'),manifestChecked:clock-900000}));
+ const svc=await createUpdateService(config);assert.equal((await svc.state()).nextCheckAt,null);const s=await svc.check();assert.equal(s.automatic,false);assert.equal(s.publicVersion,'0.4.0');assert.equal(s.error,'');assert.equal(s.retryAt,clock+3600000);
+});
+test('offline results keep dated downloads and higher known releases without claiming a fresh check',async t=>{
+ let clock=Date.now(),mode='release';const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async url=>{if(mode==='offline')throw new TypeError('offline');if(mode==='release')return url===api?response([release('0.5.0')]):unavailable();return url===portal?response(managed('0.4.0')):unavailable();}}));
+ const first=await svc.check();mode='portal';clock+=300001;const next=await svc.check();assert.equal(next.latest.version,'0.5.0');assert.equal(next.lastChecked,first.lastChecked);mode='offline';clock+=300001;const failed=await svc.check();assert.match(failed.error,/连接/);assert.doesNotMatch(failed.error,/存储/);assert.equal(failed.checkedAt,next.checkedAt);assert.equal(failed.publicChecked,next.publicChecked);assert.equal(failed.latest.version,'0.5.0');
+});
+test('invalid public manifests and nonofficial download links fail closed',async t=>{
  for(const modify of [d=>d.tag='desktop-v9.0.0',d=>d.assets['mac-arm64']='https://evil.example/app.dmg',d=>d.assets['mac-arm64']+='?redirect=evil',d=>d.assets.bad='https://evil.example',d=>d.version='nonsense']){
   const data=staticManifest('0.4.0');modify(data);assert.equal(publishedDownload(data,options),null);
-  const svc=await createUpdateService(await setup(t,{fetchImpl:async url=>isManifest(url)?response(data):new Response('',{status:429})}));
-  const result=await svc.check();assert.equal(result.latest,null);assert.equal(result.publicVersion,null);assert.equal(result.lastChecked,null);
+  const svc=await createUpdateService(await setup(t,{fetchImpl:async url=>url===api?unavailable():response(url===portal?{manifest:data}:data)}));const s=await svc.check();assert.equal(s.latest,null);assert.equal(s.publicVersion,null);assert.equal(s.checkedAt,null);
  }
 });
-test('offline attempts back off exponentially and retain explicitly dated fallback data',async t=>{
- let clock=Date.now(),calls=0,offline=false;
- const config=await setup(t,{now:()=>clock,fetchImpl:async url=>{calls++;if(isManifest(url)&&!offline)return response(staticManifest('0.4.0'));throw new TypeError('offline');}});
- const svc=await createUpdateService(config);const first=await svc.check();assert.equal(first.nextCheckAt-clock,60000);assert.equal(calls,2);
- await svc.check();assert.equal(calls,2);offline=true;clock=first.nextCheckAt+1;const second=await svc.check();assert.equal(second.nextCheckAt-clock,120000);assert.equal(second.publicChecked,first.publicChecked);assert.equal(second.latest.version,'0.4.0');
- const restored=await createUpdateService(config);await restored.check();assert.equal(calls,4);assert.equal((await restored.state()).publicChecked,first.publicChecked);
+test('malformed, oversized and unknown responses never report a successful check',async t=>{
+ for(const fetchImpl of [async()=>response({bad:true}),async()=>new Response('not json'),async()=>new Response('[]',{headers:{'content-length':String(5*1024*1024)}})]){const s=await (await createUpdateService(await setup(t,{fetchImpl}))).check();assert.ok(s.error);assert.equal(s.checkedAt,null);assert.equal(s.latest,null);}
+});
+test('corrupt settings pause automatic checks; a successful manual check recovers',async t=>{
+ const config=await setup(t,{fetchImpl:async()=>response(managed('0.4.0'))});await writeFile(path.join(config.directory,'updates.json'),'{broken');const svc=await createUpdateService(config);assert.equal((await svc.state()).automatic,false);assert.match((await svc.state()).error,/设置/);const s=await svc.check();assert.equal(s.error,'');assert.equal(s.automatic,false);
+});
+test('cache write errors are separate from successful network checks and do not remove downloadable updates',async t=>{
+ const config=await setup(t,{fetchImpl:async()=>response(managed('0.4.0'))});const svc=await createUpdateService(config);await rm(config.directory,{recursive:true});await writeFile(config.directory,'not a directory');const s=await svc.check();assert.equal(s.error,'');assert.match(s.warning,/缓存未能保存/);assert.equal(s.latest.version,'0.4.0');assert.ok(s.checkedAt);
+});
+test('automatic failures retry after backoff, not six hours; manual checks retain a short retry window',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});let clock=Date.now(),calls=0,online=false;
+ const svc=await createUpdateService(await setup(t,{now:()=>clock,fetchImpl:async url=>{calls++;if(online&&url===portal)return response(managed('0.4.0'));throw new TypeError('offline');}}));t.after(()=>svc.close());
+ svc.start();svc.start();assert.equal(calls,0);clock+=15000;t.mock.timers.tick(15000);await settled(svc);assert.equal(calls,3);
+ clock+=45000;t.mock.timers.tick(45000);assert.equal(calls,3);clock+=60000;t.mock.timers.tick(60000);await settled(svc);assert.equal(calls,6);
+ const failed=await svc.state();assert.equal(failed.nextCheckAt,clock+60000);clock+=60001;await svc.check();assert.equal(calls,9);
+ online=true;clock+=240000;t.mock.timers.tick(300000);await settled(svc);assert.equal((await svc.state()).error,'');assert.equal(calls,10);
+ clock+=60000;t.mock.timers.tick(60000);assert.equal(calls,10);
+});
+test('automatic-off makes no startup requests, and stable builds default to stable selection',async t=>{
+ t.mock.timers.enable({apis:['setTimeout','setInterval']});let calls=0;const svc=await createUpdateService(await setup(t,{currentVersion:'0.3.0',fetchImpl:async()=>{calls++;return response(managed('0.4.0'));}}));t.after(()=>svc.close());assert.equal((await svc.state()).preview,false);await svc.preferences({automatic:false});svc.start();t.mock.timers.tick(21600000);assert.equal(calls,0);await svc.check();assert.equal(await svc.claimNotice('desktop-v0.4.0'),false);
 });

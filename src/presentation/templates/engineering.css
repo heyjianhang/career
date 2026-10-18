@@ -41,7 +41,5 @@
 
 [data-template="engineering"] .eng-fact-wide{grid-column:1/-1}
 
-/* Only short final pairs are kept together, measured after fonts load. */
-[data-template="engineering"] [data-flow-keep]{break-inside:avoid}
 [data-template="engineering"] .eng-item[data-split-from]{border-top:0;padding-top:0}
 [data-template="engineering"] .eng-item[data-split-from]:not(:has(.eng-lead))::before{content:attr(data-entry-title) "（续）"!important;display:block;font-size:8.5pt;line-height:1.5;color:var(--eng-muted);margin-bottom:2mm}

@@ -1,7 +1,7 @@
 // Shared by every workbench view and the desktop welcome screen. No workspace data.
 export {};
 type UpdateRelease={version:string;tag:string;name:string;notes:string;size:number|null};
-type UpdateState={currentVersion:string;platform:string;arch:string;automatic:boolean;preview:boolean;checking:boolean;lastChecked:number|null;latest:UpdateRelease|null;error:string;nextCheckAt:number|null;retryAt:number|null;publicVersion:string|null;publicChecked:number|null};
+type UpdateState={currentVersion:string;platform:string;arch:string;automatic:boolean;preview:boolean;checking:boolean;lastChecked:number|null;latest:UpdateRelease|null;error:string;nextCheckAt:number|null;retryAt:number|null;publicVersion:string|null;publicChecked:number|null;checkedAt:number|null;coverage:'public'|'releases'|null;warning:string;publicSource:'portal'|'repository';publicCompatible:boolean;publicRelation:number|null};
 type UpdatesBridge={updatesState:()=>Promise<UpdateState>;updatesCheck:()=>Promise<UpdateState>;updatesPreferences:(value:Partial<Pick<UpdateState,'automatic'|'preview'>>)=>Promise<UpdateState>;updatesClaimNotice:(tag:string)=>Promise<boolean>;updatesOpenDownload:(tag:string)=>Promise<boolean>;onUpdates:(fn:(state:UpdateState)=>void)=>()=>void};
 declare global {interface Window {careerUpdatesUI?:{mount:(element:HTMLElement)=>void;connect:(trigger:HTMLElement,onOpen:()=>void)=>void;openStandalone:()=>void};}}
 (()=>{
@@ -20,14 +20,18 @@ declare global {interface Window {careerUpdatesUI?:{mount:(element:HTMLElement)=
   const s=current,r=s.latest,disabled=busy||s.checking?'disabled':'',cooling=!!s.nextCheckAt&&s.nextCheckAt>Date.now();
   if(cooling)refreshTimer=setTimeout(render,Math.min(s.nextCheckAt!-Date.now()+50,60000));
   const date=(value:number)=>new Date(value).toLocaleString('zh-CN',{hour12:false});
+  const publicLabel=s.publicSource==='portal'?'官网公开版':'仓库公开版';
+  const title=s.checking?'正在检查更新…':r?(s.error?'已知可下载版本 v':'发现新版本 v')+escape(r.version):s.error?'本次检查未完成':s.coverage==='public'&&s.checkedAt?(s.publicRelation===0?'本机已与公开下载版本一致':(s.publicRelation??0)>0?'本机版本高于公开下载版本':'已核对公开下载版本'):s.coverage==='releases'&&s.checkedAt?'当前渠道暂无可用更新':'检查是否有新版本';
   host.classList.add('career-updates');
   host.innerHTML=`<div class="updates-heading"><div><h3>关于与更新</h3><p>career · 个人求职工作台</p></div><span class="updates-version">v${escape(s.currentVersion)}</span></div>
    <p class="updates-platform">${escape(readable(s))}</p>
-   <section class="updates-status" aria-label="版本状态"><div class="updates-status-line"><strong>${s.checking?'正在检查更新…':r?'发现新版本 v'+escape(r.version):s.publicVersion?'已核对官网公开下载版本':s.error?'暂时无法检查更新':s.lastChecked?'当前渠道暂无可用更新':'检查是否有新版本'}</strong><button type="button" data-update-action="check" ${disabled|| (cooling?'disabled':'')}>${s.checking?'检查中…':cooling?(s.error?'稍后重试':'已检查'):'检查更新'}</button></div>
-   ${s.publicVersion?`<p class="updates-public">本机 v${escape(s.currentVersion)} · 官网公开版 v${escape(s.publicVersion)}</p><p class="updates-muted">下载清单核对时间：${escape(date(s.publicChecked!))}。该清单仅代表官网当前公开下载，完整发布列表暂不可用。</p>`:''}
-   <p class="updates-muted">${s.lastChecked?'上次完整检查：'+escape(date(s.lastChecked)):'从 GitHub 公开发布中检查适合这台电脑的安装包。'}</p>
+   <section class="updates-status" aria-label="版本状态"><div class="updates-status-line"><strong>${title}</strong><button type="button" data-update-action="check" ${disabled|| (cooling?'disabled':'')}>${s.checking?'检查中…':cooling?(s.error?'稍后重试':'已检查'):'检查更新'}</button></div>
+   ${s.publicVersion?`<p class="updates-public">本机 v${escape(s.currentVersion)} · ${publicLabel} v${escape(s.publicVersion)}</p><p class="updates-muted">${s.error?'保留的下载记录':'下载记录核对时间'}：${escape(date(s.publicChecked!))}。该记录代表公开下载入口，不代表所有发布渠道。${!s.publicCompatible?' 当前记录不适用于所选渠道或本机架构。':''}</p>`:''}
+   ${s.coverage==='releases'&&s.checkedAt?`<p class="updates-muted">发布列表核对时间：${escape(date(s.checkedAt))}</p>`:!s.publicVersion?'<p class="updates-muted">优先检查官网公开版本，必要时查询发布仓库；自动匹配这台电脑的安装包。</p>':''}
    ${s.error?`<p class="updates-error" role="alert">${escape(s.error)}${r?' 下方仍可下载已知的公开版本。':''}</p>`:''}
-   ${cooling?`<p class="updates-muted updates-retry">${s.error?'可再次检查时间：':'已使用最近的检查结果，可再次检查时间：'}${escape(date(s.nextCheckAt!))}</p>`:''}
+   ${s.warning?`<p class="updates-muted" role="status">${escape(s.warning)}</p>`:''}
+   ${cooling?`<p class="updates-muted updates-retry">${s.error?'可手动重试时间：':'可再次检查时间：'}${escape(date(s.nextCheckAt!))}</p>`:''}
+   ${s.error&&s.retryAt&&s.retryAt>Date.now()?`<p class="updates-muted">GitHub 补充查询将在 ${escape(date(s.retryAt))} 后恢复，官网检查不受此限流影响。</p>`:''}
    ${r?`<div class="updates-release"><h4>本次更新</h4><pre class="updates-notes">${escape(r.notes||'此版本未提供更新说明。')}</pre><div class="updates-download"><button type="button" class="updates-primary" data-update-action="download" ${disabled}>下载安装包 ↗</button><span>${escape(readable(s))}${r.size?' · '+Math.ceil(r.size/1024/1024)+' MB':''}</span></div><p class="updates-muted">在浏览器下载后，退出 career 并打开安装包覆盖升级。你的工作区资料会保留。</p></div>`:''}</section>
    <div class="updates-options"><label><span><strong>自动检查更新</strong><small>启动后及使用期间定期检查，新版本轻提示只出现一次。</small></span><input type="checkbox" data-update-action="automatic" aria-label="自动检查更新" ${s.automatic?'checked':''} ${busy?'disabled':''}></label><label><span><strong>接收预览版</strong><small>包含 alpha、beta 等预览版本，可能仍有功能调整。</small></span><input type="checkbox" data-update-action="preview" aria-label="接收预览版" ${s.preview?'checked':''} ${busy?'disabled':''}></label></div>
    <p class="updates-feedback" role="status">${escape(feedback)}</p><p class="updates-error" role="alert">${escape(uiError)}</p>`;

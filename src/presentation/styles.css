@@ -51,3 +51,11 @@ dialog{border:1px solid var(--line);border-radius:11px;padding:0;color:var(--ink
 @media(max-width:760px){.preview-controls{margin-left:0;order:3;width:100%;justify-content:center}.page-header{gap:10px}}
 
 .layout-notice{padding:8px 24px;font-size:12px;color:#7e704b;background:#faf5e7;flex:none}
+
+/* Canvas dimensions match scaled A4, including large desktop viewports. */
+.document-scroll,.gallery-preview{overflow-anchor:none}
+.paged-preview{max-width:none}
+.preview-controls button:disabled,.editor-pages button:disabled{opacity:.35;cursor:default}
+
+.resume-view{width:max-content;min-width:100%}
+.paged-preview{overflow:hidden}
