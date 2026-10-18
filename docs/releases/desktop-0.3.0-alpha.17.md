@@ -1,6 +1,6 @@
 # Desktop 0.3.0-alpha.17
 
-2026-10-18 候选，尚未公开发布。npm CLI 保持 0.2.0。
+2026-10-18 已公开四架构桌面预览版。npm CLI 保持 0.2.0。
 
 ## 本次变化
 
@@ -18,4 +18,20 @@
 
 - 候选 241 项 Node 回归、文档检查、合成工作区与门户构建通过，包含 19 项更新检查专项。实际 tgz 新目录安装通过（548 文件、14 个用户 Skills），检查了资源、简历 HTML 与本地历史。
 - 十五模板、五组合成内容的 PDF 回归已验证；更新功能在隔离 Electron 中验证真实官网版本与精确架构链接。
-- 待完成候选提交的三平台 CI、四架构安装包原生验收、附件完整性验证与官网下载入口切换。
+- [三平台 CI](https://github.com/heyjianhang/career/actions/runs/39127780830)、[四架构构建与打包应用原生验收](https://github.com/heyjianhang/career/actions/runs/39128544357)、[草稿附件校验](https://github.com/heyjianhang/career/actions/runs/39129564397)及[匿名完整下载](https://github.com/heyjianhang/career/actions/runs/39129779339)均通过。
+- 浏览器首次下载后的 Gatekeeper 允许流程和 Windows 安装器交互未逐台人工复验；原生验收指实际打包应用的功能检查。
+
+## 发布来源与下载
+
+源码及标签：`c13d29063a99718f227e62af8c4b377260e1dbde`，`desktop-v0.3.0-alpha.17`。
+
+[GitHub Release](https://github.com/heyjianhang/career/releases/tag/desktop-v0.3.0-alpha.17) · [官网下载](https://career.heyjianhang.top/)。
+
+门户 CLI 于 2026-10-18 21:04:18（北京时间）成功切换 alpha.17，返回 `ok:true`、`publicFeedConfirmed:true`，revision `63c6ee3520154444a71392150e5b4f37`。静态回退清单同步为 alpha.17，随本记录提交部署；此回执证明运行时切换，不单独证明静态部署完成。
+
+| 文件 | 字节数 | SHA-256 |
+| --- | ---: | --- |
+| career-0.3.0-alpha.17-mac-arm64.dmg | 185162860 | `1e05275b0d073171fe3a1170c1bfeaccf5991365cae3a8d0526748e0e53bacd8` |
+| career-0.3.0-alpha.17-mac-x64.dmg | 191812065 | `0c51f2d1395a81f21b77831eb04fe31d6747b6c9ae4492c49b84604e116f9921` |
+| career-0.3.0-alpha.17-win-x64.exe | 169194458 | `862959ed3321334392e7bcf268c00126292ff9cb657a2dba1192d240687dac07` |
+| career-0.3.0-alpha.17-win-arm64.exe | 163009014 | `584bbaa6bab9e9b33471bf399cb92586e88b2e30aabc5d6b6088e33ac3ee042e` |
