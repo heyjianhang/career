@@ -16,7 +16,7 @@ const workspace=path.join(out,'workspace');await mkdir(workspace);
 const fixture=JSON.parse(await readFile('examples/presentation/package.json','utf8'));
 const portrait=await readFile('examples/presentation/assets/demo-portrait.jpg');
 await writeFile(path.join(workspace,'photo.jpg'),portrait);
-const selected=templates.filter(t=>!['classic','compact'].includes(t.id));
+const selected=templates.filter(t=>!['classic','compact','engineering'].includes(t.id));
 const results=[];const errors=[];
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:794,height:1123}});
@@ -84,7 +84,7 @@ try {
       try {
         await page.setViewportSize({width:1440,height:1000});await page.goto(server.url);
         await page.getByRole('button',{name:'导出 PDF',exact:true}).waitFor();
-        await page.locator('#open-gallery').click();assert.equal(await page.locator('[data-template-card]').count(),14);
+        await page.locator('#open-gallery').click();assert.equal(await page.locator('[data-template-card]').count(),15);
         await page.screenshot({path:path.join(out,'gallery-desktop.png')});await page.keyboard.press('Escape');
         for(const t of selected){
           await page.locator('#open-gallery').click();await page.locator(`[data-preview-template="${t.id}"]`).click();
@@ -112,6 +112,6 @@ try {
     }
   }
   assert.deepEqual(errors,[]);
-  await writeFile(path.join(out,'results.json'),JSON.stringify({passed:true,results,checks:['14 gallery entries','12 preview / Escape / apply','new default set / clear / subsequent build','photo focus','all sections retained','desktop / tablet / mobile','36 offline PDF exports','no browser errors']},null,2));
+  await writeFile(path.join(out,'results.json'),JSON.stringify({passed:true,results,checks:['15 gallery entries','12 preview / Escape / apply','new default set / clear / subsequent build','photo focus','all sections retained','desktop / tablet / mobile','36 offline PDF exports','no browser errors']},null,2));
   console.log(JSON.stringify({passed:true,exports:results.length,out}));
 } finally {await browser.close();}

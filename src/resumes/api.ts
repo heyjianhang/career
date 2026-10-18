@@ -4,12 +4,14 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import * as store from './store.js';
 import {libraryHtml} from './page.js';
-import {hash,noSymlinks,check,readPreference,readDefaultTheme,savePreference,themes} from '../presentation/io.js';
+import {hash,noSymlinks,check,checkData,readPreference,readDefaultTheme,savePreference,themes} from '../presentation/io.js';
 import {listPresentations,presentationDirectory} from '../presentation/collection.js';
 import {html,escape} from '../presentation/render.js';
 import {build} from '../presentation/build.js';
 import {pdfBuffer} from '../presentation/pdf.js';
-import {templateMetadata} from '../presentation/templates/registry.js';
+import {resumeFontCss} from '../presentation/fonts.js';
+import {paginationDocument,paginationResources} from '../presentation/pagination.js';
+import {renderTemplate,templateMetadata} from '../presentation/templates/registry.js';
 import {CommandError} from '../agent-api.js';
 
 const csp="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'self'; frame-src 'self' about:; base-uri 'none'; frame-ancestors 'none'";
@@ -48,7 +50,7 @@ if(location.protocol==='http:'){
      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':csp.replace("frame-ancestors 'none'","frame-ancestors 'self'")});res.end(rendered);return true;
     }
     if(route==='/api/library/list'){send(200,await store.library(workspace));return true;}
-    if(route==='/api/library/read'){send(200,await store.readResume(workspace,id));return true;}
+    if(route==='/api/library/read'){send(200,{...await store.readResume(workspace,id),theme:await readPreference(workspace,id)});return true;}
     if(route==='/api/library/stamp'){const r=await store.readResume(workspace,id);send(200,{sha256:r.sha256});return true;}
     if(route==='/api/library/relations'){send(200,await store.resumeRelations(workspace,id));return true;}
     if(route==='/api/library/submission'){const saved=await store.submissionHtml(workspace,url.searchParams.get('opportunity')??'',id);res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Disposition':'attachment; filename="submitted-resume.html"','Content-Security-Policy':"default-src 'none'; sandbox"});res.end(saved);return true;}
@@ -58,6 +60,15 @@ if(location.protocol==='http:'){
    if(req.method==='POST'&&(library||(legacyApi&&isCollection))){
     if(req.headers.origin!==origin||req.headers['x-career-token']!==token||!req.headers['content-type']?.startsWith('application/json')){send(403,{error:'请求不属于当前预览会话'});return true;}
     let bytes=0,text='';for await(const chunk of req){bytes+=Buffer.byteLength(chunk);if(bytes>16*1024*1024)throw new Error('请求超过 16 MiB');text+=chunk;}const data=JSON.parse(text);
+    if(route==='/api/library/preview'){
+     if(data.package?.schema!=='career-resume-package/v1')throw new Error('仅支持可编辑简历包');
+     const current=await store.readResume(workspace,data.package.id);if(!current.editable)throw new Error('请先转为可编辑副本');
+     if(!themes.includes(data.theme))throw new Error('未知样式');
+     const checked=await checkData(data.package,workspace);
+     const markup=renderTemplate(data.theme,{resume:checked.input.resume,assets:checked.assets,synthetic:checked.input.synthetic});
+     const fonts=await resumeFontCss(JSON.stringify(checked.input.resume)+'（续）个人简介虚构示例基本信息姓名求职方向个人简历PERSONAL RESUMEPersonal Resume');
+     send(200,{document:paginationDocument(markup,paginationResources(fonts),checked.input.title),photoDataUrl:checked.assets.photo?.dataUrl??null});return true;
+    }
     if(route==='/api/library/create'){send(200,await store.createResume(workspace,data.title,data.from));return true;}
     if(route==='/api/library/save'){if(typeof data.sha256!=='string')throw new Error('保存前请读取内容包摘要');send(200,await store.savePackage(workspace,data.package,data.sha256));return true;}
     if(route==='/api/library/theme'){

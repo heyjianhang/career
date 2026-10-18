@@ -28,6 +28,10 @@ export async function rules() {
 }
 export async function check(file: string, workspace?: string, verifySources=true, savedRules?:Record<Platform,PlatformRules>): Promise<Checked> {
   const raw = await json<Presentation|ResumePackage>(file);
+  return checkData(raw,workspace,verifySources,savedRules);
+}
+/** Validate an unsaved draft through the same contract and asset boundaries as export. */
+export async function checkData(raw:Presentation|ResumePackage, workspace?:string, verifySources=true, savedRules?:Record<Platform,PlatformRules>):Promise<Checked> {
   const registry = savedRules??await rules();
   const bundle=raw.schema==='career-resume-package/v1'?raw:undefined;
   if(bundle){
@@ -97,7 +101,7 @@ export async function check(file: string, workspace?: string, verifySources=true
       const png=bytes.length>=33&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))&&bytes.subarray(12,16).toString()==='IHDR';
       const jpeg=bytes.length>=4&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255&&bytes[bytes.length-2]===255&&bytes[bytes.length-1]===217;
       if(!png&&!jpeg)throw new Error('照片仅支持 PNG/JPEG 文件');
-      assets.photo={dataUrl:`data:image/${png?'png':'jpeg'};base64,${bytes.toString('base64')}`,alt:photo.alt,x:photo.position?.x??50,y:photo.position?.y??50};
+      assets.photo={dataUrl:`data:image/${png?'png':'jpeg'};base64,${bytes.toString('base64')}`,alt:photo.alt,x:photo.position?.x??50,y:photo.position?.y??50,zoom:photo.position?.zoom??1};
     }
   }
   return {input,bundle,rules:registry,warnings,assets};

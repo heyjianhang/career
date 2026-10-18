@@ -9,6 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {checkDocumentation} from '../scripts/check-docs.mjs';
 import {bossFiles,verifyBossSkill,exerciseBossSkill,findPython} from './helpers/boss-skill.mjs';
 import {exerciseJdResearch} from './helpers/jd-research.mjs';
+import {templateMetadata} from '../dist/presentation/templates/registry.js';
 const exec=promisify(execFile),root=fileURLToPath(new URL('../',import.meta.url));
 const dir=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-package-'));
 // A fresh npm ci cache may have tarballs without registry metadata.
@@ -27,7 +28,7 @@ try{
  for(const file of ['dist/workspace/sync.js','dist/workspace/sync-api.js','dist/workspace/sync-environment.js','dist/integrations/qcc.js','resources/workspace/.agents/skills/career-board/references/company.md','dist/workspace/local.js','dist/workspace/local-api.js','dist/presentation/shell-icons.js','dist/presentation/SHELL-ICONS-LICENSE','dist/resumes/styles.css','dist/resumes/browser.js','schemas/match.v1.schema.json','schemas/outreach.v1.schema.json','dist/opportunities/match.js','dist/opportunities/outreach.js','resources/workspace/.agents/skills/career-match/references/storage.md','resources/workspace/.agents/skills/career-outreach/SKILL.md','schemas/resume-package.v1.schema.json','dist/board/styles.css','dist/board/icons.json','dist/board/ICONS-LICENSE','dist/board/pdf/pdf.mjs','dist/board/pdf/pdf.worker.mjs','dist/board/pdf/LICENSE'])assert.ok(names.includes(file),'Missing board runtime asset: '+file);
  assert.ok(names.includes('resources/workspace/gitignore.template'),'npm must include the ignore rules');
  assert.ok(names.includes('resources/workspace/gitattributes.template'),'packaging must preserve cross-platform line-ending rules');
- const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','boss-zhipin-scraper','jd-research'];
+ const userSkills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','career-discovery','boss-zhipin-scraper','jd-research'];
  for(const prefix of ['.agents/skills/','resources/workspace/.agents/skills/']){
   const included=[...new Set(names.filter(name=>name.startsWith(prefix)).map(name=>name.slice(prefix.length).split('/')[0]))].sort();
   assert.deepEqual(included,[...userSkills].sort(),'Only user Skills belong in the npm package');
@@ -79,7 +80,7 @@ try{
  assert.match(await readFile(stageFile,'utf8'),/当前大阶段：待核对/);
  assert.ok((await command('workspace','status')).next_reads.includes(stageFile));
  assert.ok((await stat(path.join(workspace,'docs/career-assets.md'))).isFile());
- assert.equal((await command('resume','themes')).length,14);
+ assert.deepEqual(await command('resume','themes'),templateMetadata,'Installed themes must match the built registry');
  assert.equal((await command('board','overview')).total,0);
  assert.equal((await command('resume','list')).entries.length,0);
  assert.ok(!(await stat(path.join(workspace,'examples')).catch(()=>null)),'No demonstration files in a new workspace');

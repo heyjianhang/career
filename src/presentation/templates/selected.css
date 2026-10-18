@@ -9,7 +9,7 @@
 & .design-contacts div {display:flex;gap:1.5mm;min-width:0;max-width:100%;align-items:baseline}
 & .design-contacts dt {font-weight:500;flex-shrink:0}
 & .design-contacts dd {margin:0;min-width:0;overflow-wrap:anywhere}
-& .design-photo-frame {flex:none;line-height:0}
+& .design-photo-frame {flex:none;line-height:0;overflow:hidden}
 & .resume-photo {display:block;width:28mm;height:34mm;object-fit:cover;border-radius:0;margin:0}
 & .design-section {margin-top:4.5mm}
 & .design-heading {display:flex;align-items:center;gap:2.5mm;min-height:6mm;font-size:11pt;line-height:1.5;font-weight:700;letter-spacing:0;color:var(--design-accent);margin:0 0 2.2mm;break-after:avoid}

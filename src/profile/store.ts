@@ -8,6 +8,7 @@ export const groups=[
  {id:'profile',label:'基本资料',prefix:'resume/facts/profile.md'},
  {id:'goals',label:'求职偏好',prefix:'context/goals.md'},
  {id:'research',label:'岗位调研',prefix:'research/jd/'},
+ {id:'companies',label:'目标公司',prefix:'research/companies/'},
  {id:'employment',label:'工作经历',prefix:'resume/facts/employment/'},
  {id:'projects',label:'项目经历',prefix:'resume/facts/projects/'},
  {id:'education',label:'教育经历',prefix:'resume/facts/education/'},
@@ -18,7 +19,7 @@ export const groups=[
  {id:'questions',label:'待补信息',prefix:'resume/questions.md'},
  {id:'files',label:'全部资料',prefix:''}
 ];
-const roots=['context','resume/facts','resume/sources','resume/master','research/jd'];
+const roots=['context','resume/facts','resume/sources','resume/master','research/jd','research/companies'];
 const singles=['resume/questions.md','resume/maintenance.md','resume/master-preview.md'];
 const names:Record<string,string>={'context/INDEX.md':'协作概览','context/progress.md':'职业资料阶段进度','context/state.md':'当前进度','context/goals.md':'求职偏好','context/decisions.md':'已确认的决定','context/feedback.md':'反馈与调整','resume/questions.md':'待补信息','resume/maintenance.md':'资料整理进度','resume/master-preview.md':'完整经历整理','resume/facts/profile.md':'基本资料'};
 export type MaterialFile={path:string;title:string;group:string;size:number;modified:string;kind:string};
@@ -60,6 +61,12 @@ export async function inventory(workspace:string){
  return {groups,files,truncated,revision:hash(JSON.stringify(files))};
 }
 export const materialUrl=(p:string,download=false)=>'/api/profile/file?'+new URLSearchParams({path:p,...(download?{download:'1'}:{})});
+// Company research can refer to a real job without exposing opportunity files
+// through the materials API. The board retains ownership of the job reader.
+export function materialLink(p:string){
+ const job=p.match(/^opportunities\/([a-z0-9][a-z0-9-]*)\/(?:job|card)\.md$/);
+ return job?'/board?'+new URLSearchParams({opportunity:job[1]!}):materialUrl(p);
+}
 const fieldNames:Record<string,string>={name:'姓名',headline:'求职方向',city:'城市',phone:'电话',email:'邮箱',career_status:'当前状态',company:'公司',department:'部门',title:'职位',employment_type:'工作类型',start:'开始时间',end:'结束时间',is_current:'目前仍在进行',organization:'所属组织',role:'担任角色',school:'学校',major:'专业',qualification:'学历',degree:'学位',category:'类别',proficiency:'掌握程度',issuer:'颁发机构',obtained:'取得时间',expires:'有效期'};
 export async function readMaterial(workspace:string,p:string){
  const {full,info}=await materialPath(workspace,p);if(info.size>2*1024*1024)throw new Error('文本超过预览限制（2 MiB），可下载查看');
@@ -79,5 +86,5 @@ export async function readMaterial(workspace:string,p:string){
  const references=data.files.filter(f=>ids.some(id=>f.path.endsWith('/'+id+'.md')||f.path.endsWith('/'+id+'/source.md'))).map(f=>({title:f.title,path:f.path}));
  // Empty template sections are omitted from the preview; source remains byte-for-byte accessible.
  const lines=parsed.body.split('\n');const body=lines.filter((line,i)=>!/^#{1,6}\s/.test(line)||lines.slice(i+1,lines.findIndex((l,j)=>j>i&&/^#{1,6}\s/.test(l))<0?undefined:lines.findIndex((l,j)=>j>i&&/^#{1,6}\s/.test(l))).some(l=>l.trim())).join('\n');
- return {path:p,title,source,sha256:hash(source),modified:info.mtime.toISOString(),fields,links,references,warning,...renderMarkdown(body,'',p,file=>materialUrl(file))};
+ return {path:p,title,source,sha256:hash(source),modified:info.mtime.toISOString(),fields,links,references,warning,...renderMarkdown(body,'',p,materialLink)};
 }

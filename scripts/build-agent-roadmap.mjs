@@ -5,7 +5,7 @@ import MarkdownIt from 'markdown-it';
 import {routes,steps} from '../docs/agent-roadmap/steps.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const skills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','boss-zhipin-scraper','jd-research'];
+const skills=['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','career-discovery','boss-zhipin-scraper','jd-research'];
 const sourceDir=path.join(root,'docs/agent-roadmap');
 const explicitDocs=['docs/agent-workflow.md','docs/career-assets.md','docs/agent-method-references.md','docs/expert-methods.md','docs/context-protocol.md','docs/data-model.md','docs/opportunities.md','docs/resume-packages.md','docs/skill-evaluation-cases.md','docs/installation.md','docs/presentation.md','install.md'];
 const slash=s=>s.split(path.sep).join('/');

@@ -85,6 +85,12 @@
 
 用户要求整套交付，做到实际可访问的页面或实际导出的文件；尚有缺口的成品可以是限定范围的草稿，不能用页面已经打开来宣布“经历已全部整理好”。
 
+## 从目标公司发现进入岗位流程
+
+用户问“以我的经历还能看哪些公司”时，使用 [career-discovery](../.agents/skills/career-discovery/SKILL.md)，从已知工作任务、方向和城市建立候选范围，查证行业与地方产业线索、具体团队地点和招聘情况。无 JD 也能开始，未完成简历不阻塞；这不是每次整理履历的必经阶段。
+
+公司池统一保存在 research/companies/，我的资料可阅读，求职看板提供发现入口。公司 ID 跨城市和研究批次复用；研究建议、用户关注状态与招聘核实状态分别记录。选定真实 JD 后交给 career-board 去重入库，成功后回写实际岗位链接；公司深查用 career-company，岗位匹配仍针对确定的 JD 和简历版本。多份 JD 的共性研究交给 jd-research，个人表达与成品沿用已有简历流程。资料来源、更新日期与判断变化都保留，名单称号不替代好雇主判断。
+
 ## 岗位与面试是可独立进入的分支
 
 按 [career-board](../.agents/skills/career-board/SKILL.md) 先去重建卡，把原文与来源保存到 job.md；首页直接展示 JD。按本轮范围调用独立 [career-company](../.agents/skills/career-company/SKILL.md) 研究公司、[career-match](../.agents/skills/career-match/SKILL.md) 对照当前关联的具体简历。没有关联先推荐已有版本并询问，不静默绑定；无简历仍能保存 JD 和研究公司。企查查未配置时可使用已有联网搜索，不以配置服务为前提。

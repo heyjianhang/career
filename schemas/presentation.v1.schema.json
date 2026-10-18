@@ -179,6 +179,13 @@
                         "$ref": "#/definitions/webLink"
                       },
                       "description": "此经历可展示的项目、演示、源码或作品链接；没有则省略或传空数组。"
+                    },
+                    "technologies": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "page_break_before": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -241,10 +248,53 @@
                   "type": "number",
                   "minimum": 0,
                   "maximum": 100
+                },
+                "zoom": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 2
                 }
               }
             }
           }
+        },
+        "english_name": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sectionOrder": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(summary|(section|common):.+)$"
+              }
+            },
+            "fontSize": {
+              "type": "number",
+              "minimum": 9,
+              "maximum": 12
+            },
+            "lineHeight": {
+              "type": "number",
+              "minimum": 1.4,
+              "maximum": 1.9
+            },
+            "density": {
+              "enum": [
+                "standard",
+                "compact"
+              ]
+            }
+          }
+        },
+        "summary_title": {
+          "type": "string",
+          "maxLength": 120
         }
       },
       "required": [

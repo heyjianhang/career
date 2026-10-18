@@ -4,11 +4,12 @@ export interface ResumeLink {id:string;title:string;href:string;generated_at:str
 export interface WebLink {label:string;url:string}
 export interface Contact {label:string;value:string;url?:string}
 export interface CommonInfo {sections:{id:string;title:string;fields:Contact[]}[]}
-export interface ResumeItem {id: string; title: string; subtitle?: string; period?: string; paragraphs: string[]; bullets: string[]; links?:WebLink[]}
+export interface ResumeLayout {sectionOrder?:string[];fontSize?:number;lineHeight?:number;density?:'standard'|'compact'}
+export interface ResumeItem {id: string; title: string; subtitle?: string; period?: string; technologies?:string; page_break_before?:boolean; paragraphs: string[]; bullets: string[]; links?:WebLink[]}
 export interface ResumeContent {
-  name: string; headline: string; contacts: Contact[];
-  photo?: {path:string; sha256:string; alt:string; position?:{x:number;y:number}};
-  summary: string[]; sections: {id: string; title: string; items: ResumeItem[]}[];
+  name: string; english_name?:string; headline: string; contacts: Contact[]; layout?:ResumeLayout;
+  photo?: {path:string; sha256:string; alt:string; position?:{x:number;y:number;zoom?:number}};
+  summary_title?:string; summary: string[]; sections: {id: string; title: string; items: ResumeItem[]}[];
 }
 export interface Report {sections: {id: string; kind: string; title: string; fields: {key: string; value: string}[]}[]; notes: string[]}
 export interface Presentation {
@@ -19,5 +20,5 @@ export interface Presentation {
 export interface FieldRule {label: string; control: 'text'|'select'|'date'; max: number|null; min?: number; evidence: string}
 export interface PlatformRules {name: string; revision: number; checked_at: string; coverage: string; fields: Record<string, FieldRule>; notes: string[]}
 export interface Issue {code: string; path: string; message: string}
-export interface ResolvedAssets {photo?: {dataUrl:string;alt:string;x:number;y:number}}
+export interface ResolvedAssets {photo?: {dataUrl:string;alt:string;x:number;y:number;zoom?:number}}
 export interface Checked {bundle?:import('../resumes/model.js').ResumePackage; input: Presentation; rules: Record<Platform, PlatformRules>; warnings: Issue[]; assets:ResolvedAssets}

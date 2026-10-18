@@ -9,7 +9,7 @@ import {build,loadBuild} from '../dist/presentation/build.js';
 import {savePreference} from '../dist/presentation/io.js';
 import {detailSections} from './fixtures/resume-details.mjs';
 
-const selected=templates.filter(t=>!['classic','compact'].includes(t.id));
+const selected=templates.filter(t=>!['classic','compact','engineering'].includes(t.id));
 const fixture=JSON.parse(await readFile('examples/presentation/package.json','utf8'));
 
 test('short factual and dated sections use rows without rewriting supplied content',()=>{
@@ -77,7 +77,7 @@ test('new default appears in subsequent builds and every layout is retained as a
   const file=path.join(workspace,'package.json');await writeFile(file,JSON.stringify(fixture));
   await savePreference(workspace,'skyline');
   const result=await build(file,workspace);
-  assert.equal(result.manifest.theme,'skyline');assert.equal(result.manifest.templates.length,14);
+  assert.equal(result.manifest.theme,'skyline');assert.equal(result.manifest.templates.length,15);
   for(const template of templates){
     const print=await readFile(path.join(result.directory,`.print-${template.id}.html`),'utf8');
     assert.ok(print.includes(`data-template="${template.id}"`));

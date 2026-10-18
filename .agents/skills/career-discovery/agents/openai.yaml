@@ -1,0 +1,4 @@
+interface:
+  display_name: "目标公司发现"
+  short_description: "根据经历、岗位方向和意向城市发现相关公司，核实业务与招聘线索并接入求职看板"
+  default_prompt: "用 $career-discovery 根据我的经历和意向城市找值得关注的公司，保留推荐依据与招聘来源，选定岗位后再接入求职看板。"

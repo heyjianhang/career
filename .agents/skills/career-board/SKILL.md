@@ -41,6 +41,10 @@ description: 求职岗位的上层协作入口：接收 JD、去重建卡和保�
 
 实际输入、字段和工作流见 [CLI 操作](references/cli.md)；文件所有权与页面契约见 [岗位工作区](../../../docs/opportunities.md)。
 
+## 从目标公司接手
+
+用户尚无 JD、希望按行业和城市找公司时，先用 [career-discovery](../career-discovery/SKILL.md) 建立有证据的目标公司池。接到公司池选中的岗位时，沿用本 Skill 的去重与 JD 入库协议；保存成功后将实际岗位 ID 和原文链接回写原公司记录，复用已有公司证据并核对时效。没有具体岗位就留在公司池，不造“待定职位”卡片；后续匹配仍需要具体 JD 和确定的简历版本。
+
 ## 企业背景查询
 
 公司研究调用 [career-company](../career-company/SKILL.md)，具体简历与 JD 对照调用 [career-match](../career-match/SKILL.md)。二者可独立执行；有 subagent 时按 [编排协议](references/intake.md) 分配只读研究，由主 Agent 核对版本并顺序保存，避免并发改卡。没有工具时顺序执行。
