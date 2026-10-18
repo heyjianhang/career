@@ -43,12 +43,12 @@ $('#materials-nav').addEventListener('click',e=>{
 });
 async function releaseMedia(){renderId++;renderTask?.cancel();renderTask=null;pdf=null;const task=pdfTask;pdfTask=null;$('#media-tools').hidden=true;if(task)try{await task.destroy();}catch{}}
 function tools(available:boolean){$('#outline-toggle').hidden=!available;$('#preview-mode').hidden=!available;$('#source-mode').hidden=!available;$('#copy-material').hidden=!available;$('#download-material').hidden=!selected;$('#material-outline').hidden=true;$('#outline-toggle').setAttribute('aria-expanded','false');}
-function empty(label:string,description:string){body.className='material-body';body.innerHTML=`<div class="material-empty">${icon('folder2-open')}<h3>${esc(label)}</h3><p>${esc(description)}</p><button class="button" data-agent>让 Agent 帮我整理</button></div>`;}
+function empty(label:string,description:string,action='让 Agent 帮我整理'){body.className='material-body';body.innerHTML=`<div class="material-empty">${icon('folder2-open')}<h3>${esc(label)}</h3><p>${esc(description)}</p><button class="button" data-agent>${esc(action)}</button></div>`;}
 async function selectGroup(id:string){
  group=id;selected='';doc=null;mode='preview';requestId++;void releaseMedia();tools(false);expanded.add(id);writeLocation();renderNav();closeNav();
  const g=index.groups.find(g=>g.id===id);$('#material-title').textContent=g?.label??'资料';scroll.scrollTop=0;
- const files=groupFiles();if(files.length===1&&id!=='files'){await openFile(files[0]!.path);return;}
- if(!files.length){empty('还没有'+(g?.label??'资料'),id==='goals'?'和 Agent 聊聊你希望寻找的岗位、城市，以及看重的工作条件。':'可以先提供已有材料，或与 Agent 聊聊这部分经历。');return;}
+ const files=groupFiles();if(id==='companies'&&files.some(f=>f.path==='research/companies/INDEX.md')){await openFile('research/companies/INDEX.md');return;}if(files.length===1&&id!=='files'){await openFile(files[0]!.path);return;}
+ if(!files.length){if(id==='companies'){empty('发现与你相关的公司','结合你的经历、岗位方向和意向城市，寻找龙头与细分领域公司，核实业务和招聘线索。复制指令给工作区 Agent，结果会保存在这里。','让 Agent 发现公司');return;}empty('还没有'+(g?.label??'资料'),id==='goals'?'和 Agent 聊聊你希望寻找的岗位、城市，以及看重的工作条件。':'可以先提供已有材料，或与 Agent 聊聊这部分经历。');return;}
  body.className='material-body';body.innerHTML=`<div class="material-list">${files.map(f=>`<button data-document="${esc(f.path)}">${icon(f.kind==='pdf'?'file-earmark-pdf':'file-earmark-text')}<span>${esc(f.title)}</span><small>${f.modified.slice(0,10)}</small>${icon('chevron-right')}</button>`).join('')}</div>`;
 }
 function renderDocument(){
@@ -100,13 +100,13 @@ $('#outline-toggle').onclick=()=>{if(mode==='source'){mode='preview';renderDocum
 $('#copy-material').onclick=()=>{if(doc)void copy(doc.source);};
 function agentPrompt(){
  const g=index.groups.find(g=>g.id===group);
- const task=group==='research'?'按 jd-research Skill 继续岗位研究。复用已有样本与进度，保留原文来源，更新要求与经历的证据映射、补足计划和简历使用记录；未确认的能力先问我，不写成已有经历。':'与我核对并补充内容，更新原文件，保留来源和待确认问题。';
+ const task=group==='companies'?'按 career-discovery Skill 发现或更新目标公司。读取已有求职偏好、相关经历和 research/companies/INDEX.md，围绕我实际做的工作及意向城市查找公司，核实主体、团队地点、业务与招聘线索，保留来源和核实时间。复用公司记录并保留我的关注状态与笔记；没有联网能力如实说明。结果保存在 research/companies/，选定真实 JD 后按 career-board 去重入库；公司分析交给 career-company，岗位匹配需确定具体简历，不自动投递。':group==='research'?'按 jd-research Skill 继续岗位研究。复用已有样本与进度，保留原文来源，更新要求与经历的证据映射、补足计划和简历使用记录；未确认的能力先问我，不写成已有经历。':'与我核对并补充内容，更新原文件，保留来源和待确认问题。';
  return `请在当前 career 个人工作区继续整理我的${g?.label??'资料'}。先读取 AGENTS.md 和 context/INDEX.md，再${selected?'读取 '+JSON.stringify(selected)+'，':'查看相关资料，'}${task}`;
 }
 $('#copy-agent').onclick=()=>void copy(agentPrompt());
 $('.material-reader').addEventListener('click',e=>{
  const target=e.target as Element,link=target.closest<HTMLElement>('[data-document]'),anchor=target.closest<HTMLElement>('[data-anchor]');
- if(link){e.preventDefault();void openFile(link.dataset.document!);}
+ if(link){e.preventDefault();const href=link.getAttribute('href');if(href?.startsWith('/board?opportunity=')){location.assign(href);return;}void openFile(link.dataset.document!);}
  else if(anchor){e.preventDefault();body.querySelector<HTMLElement>(`[id="${CSS.escape(anchor.dataset.anchor!)}"]`)?.scrollIntoView({block:'start'});if(innerWidth<=1100){$('#material-outline').hidden=true;$('#outline-toggle').setAttribute('aria-expanded','false');}}
  else if(target.closest('[data-agent]'))void copy(agentPrompt());else if(target.closest('[data-retry]'))void openFile(selected);
 });

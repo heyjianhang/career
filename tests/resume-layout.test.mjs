@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,realpath,rm,readFile,readdir} from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import {blankPackage,blankExperience,projectPackage} from '../dist/resumes/model.js';
+import {rules,checkData} from '../dist/presentation/io.js';
+import {initializeWorkspace} from '../dist/agent-api.js';
+import {savePackage,readResume} from '../dist/resumes/store.js';
+import {templates,renderTemplate} from '../dist/presentation/templates/registry.js';
+import {buildCollection} from '../dist/presentation/collection.js';
+import {startPreview} from '../dist/presentation/server.js';
+function content(){const b=blankPackage('resume-layout','研发简历（虚构）');b.synthetic=true;b.content.profile={name:'周予',english_name:'Yu Zhou',headline:'AI 工程师',contacts:[]};b.content.summary='仅用于测试的合成经历。';b.content.sections=[{id:'work',title:'工作经历',items:[{...blankExperience('employment','work-1'),title:'合成公司',subtitle:'工程师'}]},{id:'projects',title:'项目经历',items:[{...blankExperience('project','project-1'),title:'合成检索助手',subtitle:'研发',description:'检索项目介绍',technologies:'Python · PostgreSQL · <SDK>',responsibilities:'关键实现：文档解析与检索。\n协同执行：使用工具执行任务。',achievements:'合成测试成果。',page_break_before:true}]}];b.content.common.sections=[{id:'skills',title:'核心技能',fields:[{label:'AI 开发',value:'Python、向量检索'}]},{id:'honors',title:'荣誉',fields:[{label:'测试奖项',value:'2025'}]}];return b;}
+test('mixed section order is presentation-only, preserves new sections and ignores removed references',async()=>{const b=content(),registry=await rules(),old=structuredClone(b);assert.deepEqual(projectPackage(b,registry).resume.sections.map(s=>s.id),['work','projects','common-skills','common-honors']);b.content.layout={sectionOrder:['common:skills','section:removed','section:work'],fontSize:10.5,lineHeight:1.65};const p=projectPackage(b,registry);assert.deepEqual(p.resume.sections.map(s=>s.id),['common-skills','work','projects','common-honors']);assert.deepEqual(b.content.sections,old.content.sections);assert.deepEqual(p.reports,projectPackage(old,registry).reports);assert.equal(p.resume.layout.fontSize,10.5);});
+test('every layout and project platform report retains the dedicated technology stack',async()=>{const b=content(),p=projectPackage(b,await rules());for(const t of templates){const markup=renderTemplate(t.id,{resume:p.resume,assets:{},synthetic:true});assert.ok(markup.includes('Python · PostgreSQL · &lt;SDK&gt;'),t.id);assert.ok(markup.includes('data-break-before="true"'),t.id);assert.ok(!markup.includes('<SDK>'));}for(const report of Object.values(p.reports))assert.ok(report.sections.find(s=>s.id==='project-1').fields.some(f=>f.value.includes('技术栈：Python · PostgreSQL · <SDK>')));});
+test('engineering keeps arbitrary sections, contact escaping and typography without inserting experience facts',async()=>{const b=content();b.content.layout={fontSize:11,lineHeight:1.7,density:'compact'};b.content.profile.name='<script>name</script>';const before=structuredClone(b),p=projectPackage(b,await rules());const markup=renderTemplate('engineering',{resume:p.resume,assets:{photo:{dataUrl:'data:image/png;base64,AA==',alt:'测试照片',x:20,y:40,zoom:1.25}},synthetic:true});for(const word of ['核心技能','工作经历','项目经历','荣誉','Yu Zhou','font-size:11pt','line-height:1.7','scale(1.25)','object-position:20% 40%'])assert.ok(markup.includes(word),word);assert.ok(!markup.includes('<script>'));assert.deepEqual(b,before);});
+test('layout and crop bounds reject invalid or duplicate settings while allowing old packages',async()=>{await checkData(content(),undefined,false);for(const layout of [{fontSize:7},{lineHeight:2},{density:'other'},{sectionOrder:['common:skills','common:skills']}]){const b=content();b.content.layout=layout;await assert.rejects(checkData(b,undefined,false),/格式错误/);}const b=content();b.content.profile.photo={path:'assets/test.png',sha256:'0'.repeat(64),alt:'测试',position:{x:50,y:50,zoom:3}};await assert.rejects(checkData(b,undefined,false),/格式错误/);});
+test('live draft preview is read-only, validates assets and retains session protection',async t=>{const w=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-layout-'));t.after(()=>rm(w,{recursive:true,force:true}));await initializeWorkspace(w);const saved=await savePackage(w,content()),out=await buildCollection(w),server=await startPreview(out.directory,w,0,true,{registryFile:path.join(w,'.local/test-registry.json')});t.after(()=>server.close());const session=await(await fetch(server.url+'/api/library/session')).json();const post=(body,origin=server.url)=>fetch(server.url+'/api/library/preview',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Career-Token':session.token},body:JSON.stringify(body)});const draft=structuredClone(content());draft.content.summary='尚未保存的修改';draft.content.layout={sectionOrder:['common:skills','section:work','section:projects']};const before=await readFile(saved.file,'utf8'),files=await readdir(path.dirname(saved.file));assert.equal((await post({package:draft,theme:'engineering'},'https://example.com')).status,403);const result=await post({package:draft,theme:'engineering'});assert.equal(result.status,200);const data=await result.json();assert.match(data.document,/尚未保存的修改/);assert.match(data.document,/data-template="engineering"/);assert.equal(await readFile(saved.file,'utf8'),before);assert.deepEqual(await readdir(path.dirname(saved.file)),files);assert.equal((await readResume(w,draft.id)).sha256,saved.sha256);draft.content.profile.photo={path:'../outside.png',sha256:'0'.repeat(64),alt:'bad'};assert.equal((await post({package:draft,theme:'engineering'})).status,400);assert.equal((await post({package:content(),theme:'unknown'})).status,400);});
+
+test('module labels and summary order propagate to all layouts without changing platform semantics',async()=>{
+ const b=content(),registry=await rules(),original=projectPackage(b,registry).reports;
+ b.content.summary_title='职业优势 <摘要>';
+ b.content.sections[0].title='任职与交付';b.content.sections[1].title='Agent 项目实践';b.content.common.sections[0].title='研发技术栈';
+ b.content.layout={sectionOrder:['common:skills','section:projects','summary','section:work','common:honors']};
+ await checkData(b,undefined,false);
+ const p=projectPackage(b,registry);assert.deepEqual(p.reports,original);
+ for(const t of templates){const html=renderTemplate(t.id,{resume:p.resume,assets:{},synthetic:true}),labels=['研发技术栈','Agent 项目实践','职业优势 &lt;摘要&gt;','任职与交付','荣誉'];let previous=-1;for(const label of labels){const at=html.indexOf(label);assert.ok(at>previous,`${t.id}: ${label}`);previous=at;}assert.ok(!html.includes('<摘要>'));}
+ // Old packages that omit the summary reference retain their original opening.
+ b.content.layout.sectionOrder=['section:projects','common:skills'];
+ for(const t of templates){const html=renderTemplate(t.id,{resume:projectPackage(b,registry).resume,assets:{},synthetic:true});assert.ok(html.indexOf('职业优势 &lt;摘要&gt;')<html.indexOf('Agent 项目实践'));}
+ // An unnamed module keeps its body; hidden/empty headings never create placeholders.
+ b.content.summary_title='';b.content.sections[1].title='';
+ for(const t of templates){const html=renderTemplate(t.id,{resume:projectPackage(b,registry).resume,assets:{},synthetic:true});assert.ok(html.includes(b.content.summary));assert.ok(html.includes('检索项目介绍'));assert.ok(!html.includes('个人简介'));}
+});
+
+test('renamed and reordered modules survive a CAS save, reload and legacy import',async t=>{
+ const w=await mkdtemp(path.join(await realpath(os.tmpdir()),'career-modules-'));t.after(()=>rm(w,{recursive:true,force:true}));await initializeWorkspace(w);
+ const b=content(),first=await savePackage(w,b),before=structuredClone(b.content.sections);
+ b.content.summary_title='个人优势';b.content.sections[1].title='工程实践';b.content.layout={sectionOrder:['section:projects','summary','common:skills','section:work']};
+ await savePackage(w,b,first.sha256);const saved=await readResume(w,b.id);assert.equal(saved.package.content.sections[1].title,'工程实践');assert.deepEqual(saved.package.content.sections[1].items,before[1].items);assert.deepEqual(saved.package.content.layout,b.content.layout);
+ const {importLegacy}=await import('../dist/resumes/model.js');const migrated=importLegacy(projectPackage(b,await rules()),'resume-imported','导入');assert.equal(migrated.content.summary_title,'个人优势');assert.deepEqual(migrated.content.layout,b.content.layout);
+});

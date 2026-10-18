@@ -14,10 +14,14 @@ let toastTimer:ReturnType<typeof setTimeout>;
 function toast(message:string) {const box=$('#toast');box.textContent=message;box.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.classList.remove('visible'),3200);}
 declare function paginationDocument(markup:string,resources:{engine:string;css:string;fonts:string},title:string):string;
 const pagination=JSON.parse($('#pagination-resources').textContent!);
+let documentZoom='fit',documentPage=1;
 const frames=new Map<HTMLElement,{frame:HTMLIFrameElement,height:number,timer:ReturnType<typeof setTimeout>}>();
 function resizePreview(host:HTMLElement) {
   const item=frames.get(host);if(!item||!host.clientWidth)return;
-  const scale=Math.min(1,host.clientWidth/(210*96/25.4));
+  const isDocument=host.id==='resume-preview';
+  const available=host.parentElement!.clientWidth;
+  const scale=isDocument&&documentZoom!=='fit'?Number(documentZoom):Math.min(1,available/(210*96/25.4));
+  host.style.width=isDocument&&documentZoom!=='fit'?`${210*96/25.4*scale}px`:'100%';
   item.frame.style.transform=`scale(${scale})`;
   host.style.height=item.height?`${Math.ceil(item.height*scale)}px`:'300px';
 }
@@ -54,9 +58,13 @@ window.addEventListener('message',event=>{
     item.height=Math.ceil(doc.querySelector('#pages')!.getBoundingClientRect().height);
     item.frame.style.height=item.height+'px';item.frame.style.visibility='visible';
     host.dataset.pagination='ready';host.dataset.pageCount=doc.documentElement.dataset.pageCount;
-    host.querySelector('.pagination-status')?.remove();resizePreview(host);
+    host.querySelector('.pagination-status')?.remove();resizePreview(host);if(host.id==='resume-preview'){documentPage=1;$('#layout-notice').textContent=doc.documentElement.dataset.layoutWarning??'';$('#layout-notice').hidden=!doc.documentElement.dataset.layoutWarning;$('#preview-page-number').textContent=`1 / ${host.dataset.pageCount}`;}
   }
 });
+function changePage(delta:number){const host=$('#resume-preview'),frame=frames.get(host)?.frame,pages=frame?.contentDocument?.querySelectorAll<HTMLElement>('.pagedjs_page');if(!pages?.length)return;documentPage=Math.max(1,Math.min(pages.length,documentPage+delta));const scale=frame!.getBoundingClientRect().width/(210*96/25.4);$('.document-scroll').scrollTo({top:pages[documentPage-1]!.offsetTop*scale,behavior:'smooth'});$('#preview-page-number').textContent=`${documentPage} / ${pages.length}`;}
+$('#preview-zoom').addEventListener('change',e=>{documentZoom=(e.target as HTMLSelectElement).value;resizePreview($('#resume-preview'));});
+$('.document-scroll').addEventListener('scroll',()=>{if(activeView!=='resume')return;const frame=frames.get($('#resume-preview'))?.frame,pages=frame?.contentDocument?.querySelectorAll<HTMLElement>('.pagedjs_page');if(!pages?.length)return;const scale=frame!.getBoundingClientRect().width/(210*96/25.4),top=$('.document-scroll').scrollTop+80;documentPage=Array.from(pages).filter(page=>page.offsetTop*scale<=top).length||1;$('#preview-page-number').textContent=`${documentPage} / ${pages.length}`;},{passive:true});
+$('#preview-prev').addEventListener('click',()=>changePage(-1));$('#preview-next').addEventListener('click',()=>changePage(1));
 function selectTheme(theme:string) {
   if(!template(theme))return;
   selectedTheme=theme;document.body.dataset.theme=theme;if(activeView==='resume')showResume('#resume-preview',theme);
@@ -125,7 +133,7 @@ function switchView(id:string) {
   document.querySelectorAll<HTMLElement>('.view').forEach(v=>v.hidden=v.id!=='view-'+id);
   document.querySelectorAll<HTMLElement>('[data-view]').forEach(b=>{b.classList.toggle('active',b===button);if(b===button)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   $('#page-title').textContent=button.dataset.viewTitle!;$('#page-title').hidden=id==='resume';$('.document-scroll').scrollTop=0;
-  $('#page-heading').hidden=id==='resume';
+  $('#page-heading').hidden=id==='resume';$('#layout-notice').hidden=id!=='resume'||!$('#layout-notice').textContent;$('#preview-controls').hidden=id!=='resume';
   const copyHint=$('#copy-hint');
   copyHint.hidden=id==='resume'||!document.querySelector(`#view-${id} .copy-field`);
   copyHint.querySelector('span')!.textContent=copyHint.hidden?'':`点击字段内容即可复制，再粘贴到 ${button.dataset.copyTarget} 对应栏目。`;
@@ -179,7 +187,7 @@ $('#save-html').addEventListener('click',()=>{
   clone.querySelectorAll<HTMLAnchorElement>('.sidebar a[href="/"]').forEach(a=>a.href='#resume');
   clone.querySelectorAll<HTMLElement>('.view').forEach(v=>v.hidden=v.id!=='view-resume');
   clone.querySelectorAll<HTMLElement>('[data-view]').forEach(v=>{const active=v.dataset.view==='resume';v.classList.toggle('active',active);if(active)v.setAttribute('aria-current','page');else v.removeAttribute('aria-current');});
-  clone.querySelector<HTMLElement>('#export-pdf')!.hidden=false;clone.querySelector<HTMLElement>('#open-gallery')!.hidden=false;
+  clone.querySelector<HTMLElement>('#preview-controls')!.hidden=false;clone.querySelector<HTMLSelectElement>('#preview-zoom')!.value='fit';clone.querySelector<HTMLElement>('#export-pdf')!.hidden=false;clone.querySelector<HTMLElement>('#open-gallery')!.hidden=false;
   clone.querySelector('#toast')!.classList.remove('visible');clone.querySelector('#page-title')!.textContent='附件简历';
   clone.querySelectorAll('dialog').forEach(d=>d.removeAttribute('open'));
   // A downloaded single file contains only this resume. Do not preserve broken

@@ -9,6 +9,7 @@
 - [安装说明](installation.md)：环境、安装命令、同步和换机入口。
 - [指令复制页](get-started.html)：下载后用浏览器打开；GitHub 文件页显示源码。
 - [Skills](../README.md#skills-与-cli-怎么配合)：安装、Git 版本与同步、收集、母版、成品的分工。
+- [目标公司发现](../.agents/skills/career-discovery/SKILL.md)：从经历、方向和城市找到候选公司，保存公司池，并衔接 JD、公司分析与岗位匹配。
 - [JD 需求研究与求职规划](../.agents/skills/jd-research/SKILL.md)：从岗位共性到方向选择、能力补足与简历建议；支持独立使用，当前源码随包提供。
 - [BOSS 采集 Skill](../.agents/skills/boss-zhipin-scraper/SKILL.md)：当前源码随包提供的岗位搜索、详情读取与看板入库；首次使用准备外部 Python 环境。
 - [浏览器岗位收藏（开发版）](browser-extension.md)：逐条采集 JD、查看记录、跳转来源及复制给 Agent。

@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {escape} from '../escape.js';
+import {resumeBlocks} from '../content.js';
 import {contactValue,itemLinks} from '../links.js';
 import type {ResumeTemplate, TemplateInput} from './registry.js';
 import type {ResumeItem} from '../types.js';
@@ -37,7 +38,7 @@ const heading=(title:string,d:Design)=>title?`<h2 class="design-heading" data-he
 // Infer presentation only from the supplied structure, never from section names.
 // A dated paragraph remains a paragraph in the saved content; no fields are rewritten.
 function listLayout(items:ResumeItem[]):'facts'|'dated'|undefined {
-  if(!items.length||items.some(i=>!i.title||i.subtitle||i.bullets.length||i.links?.length||i.title.length>48||/[\r\n]/.test(i.title)||
+  if(!items.length||items.some(i=>!i.title||i.subtitle||i.technologies||i.page_break_before||i.bullets.length||i.links?.length||i.title.length>48||/[\r\n]/.test(i.title)||
     i.paragraphs.length>1||i.paragraphs.some(p=>p.length>180||/[\r\n]/.test(p))||
     (i.period?i.paragraphs.length>0:i.paragraphs.length!==1)))return;
   const date=(value:string)=>/\d{4}/.test(value)&&/^[\d\s年月至今现在./—–~～-]+$/.test(value)&&value.length<=24;
@@ -49,23 +50,23 @@ function section(d:Design,s:TemplateInput['resume']['sections'][number]) {
   const keep=layout&&s.items.length<=6&&s.items.reduce((n,i)=>n+i.title.length+(i.period?.length??0)+i.paragraphs.join('').length,0)<=500;
   const items=s.items.map(i=>{
     if(layout)return `<div class="design-item design-fact"><h3>${escape(i.title)}</h3><p>${escape(i.period??i.paragraphs[0]!)}</p></div>`;
-    return `<div class="design-item">${i.title||i.period||i.subtitle?`<div class="design-item-heading">${i.period?`<span class="design-period">${escape(i.period)}</span>`:''}${i.title?`<h3>${escape(i.title)}</h3>`:''}${i.subtitle?`<div class="design-subtitle">${escape(i.subtitle)}</div>`:''}</div>`:''}${itemLinks(i.links)}${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}${i.bullets.length?`<ul>${i.bullets.map(b=>`<li>${escape(b)}</li>`).join('')}</ul>`:''}</div>`;
+    return `<div class="design-item" data-entry-id="${escape(i.id)}"${i.page_break_before?' data-break-before="true"':''}>${i.title||i.period||i.subtitle?`<div class="design-item-heading">${i.period?`<span class="design-period">${escape(i.period)}</span>`:''}${i.title?`<h3>${escape(i.title)}</h3>`:''}${i.subtitle?`<div class="design-subtitle">${escape(i.subtitle)}</div>`:''}</div>`:''}${i.technologies?`<p class="resume-technologies">${escape(i.technologies)}</p>`:''}${itemLinks(i.links)}${i.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}${i.bullets.length?`<ul>${i.bullets.map(b=>`<li>${escape(b)}</li>`).join('')}</ul>`:''}</div>`;
   }).join('');
   return `<section class="design-section"${layout?` data-layout="${layout}"`:''}${keep?' data-keep-together="true"':''}>${heading(s.title,d)}${items}</section>`;
 }
 
 function render(d:Design,{resume:r,assets,synthetic}:TemplateInput) {
   const photo=assets.photo;
-  const portrait=photo?`<div class="design-photo-frame"><img class="resume-photo" src="${photo.dataUrl}" alt="${escape(photo.alt)}" style="object-position:${photo.x}% ${photo.y}%" width="112" height="140"></div>`:'';
+  const portrait=photo?`<div class="design-photo-frame"><img class="resume-photo" src="${photo.dataUrl}" alt="${escape(photo.alt)}" style="object-position:${photo.x}% ${photo.y}%;transform:scale(${photo.zoom??1});transform-origin:${photo.x}% ${photo.y}%" width="112" height="140"></div>`:'';
   const contacts=r.contacts.length?`<dl class="design-contacts">${r.contacts.map(c=>`<div>${c.label?`<dt>${escape(c.label)}</dt>`:''}<dd>${contactValue(c)}</dd></div>`).join('')}</dl>`:'';
   const grid=d.layout==='grid';
   const masthead=d.masthead?`<div class="design-masthead" data-masthead="${d.masthead}" aria-hidden="true">${d.masthead==='english'?'PERSONAL RESUME':d.masthead==='ribbon'?'Personal Resume':d.masthead==='bar'?'<span>个人简历</span>':''}</div>`:'';
-  return `${masthead}${grid&&d.id!=='graphite-bar'?heading('基本信息',d):''}<header class="design-header" data-layout="${d.layout}" data-photo="${!!photo}">${portrait}<div class="design-identity">${synthetic?'<div class="design-synthetic">虚构示例</div>':''}<h1>${grid?'<small>姓名</small>':''}${escape(r.name)}</h1>${grid?`${r.headline?`<p class="design-role"><small>求职方向</small>${escape(r.headline)}</p>`:''}${contacts}`:`${contacts}${r.headline?`<p class="design-role">${escape(r.headline)}</p>`:''}`}</div></header>${r.summary.length?`<section class="design-section">${heading('个人简介',d)}${r.summary.map(p=>`<p>${escape(p)}</p>`).join('')}</section>`:''}${r.sections.map(s=>section(d,s)).join('')}`;
+  return `${masthead}${grid&&d.id!=='graphite-bar'?heading('基本信息',d):''}<header class="design-header" data-layout="${d.layout}" data-photo="${!!photo}">${portrait}<div class="design-identity">${synthetic?'<div class="design-synthetic">虚构示例</div>':''}<h1>${grid?'<small>姓名</small>':''}${escape(r.name)}</h1>${grid?`${r.headline?`<p class="design-role"><small>求职方向</small>${escape(r.headline)}</p>`:''}${contacts}`:`${contacts}${r.headline?`<p class="design-role">${escape(r.headline)}</p>`:''}`}</div></header>${resumeBlocks(r).map(block=>block.kind==='summary'?`<section class="design-section">${heading(block.title,d)}${block.paragraphs.map(p=>`<p>${escape(p)}</p>`).join('')}</section>`:section(d,block.section)).join('')}`;
 }
 
 export const selectedTemplates:ResumeTemplate[] = designs.map(d=>{
   const selector=`.resume-paper[data-template="${d.id}"]`;
-  return {id:d.id,name:d.name,version:3,description:d.name,tags:['单栏','A4',d.reference,d.round?'圆形照片':'证件照'],photo:'optional',
+  return {id:d.id,name:d.name,version:5,description:d.name,tags:['单栏','A4',d.reference,d.round?'圆形照片':'证件照'],photo:'optional',
     css:`${selector}{--design-accent:${d.color}}\n`+commonCss.replaceAll('&',selector),
     render:input=>render(d,input)};
 });

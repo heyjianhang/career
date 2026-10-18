@@ -20,7 +20,7 @@ flowchart LR
 
 ## 唯一正文与生成规则
 
-`content.profile` 保存姓名、方向、联系信息和照片；summary 保存简介；sections/items 保存有序经历。条目 kind 为 employment、project、education 或 other，日期、描述、职责、成果与链接分别保存。common.sections 统一保存技能、语言、证书等字段，同时生成通用资料与附件章节。未知字段保留，网页只改用户操作的字段。
+`content.profile` 保存姓名、方向、联系信息和照片；summary 保存简介，summary_title 可选并默认“个人简介”；sections/items 保存有序经历。条目 kind 为 employment、project、education 或 other，日期、描述、职责、成果与链接分别保存。common.sections 统一保存技能、语言、证书等字段，同时生成通用资料与附件章节。未知字段保留，网页只改用户操作的字段。
 
 字段规则以 resume platforms 为准。映射层按规则拆分／合并正文，专用字段不存在时将项目角色、公司、职责、成果及链接组合到正文；不调用模型，不自动改写或截断。超长返回 LENGTH_REVIEW。四平台只覆盖已核对的主要经历字段，不代表覆盖全部注册资料、选择器选项或提交校验。
 
@@ -65,4 +65,20 @@ career-presentation/v1 保持原有校验与导出。转为可编辑版必须另
 
 当前源码统一过滤展示层的空栏目：缺省或空 items、全空白条目、空段落／要点、仅标签无值的通用资料、未填写的联系方式和求职方向不占位。只含标题、日期、说明或有效链接的条目仍保留；“无”“暂无”和数字 0 是实际内容，不自动删除。空链接可暂存在统一包草稿，但非空的非法网址仍拒绝保存。
 
-14 种样式、卡片缩略图、预览、离线 HTML 与 PDF 共用此规则，编辑器及 package.json 不删草稿；历史冻结文件不回写。旧展示包允许 sections／items 为空数组；仍检查非空字段格式、来源和链接。空的平台稿显示“暂无可填写内容”。回归：node tests/resume-empty-browser.mjs，使用合成资料检查全部样式的空栏、分页与 PDF。
+15 种样式、卡片缩略图、预览、离线 HTML 与 PDF 共用此规则，编辑器及 package.json 不删草稿；历史冻结文件不回写。旧展示包允许 sections／items 为空数组；仍检查非空字段格式、来源和链接。空的平台稿显示“暂无可填写内容”。回归：node tests/resume-empty-browser.mjs，使用合成资料检查全部样式的空栏、分页与 PDF。
+
+## 编辑预览与排版（当前源码）
+
+编辑器在宽窗口并排展示表单与 A4 分页预览，窄窗口切换内容／预览。修改通过只读 `/api/library/preview` 校验与渲染，不写正文、历史或主题；保存仍使用原摘要并发检查。模板选择在点击保存后写入当前简历的样式偏好。字体、图片与分页引擎和正式导出共用，预览缩放不改变打印布局。
+
+统一包增加可选字段：`profile.english_name`、`layout.sectionOrder/fontSize/lineHeight/density`、经历的 `technologies/page_break_before`、照片 `position.zoom`。sectionOrder 用 `section:<id>` 与 `common:<id>`，可通过目录拖动／箭头调整全部栏目；未列出的保留原序追加，失效引用忽略。旧包缺省顺序保持不变。独立技术栈在角色后展示，平台稿并入项目描述；不要与正文重复。字段范围以 Schema 为准。
+
+照片可更换并调水平、垂直焦点和 1–2 倍缩放，调整不改原图。独立预览与编辑器支持适应宽度、100%／125% 和页导航。新样式 `engineering`（简约研发）沿用用户认可的蓝灰单栏 HTML 设计：顶部照片、英文名与图标联系项、独立技术栈、技能双列、姓名页脚及页码；标题与首段、结尾两条要点保持组合，过长经历允许续页，不限制页数。其他模板保留自身样式。
+
+该改动为本地源码版本，不代表 npm／桌面发布。合成回归包括混合栏目排序、所有模板技术栈保留、只读预览、会话校验、裁切与字号边界、旧包兼容；界面与 PDF 另做视觉核对。
+
+### 模块名称与顺序
+
+每个模块顶部直接修改名称、上移或下移；个人简介也参与排序。名称同时更新目录、预览、HTML 与 PDF。`content.sections[].title` 和 `content.common.sections[].title` 是显示名称，`content.summary_title` 默认“个人简介”；空名称只隐藏附件标题，正文保留。模块 ID 和条目 kind 保持稳定，不因改名改变平台字段映射。
+
+`content.layout.sectionOrder` 支持 `summary`、`section:<id>`、`common:<id>` 混排。旧包未指定 summary 时简介仍置顶；缺失引用忽略，新栏目按原序追加。网页和 Agent 共用这份结构，通过原摘要安全保存。各平台固定表单顺序由平台规则决定，不随附件顺序改写。

@@ -55,7 +55,7 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialP
  const first=await manager.entry(path.join(base,'面试准备 A')),second=await manager.create(base,'另一份 B');
  const a=await openWorkspace(first.path),b=await openWorkspace(second.path);assert.notEqual(a.url,b.url);
  for(const file of ['AGENTS.md','.agents/skills/career-setup/SKILL.md','.agents/skills/career-board/SKILL.md','.local/career','.local/career.cmd'])await fs.access(path.join(first.path,file));
- for(const skill of ['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','boss-zhipin-scraper','jd-research'])await fs.access(path.join(first.path,'.agents/skills',skill,'SKILL.md'));
+ for(const skill of ['career-setup','career-git','career-intake','career-employment','career-project','resume-master','resume-tailor','career-board','career-company','career-match','career-outreach','career-discovery','boss-zhipin-scraper','jd-research'])await fs.access(path.join(first.path,'.agents/skills',skill,'SKILL.md'));
  for(const name of ['pre-resume.md','tracking.md'])await fs.access(path.join(first.path,'.agents/skills/jd-research/references',name));
  assert.equal(await fs.readFile(path.join(first.path,'.gitattributes'),'utf8'),await fs.readFile(path.join(coreRoot,'resources/workspace/gitattributes.template'),'utf8'));
  const cli=args=>{const result=spawnSync(process.execPath,[path.join(__dirname,'runner.cjs'),'--workspace',first.path,...args],{encoding:'utf8',env:{...process.env,ELECTRON_RUN_AS_NODE:'1',PATH:process.platform==='win32'?path.join(process.env.SystemRoot,'System32'):'/usr/bin:/bin'},cwd:second.path,timeout:60000});if(result.error)throw result.error;return result;};
@@ -166,6 +166,29 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialP
  await capture('resume-empty-sections');
  const exported=cli(['resume','export','--build',path.join(snapshot.directory,'resumes',manifest.entries[0].id),'--format','pdf','--out',path.join(base,'cli.pdf'),'--json']);assert.equal(exported.status,0,exported.stderr);
  assert.equal((await fs.readFile(path.join(base,'cli.pdf'))).subarray(0,5).toString(),'%PDF-');
+ // Exercise module editing and pagination in the packaged runtime at a narrow width.
+ const editable=await resumes.readResume(first.path,existing.id);
+ editable.package.content.summary='合成个人简介，仅用于打包验收。';
+ editable.package.content.sections[0].items[0].technologies='Python · PostgreSQL · MCP';
+ await resumes.savePackage(first.path,editable.package,editable.sha256);
+ const io=await import(pathToFileURL(path.join(coreRoot,'dist/presentation/io.js')));
+ await io.savePreference(first.path,'engineering',existing.id);
+ const previousSize=win.getSize();win.setSize(520,800);
+ await win.loadURL(new URL('/resumes/'+existing.id+'/edit',a.url).href);
+ await waitFor(`document.querySelector('#editor-preview-paper iframe:not([data-pending])')?.contentDocument?.documentElement.dataset.pagination==='ready'`);
+ await js(`const field=document.querySelector('[data-module-title="section:projects"]');field.value='Agent 项目实践';field.dispatchEvent(new Event('input'));document.querySelector('#edit-section-0 [data-direction="-1"]').click();`);
+ await waitFor(`document.querySelector('#ordered-sections')?.firstElementChild?.id==='edit-section-0'`);
+ await js(`document.getElementById('save-package').click()`);
+ await waitFor(`document.getElementById('save-state')?.textContent==='已保存'`);
+ const modified=await resumes.readResume(first.path,existing.id);
+ assert.equal(modified.package.content.sections[0].title,'Agent 项目实践');assert.equal(modified.package.content.layout.sectionOrder[0],'section:projects');
+ await js(`document.querySelector('[data-editor-view="preview"]').click()`);
+ await waitFor(`document.querySelector('#editor-preview-paper iframe:not([data-pending])')?.contentDocument?.documentElement.dataset.pagination==='ready'`);
+ const preview=await js(`document.querySelector('#editor-preview-paper iframe:not([data-pending])').contentDocument.body.innerText`);
+ assert.ok(preview.indexOf('Agent 项目实践')<preview.indexOf('个人简介'));assert.ok(preview.includes('Python · PostgreSQL · MCP'));
+ await capture('resume-modules-pagination');win.setSize(...previousSize);
+ await win.loadURL(new URL('/profile#section=companies',a.url).href);
+ await waitFor(`document.body.innerText.includes('目标公司')`);await capture('discovery-entry');
  await win.loadURL('career-app://desktop/index.html');await win.webContents.executeJavaScript('document.fonts.ready');
  await waitFor(`!document.querySelector('main').hasAttribute('aria-busy')`);
  assert.equal(await js(`document.querySelectorAll('.recent-item').length`),2);
@@ -198,5 +221,5 @@ exports.run=async({app,win,tray,manager,core,coreRoot,openWorkspace,openInitialP
   assert.equal(registry.last_workspace,first.id);assert.equal(registry.recent.length,2);
  }finally{await fs.rename(moved,first.path);}
  await capture('startup-missing-workspace');
- return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['AI encrypted settings and persisted defaults, packaged LangChain invocation through native IPC, reviewed JD import with original text', 'update settings, persisted preferences, badge, inert notes, rate-limit cooldown and dated public-manifest fallback over native IPC','repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','match summary and independent outreach tab with packaged contracts, clipboard and stale input detection','thirteen Skills, preserved line-ending rules and empty initial resume/job libraries without demonstration files','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF with empty optional sections hidden and source draft preserved','recent workspaces','startup restores the last workspace among multiple libraries; explicit chooser remains available; missing last workspace preserves records and falls back']};
+ return {ok:true,workspace:first.path,secondWorkspace:second.path,version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,pdfBytes:pdf.length,checks:['editable module labels/order, engineering template and hidden narrow-screen preview in the packaged runtime','company discovery entry and bundled Skill','AI encrypted settings and persisted defaults, packaged LangChain invocation through native IPC, reviewed JD import with original text', 'update settings, persisted preferences, badge, inert notes, rate-limit cooldown and dated public-manifest fallback over native IPC','repository restore entry and Git environment bridge','QCC settings IPC, OS-encrypted local key, bundled helper status and missing-key error without Node', 'bundled CLI without system Node/npm','workspace isolation and override rejection','match summary and independent outreach tab with packaged contracts, clipboard and stale input detection','fourteen Skills, preserved line-ending rules and empty initial resume/job libraries without demonstration files','sandboxed renderer and scoped IPC','separate welcome/create/handoff and actual form submission','default expanded sidebar and saved choice','native tray and packaged icons','bundled Chromium PDF + CLI PDF with empty optional sections hidden and source draft preserved','recent workspaces','startup restores the last workspace among multiple libraries; explicit chooser remains available; missing last workspace preserves records and falls back']};
 };

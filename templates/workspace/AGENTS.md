@@ -28,6 +28,7 @@
 - 首次形成或更新母版：[resume-master](.agents/skills/resume-master/SKILL.md)。事实与团队／个人贡献分清，不能编造收益。
 - 生成或打开简历、平台稿、HTML／PDF：[resume-tailor](.agents/skills/resume-tailor/SKILL.md)。用户要求整套交付时完成到可访问页面。
 
+- 还没有具体 JD，希望发现行业龙头、地方链主、细分领域或相邻行业公司：[career-discovery](.agents/skills/career-discovery/SKILL.md)。从实际工作与意向城市出发，查证业务、团队地点和招聘线索，结果保存到 research/companies/，在“我的资料 → 目标公司”查看；选定真实岗位后再交给 career-board，不把公司名单当 JD 或匹配分。
 - 搜索 BOSS 岗位、批量读取 JD 或比较新增机会：[boss-zhipin-scraper](.agents/skills/boss-zhipin-scraper/SKILL.md)。Skill 和采集脚本已随包安装，首次使用时才准备 Python 依赖和独立浏览器登录；结果按该 Skill 的入库说明交给 career-board。只整理用户提供的 JD 时直接使用 career-board。
 - 研究 JD 共性、比较求职方向、规划能力补足，或根据岗位要求找出简历表达遗漏：[jd-research](.agents/skills/jd-research/SKILL.md)。可只做方向规划或只做简历建议；复用已有岗位与经历，再按需要进入看板或简历定制。
 - 收录 JD、串联岗位分析及简历关联、协作待办或面试跟进：[career-board](.agents/skills/career-board/SKILL.md)。先去重建卡、保存 job.md，再按范围调用下面两个独立 Skill；未绑定简历先推荐现有版本并询问，有 subagent 时按编排协议分工。

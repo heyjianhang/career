@@ -23,11 +23,22 @@ export function paginationDocument(markup:string, resources:{engine:string;css:s
       await document.fonts.ready;
       await Promise.all(Array.from(document.images).map(i=>i.decode()));
       const source=document.getElementById('source');
+      // Measure with the final fonts and A4 content width. Long tails remain
+      // splittable; keeping them would create the same oversized blank gaps.
+      for(const tail of source.querySelectorAll('[data-flow-tail]')){
+        const line=parseFloat(getComputedStyle(tail).lineHeight);
+        if(Number.isFinite(line)&&tail.getBoundingClientRect().height<=line*5)tail.setAttribute('data-flow-keep','');
+      }
       const content=source.innerHTML;
       source.remove();
       const styles=JSON.parse(document.getElementById('layout-data').textContent);
       const flow=await new PagedModule.Previewer().preview(content,[{'about:blank':styles}],document.getElementById('pages'));
       document.documentElement.dataset.pageCount=String(flow.total);
+      const pages=Array.from(document.querySelectorAll('.pagedjs_page'));
+      const last=pages.at(-1)?.querySelector('.pagedjs_page_content');
+      const occupied=last?Math.max(0,...Array.from(last.querySelectorAll('h1,h2,h3,p,li,img')).map(e=>e.getBoundingClientRect().bottom-last.getBoundingClientRect().top)):0;
+      const shortTail=flow.total>1&&last&&occupied<last.getBoundingClientRect().height*.25;
+      if(shortTail)document.documentElement.dataset.layoutWarning='末页内容较少，可调整间距或分页';
       document.documentElement.dataset.pagination='ready';
       parent.postMessage({type:'career-pagination',state:'ready'},'*');
     } catch(e) {document.documentElement.dataset.pagination='error';document.documentElement.dataset.paginationError=String(e);parent.postMessage({type:'career-pagination',state:'error'},'*');}

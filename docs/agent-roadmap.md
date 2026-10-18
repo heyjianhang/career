@@ -6,12 +6,12 @@
 
 在开发仓库运行 `npm run build:agent-roadmap`，然后用浏览器打开 `build/agent-roadmap/index.html`。页面内嵌本次构建读取的 Markdown，可离线阅读、查看原文、沿链接打开 Skill 参考资料。查看“源文件”需要本地仓库仍在原有相对位置；生成 HTML 可以单独分享阅读，但分享后的源文件链接不再指向接收者的仓库。
 
-页面有五条入口：第一次开始、继续一段经历、查看／导出已有简历、岗位与面试、方向研究与补足。步骤是按请求选择的路线，不要求用户每次全部走完。节点内说明何时继续、何时保持当前主题，以及快速草稿、暂缓和直接导出的边界。
+页面有六条入口：第一次开始、继续一段经历、查看／导出已有简历、岗位与面试、方向研究与补足、发现目标公司。步骤是按请求选择的路线，不要求用户每次全部走完。节点内说明何时继续、何时保持当前主题，以及快速草稿、暂缓和直接导出的边界。
 
 ## 来源与维护
 
 - 共同推进规则：[agent-workflow.md](agent-workflow.md)，随安装包进入个人工作区。
-- 实际方法：十三个用户 Skills。具体能力保持在对应 SKILL.md 和 references；路线图不替代它们。任职和项目分别使用 career-employment、career-project；公司与具体简历匹配分别使用 career-company、career-match，由 career-board 编排。
+- 实际方法：十四个用户 Skills。具体能力保持在对应 SKILL.md 和 references；路线图不替代它们。任职和项目分别使用 career-employment、career-project；公司与具体简历匹配分别使用 career-company、career-match，由 career-board 编排。
 - 大阶段：`templates/context/progress.md` 是用户工作区的阶段总账模板；页面展示默认路线和模板，不冒充某个用户的实时完成度。
 - 资产写法与参考：`docs/career-assets.md`、`docs/agent-method-references.md`，说明详细记录如何转成表达，以及参考方法的取舍。
 - 页面布局、场景摘要：[源码目录](agent-roadmap/)。摘要改动后核对对应方法；方法改变后重新构建。
@@ -19,6 +19,8 @@
 - 当前行为验证场景：[评测清单](skill-evaluation-cases.md)。独立模型访谈效果尚待验证。
 
 `npm run test:agent-roadmap` 检查离线阅读、场景导航、文档内链接、原文切换、返回／Esc 及窄屏。`npm test`、`npm run check:docs` 和 `npm run test:package` 另行验证构建、安装后引用和真实包。自动化检查通过不证明任何 Agent 必然遵循引导。
+
+发现目标公司路线串联个人方向、公司池、真实 JD、公司／岗位分析和投递材料；各环节按用户范围选择，不自动全量建卡或投递。公司池与 JD 调研可分别保存和交叉引用。
 
 ## 本次调整重点
 

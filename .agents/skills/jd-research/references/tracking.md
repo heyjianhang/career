@@ -35,7 +35,7 @@
 - `context/state.md`：当前样本／行动 ID、下一步或待问问题，并保留暂停的经历访谈断点。
 - `resume/questions.md`：只收履历事实问题，链接研究要求；学习清单仍留在 plan。
 
-Career 的“我的资料 → 岗位调研”可读这些文件；`history save` 与已连接的云同步会纳入 `research/jd/`，其他任意 research 目录不自动纳入。只做本机文件保存也可继续；没有 Git 或上传失败，分别说明文件已保存和同步未完成，不声称已有备份。
+Career 的“我的资料 → 岗位调研”可读这些文件；`history save` 与已连接的云同步会纳入 `research/jd/`，目标公司研究另由 career-discovery 保存在 research/companies/ 并纳入保存／同步，其他任意 research 目录不自动纳入。只做本机文件保存也可继续；没有 Git 或上传失败，分别说明文件已保存和同步未完成，不声称已有备份。
 
 ## 简历生成时怎么用
 

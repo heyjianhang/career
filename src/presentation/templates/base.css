@@ -5,3 +5,15 @@
 @media screen and (max-width:600px){#resume-preview .resume-paper,.gallery-preview .resume-paper{padding:24px 20px;min-height:0;font-size:8pt;line-height:1.8}.resume-header{flex-wrap:wrap;gap:10px}.resume-header h1{font-size:25pt}.contacts{order:3;flex-basis:100%;text-align:left;flex-direction:row;flex-wrap:wrap;font-size:6.5pt;gap:8px}.contacts small{display:none}.resume-photo{width:19mm;height:25mm;margin-left:auto}.resume-header:has(.resume-photo) .contacts{margin-left:0}.item-heading{flex-wrap:wrap;gap:2px}.item-heading h3{font-size:8.5pt}.period{font-size:7pt}.resume-section{margin-top:19px}.resume-section h2{font-size:9pt}.template-thumb .resume-paper{width:794px;max-width:none;padding:14mm}.template-thumb .resume-header{flex-wrap:nowrap}.template-thumb .contacts{flex-basis:auto;flex-direction:column;text-align:right;order:0}.template-thumb .item-heading{flex-wrap:nowrap}.template-thumb .resume-photo{width:26mm;height:34mm}}
 
 .resume-web-link{color:inherit;text-decoration:underline;text-decoration-thickness:.6px;text-underline-offset:2px;overflow-wrap:anywhere}.resume-web-link:hover{color:var(--design-accent,#375c48)}.resume-web-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}.resume-item-links{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:8pt;margin:3px 0 7px;break-after:avoid}
+
+/* Shared, content-driven layout controls. */
+.resume-paper [data-break-before="true"]{break-before:page}
+.resume-paper .resume-technologies{font-size:.88em;color:#65758a;break-after:avoid;line-height:1.6}
+.standard-photo-frame{width:26mm;height:34mm;overflow:hidden;flex:none;border-radius:2px}
+.standard-photo-frame .resume-photo{display:block}
+.resume-paper[data-density="compact"] .resume-section,.resume-paper[data-density="compact"] .design-section{margin-top:14px}
+.resume-paper[data-density="compact"] .resume-item,.resume-paper[data-density="compact"] .design-item{margin-bottom:10px}
+
+/* A manual break on the first entry carries its section heading with it. */
+.resume-paper section:has(> [data-break-before="true"]:first-of-type){break-before:page}
+.resume-paper section > [data-break-before="true"]:first-of-type{break-before:auto}

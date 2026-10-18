@@ -27,7 +27,7 @@
 | 能力 | npm 0.2.0 | 桌面 0.3.0-alpha.13 | 当前开发源码 |
 | --- | --- | --- | --- |
 | 经历整理、母版、14 款样式、HTML/PDF、平台填写稿 | 已提供 | 已提供 | 已实现 |
-| 用户 Skills | 5 个 | 12 个 | 13 个 |
+| 用户 Skills | 5 个 | 12 个 | 14 个 |
 | 岗位看板、公司与岗位分析、面试记录与准备 | 未包含 | 已提供 | 已实现 |
 | 简历卡片库、网页编辑、岗位关联与投递快照 | 未包含 | 已提供 | 已实现 |
 | 根据 JD 与简历准备打招呼稿、查看和复制正文 | 未包含 | 未包含 | 已实现，使用外部 Agent |
@@ -90,6 +90,7 @@ Agent 先和你确定保存位置，默认在该位置创建 `career-workspace` 
 | [resume-master](.agents/skills/resume-master/SKILL.md) | 把事实整理成可读母版，保留个人贡献、来源与待补项 |
 | [career-board](.agents/skills/career-board/SKILL.md) | 收集机会、查看全局、维护任务与资料，跨会话接手岗位（桌面版／源码） |
 | [boss-zhipin-scraper](.agents/skills/boss-zhipin-scraper/SKILL.md) | 搜索 BOSS 岗位、读取 JD、标记新增机会，衔接看板收录（仅当前源码，尚未发布） |
+| [目标公司发现（career-discovery）](.agents/skills/career-discovery/SKILL.md) | 根据实际工作与意向城市发现公司、核实招聘线索，选定 JD 后接入看板（当前源码，尚未发布） |
 | [jd-research](.agents/skills/jd-research/SKILL.md) | 分析 JD 共性，结合真实经历制定求职与补足计划，提出简历修改建议（仅当前源码，尚未发布） |
 | [career-company](.agents/skills/career-company/SKILL.md) | 独立研究公司业务、团队与经营信息，支持企查查与公开来源（当前源码） |
 | [career-match](.agents/skills/career-match/SKILL.md) | 依据具体简历版本与 JD 做有证据的岗位匹配分析（当前源码） |

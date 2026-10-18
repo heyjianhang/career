@@ -25,6 +25,8 @@ npm run test:outreach
 npm run test:resumes
 # 修改个人资料阅读器时：
 npm run test:profile
+# 修改目标公司发现、资料入口或岗位交接时：
+npm run test:discovery
 # 修改网页／项目链接时：
 npm run test:links
 # 修改简历排版模板时：
@@ -49,7 +51,9 @@ npm run test:templates
 
 ## Agent 路线图
 
-`npm run build:agent-roadmap` 从当前仓库 Markdown 和十三个用户 Skills 构建 `build/agent-roadmap/index.html`，浏览器直接打开即可离线阅读。页面源码与场景导航在 `docs/agent-roadmap/`，共同推进规则在 `docs/agent-workflow.md`，不在 HTML 里维护另一份 Skill 正文。更改方法后重新构建，使用 `npm run test:agent-roadmap` 验证导航、原文读取和窄屏。详见 [路线图维护](agent-roadmap.md)。
+目标公司发现使用 `.agents/skills/career-discovery`，研究文件在用户工作区 `research/companies/`，由现有资料阅读器和受管历史处理。`scripts/prepare-discovery-demo.mjs` 只创建新的独立合成目录，返回演示目录与已收录岗位 ID；不访问企业网站或填充用户资料。`test:discovery` 验证安装补装、资料边界、来源／岗位跳转、保留手改、双设备传输和 320–1440px，不代表 Agent 搜索与判断质量已评测。
+
+`npm run build:agent-roadmap` 从当前仓库 Markdown 和十四个用户 Skills 构建 `build/agent-roadmap/index.html`，浏览器直接打开即可离线阅读。页面源码与场景导航在 `docs/agent-roadmap/`，共同推进规则在 `docs/agent-workflow.md`，不在 HTML 里维护另一份 Skill 正文。更改方法后重新构建，使用 `npm run test:agent-roadmap` 验证导航、原文读取和窄屏。详见 [路线图维护](agent-roadmap.md)。
 
 ## 文件归属
 
@@ -99,9 +103,9 @@ npm run test:package
 npm pack
 ```
 
-`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、十三个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
+`test:package` 会从真实 tgz 安装到临时目录，再检查 setup／重试、十四个用户 Skills、`.gitignore`、HTML 生成及本地 Git 保存。缓存不完整时会从 npm registry 获取依赖或元数据，不能假定 npm ci 已预热全部安装元数据；临时资料均为合成内容，结束清理，不使用 GitHub。`.gitignore` 在包中使用 gitignore.template 文件名，安装时还原，避免 npm 丢弃忽略文件。
 
-包采用 files 白名单；package.json 与资源构建脚本都只包含十三个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。合成内容包只留在开发仓库，测试时显式导入，不安装到用户目录；`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
+包采用 files 白名单；package.json 与资源构建脚本都只包含十四个用户 Skills。维护者 career-release、私人 workspace、构建示例、测试、研究截图和源码不进入 npm。合成内容包只留在开发仓库，测试时显式导入，不安装到用户目录；`test:package` 同时校验包内和用户工作区的 Skill 边界。实际归档清单、版本与发布回执按发布 Skill 核验。
 
 2026-10-15 的 macOS / Node 26 本地验证覆盖 114 项 Node 测试与真实安装包流程，已从包内资源成功导出合成简历 PDF。Git 双设备同步使用本地 bare 仓库测试快进、安全合并、冲突保留、离线保存及自动同步时机；GitHub 隐私／权限拒绝逻辑有测试，但尚未在真实私人仓库执行完整注册、建仓、恢复流程。此前三平台 Node 22 CI 已通过 60 项测试；新提交的矩阵以对应 Actions 结果为准。浏览器／PDF 不在这套 CI 矩阵内。
 

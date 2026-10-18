@@ -21,6 +21,12 @@
 
 首次联系招聘方的派生草稿保存在 `opportunities/<岗位ID>/analysis/outreach.md`，使用 [career-outreach/v1 元数据](../schemas/outreach.v1.schema.json)。它引用所用简历 ID、简历与 JD 的 SHA-256，不复制或反写事实层。岗位「打招呼」页只提取约定标题下的消息正文；更换绑定、输入变更或读取失败时提示核对，保留原稿。生成和复制不改变投递阶段；用户报告已发送的文本另行留存，具体约定见 [打招呼稿保存方法](../.agents/skills/career-outreach/references/storage.md)。
 
+## 目标公司研究
+
+`research/companies/` 保存普通 Markdown 研究资料，不增加履历实体或公司工商 Schema。INDEX 索引稳定公司 ID 和关注状态；companies 下每公司一份主记录，searches 保存研究范围和取舍，sources 按需留证据。详细规则见 [公司池与岗位交接](../.agents/skills/career-discovery/references/storage.md)。
+
+我的资料中的“目标公司”读取该目录，本地历史和用户已有授权的同步收录该范围，其他 research 子目录保持原边界。公司记录可用相对链接指向已创建岗位的 job.md；界面打开该岗位。公司相关性不替代具体 JD 的匹配结果，关注不等于投递；只有实际建卡回执成功后登记岗位 ID。
+
 ## 展示内容包
 
 新成品使用 `career-resume-package/v1`，Agent 与网页修改同一个 content，平台稿由固定规则生成；见 [统一简历包](resume-packages.md)。事实库和母版继续独立维护，不从 HTML 反解析。
